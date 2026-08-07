@@ -1,0 +1,15 @@
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\bin\Debug\net10.0\XiangqiOnline.RuleEngine.deps.json
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\bin\Debug\net10.0\XiangqiOnline.RuleEngine.dll
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\bin\Debug\net10.0\XiangqiOnline.RuleEngine.pdb
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\bin\Debug\net10.0\XiangqiOnline.Shared.dll
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\bin\Debug\net10.0\XiangqiOnline.Shared.pdb
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.csproj.AssemblyReference.cache
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.GeneratedMSBuildEditorConfig.editorconfig
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.AssemblyInfoInputs.cache
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.AssemblyInfo.cs
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.csproj.CoreCompileInputs.cache
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiO.BA5D998D.Up2Date
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.dll
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\refint\XiangqiOnline.RuleEngine.dll
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\XiangqiOnline.RuleEngine.pdb
+D:\UTH\Nam hai(2025-2026)\HK_he\Laptrinhmang\thuchanh\Phase_1\Code\src\XiangqiOnline.RuleEngine\obj\Debug\net10.0\ref\XiangqiOnline.RuleEngine.dll
