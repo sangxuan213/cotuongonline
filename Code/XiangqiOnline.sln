@@ -1,0 +1,87 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E73FDDD3-3E45-43CF-94E8-17EAC4809B58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.Shared", "src\XiangqiOnline.Shared\XiangqiOnline.Shared.csproj", "{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.RuleEngine", "src\XiangqiOnline.RuleEngine\XiangqiOnline.RuleEngine.csproj", "{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.Server", "src\XiangqiOnline.Server\XiangqiOnline.Server.csproj", "{899C7F56-CC23-47A8-A633-A7F34C683A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.Client", "src\XiangqiOnline.Client\XiangqiOnline.Client.csproj", "{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{618B0422-42C4-457D-A26A-54A15725599F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.RuleEngine.Tests", "tests\XiangqiOnline.RuleEngine.Tests\XiangqiOnline.RuleEngine.Tests.csproj", "{72AD56BF-F486-4156-8AC1-EAE6D547B268}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.Server.Tests", "tests\XiangqiOnline.Server.Tests\XiangqiOnline.Server.Tests.csproj", "{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.Protocol.Tests", "tests\XiangqiOnline.Protocol.Tests\XiangqiOnline.Protocol.Tests.csproj", "{EB27C210-89AD-4BD7-A75E-791F73CECC2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.IntegrationTests", "tests\XiangqiOnline.IntegrationTests\XiangqiOnline.IntegrationTests.csproj", "{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{8CB0451E-ECA1-4DA2-A39E-CF64F03C4D82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiangqiOnline.LoadTest", "tools\XiangqiOnline.LoadTest\XiangqiOnline.LoadTest.csproj", "{5C2318FF-3F01-4F66-901E-FC06D8E4887E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{899C7F56-CC23-47A8-A633-A7F34C683A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{899C7F56-CC23-47A8-A633-A7F34C683A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{899C7F56-CC23-47A8-A633-A7F34C683A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{899C7F56-CC23-47A8-A633-A7F34C683A2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72AD56BF-F486-4156-8AC1-EAE6D547B268}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72AD56BF-F486-4156-8AC1-EAE6D547B268}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72AD56BF-F486-4156-8AC1-EAE6D547B268}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72AD56BF-F486-4156-8AC1-EAE6D547B268}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB27C210-89AD-4BD7-A75E-791F73CECC2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB27C210-89AD-4BD7-A75E-791F73CECC2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB27C210-89AD-4BD7-A75E-791F73CECC2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB27C210-89AD-4BD7-A75E-791F73CECC2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C2318FF-3F01-4F66-901E-FC06D8E4887E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C2318FF-3F01-4F66-901E-FC06D8E4887E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C2318FF-3F01-4F66-901E-FC06D8E4887E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C2318FF-3F01-4F66-901E-FC06D8E4887E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CEBF35D6-64B4-4B3B-A2BE-695D2BAE24C5} = {E73FDDD3-3E45-43CF-94E8-17EAC4809B58}
+		{2D8D9EBE-5DA8-4F91-BC33-E042B8BD5057} = {E73FDDD3-3E45-43CF-94E8-17EAC4809B58}
+		{899C7F56-CC23-47A8-A633-A7F34C683A2C} = {E73FDDD3-3E45-43CF-94E8-17EAC4809B58}
+		{370BB5BB-1A0F-42D1-8B7E-4F67BD2F981E} = {E73FDDD3-3E45-43CF-94E8-17EAC4809B58}
+		{72AD56BF-F486-4156-8AC1-EAE6D547B268} = {618B0422-42C4-457D-A26A-54A15725599F}
+		{B4CA9CA2-8F6F-4AA5-B512-9724F1CA2322} = {618B0422-42C4-457D-A26A-54A15725599F}
+		{EB27C210-89AD-4BD7-A75E-791F73CECC2F} = {618B0422-42C4-457D-A26A-54A15725599F}
+		{8C3D00FF-E850-40EE-A5BF-EDE4573F8FE4} = {618B0422-42C4-457D-A26A-54A15725599F}
+		{5C2318FF-3F01-4F66-901E-FC06D8E4887E} = {8CB0451E-ECA1-4DA2-A39E-CF64F03C4D82}
+	EndGlobalSection
+EndGlobal
