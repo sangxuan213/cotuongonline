@@ -5,7 +5,7 @@
 ## Công nghệ
 
 - C#
-- .NET 8
+- .NET 10
 - WPF
 - TCP
 - JSON với 4-byte length prefix
