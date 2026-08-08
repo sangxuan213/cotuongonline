@@ -1,0 +1,31 @@
+<UserControl x:Class="UDM18.Client.Views.LobbyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,20">
+            <Button DockPanel.Dock="Right" Content="Ă¢â€ Â»  LÄ‚Â m mĂ¡Â»â€ºi" Command="{Binding RefreshCommand}"/>
+            <StackPanel><TextBlock Text="SĂ¡ÂºÂ£nh Ă„â€˜Ă¡ÂºÂ¥u" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Ink}"/><TextBlock Text="ChĂ¡Â»Ân mĂ¡Â»â„¢t ngĂ†Â°Ă¡Â»Âi Ă„â€˜ang rĂ¡ÂºÂ£nh Ă„â€˜Ă¡Â»Æ’ gĂ¡Â»Â­i lĂ¡Â»Âi thÄ‚Â¡ch Ă„â€˜Ă¡ÂºÂ¥u." Foreground="{StaticResource Muted}" Margin="0,5,0,0"/></StackPanel>
+        </DockPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.65*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}">
+                <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <DockPanel Margin="0,0,0,14"><TextBlock Text="NGĂ†Â¯Ă¡Â»Å“I CHĂ†Â I TRĂ¡Â»Â°C TUYĂ¡ÂºÂ¾N" FontWeight="Bold" Foreground="{StaticResource Muted}" FontSize="11"/><Border DockPanel.Dock="Right" Background="#DCFCE7" CornerRadius="9" Padding="9,4"><TextBlock Text="Server live" Foreground="#15803D" FontSize="11" FontWeight="SemiBold"/></Border></DockPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Players}" SelectedItem="{Binding SelectedPlayer}">
+                        <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,8"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate><DataTemplate><Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="13"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border Width="34" Height="34" CornerRadius="17" Background="#DBEAFE"><TextBlock Text="{Binding Initial}" Foreground="#1D4ED8" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/><TextBlock Text="ID ngĂ†Â°Ă¡Â»Âi chĂ†Â¡i" FontSize="10" Foreground="{StaticResource Muted}"/></StackPanel><Border Grid.Column="2" Background="#ECFDF5" CornerRadius="9" Padding="9,4" VerticalAlignment="Center"><TextBlock Text="{Binding Status}" Foreground="#047857" FontSize="11"/></Border></Grid></Border></DataTemplate></ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Grid.Row="2" Content="GĂ¡Â»Â­i lĂ¡Â»Âi thÄ‚Â¡ch Ă„â€˜Ă¡ÂºÂ¥u" Command="{Binding ChallengeCommand}" HorizontalAlignment="Left" Margin="0,14,0,0"/>
+                </Grid>
+            </Border>
+            <StackPanel Grid.Column="2">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel><TextBlock Text="LĂ¡Â»Å“I MĂ¡Â»Å“I Ă„ÂĂ¡ÂºÂ¾N" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding IncomingChallenge.FromDisplayName, TargetNullValue=ChĂ†Â°a cÄ‚Â³ lĂ¡Â»Âi mĂ¡Â»Âi mĂ¡Â»â€ºi}" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource Ink}" Margin="0,12,0,18" TextWrapping="Wrap"/><WrapPanel><Button Content="ChĂ¡ÂºÂ¥p nhĂ¡ÂºÂ­n" Command="{Binding AcceptCommand}" Background="#0F766E"/><Button Content="TĂ¡Â»Â« chĂ¡Â»â€˜i" Command="{Binding RejectCommand}" Background="#B91C1C"/></WrapPanel></StackPanel>
+                </Border>
+                <Border Margin="0,18,0,0" Padding="18" CornerRadius="14" Background="#EFF6FF"><TextBlock Text="MĂ¡Â»â„¢t lĂ¡Â»Âi mĂ¡Â»Âi chĂ¡Â»â€° tĂ¡ÂºÂ¡o phÄ‚Â²ng sau khi Server xÄ‚Â¡c nhĂ¡ÂºÂ­n CHALLENGE_ACCEPT vÄ‚Â  phÄ‚Â¡t ROOM_CREATED." TextWrapping="Wrap" Foreground="#1E40AF"/></Border>
+            </StackPanel>
+        </Grid>
+        <Border Grid.Row="2" Margin="0,14,0,0" Padding="12" Background="#E8EEF5" CornerRadius="9"><TextBlock Text="{Binding Status}" Foreground="#475569" TextWrapping="Wrap"/></Border>
+    </Grid>
+</UserControl>
