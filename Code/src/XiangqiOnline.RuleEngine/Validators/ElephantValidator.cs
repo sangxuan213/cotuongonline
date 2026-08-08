@@ -8,8 +8,8 @@ namespace XiangqiOnline.RuleEngine.Validators;
 /// Validator kiểm tra luật di chuyển cho Tượng (Elephant).
 /// Quy tắc:
 /// - Tượng đi đường chéo 2 ô (|dx| = 2, |dy| = 2).
-/// - Tượng KHÔNG ĐƯỢC qua sông.
-/// - Kiểm tra Mắt Tượng (ô giữa đường chéo 2 ô): Nếu có quân cờ đứng ở mắt Tượng thì bị cản (Elephant Eye Blocked).
+/// - Tượng KHÔNG ĐƯỢC qua sông (BLACK y <= 4, RED y >= 5).
+/// - Kiểm tra Mắt Tượng (ô giữa đường chéo 2 ô): Nếu có quân cờ đứng ở mắt Tượng thì bị cản (ELEPHANT_EYE_BLOCKED).
 /// - Không được đè lên quân đồng minh.
 /// </summary>
 public class ElephantValidator : IMoveValidator
@@ -20,20 +20,20 @@ public class ElephantValidator : IMoveValidator
     {
         if (!to.IsValid())
         {
-            return MoveValidationResult.Fail(ErrorCodes.INVALID_COORDINATE, "Tọa độ đích nằm ngoài bàn cờ.");
+            return MoveValidationResult.Fail(ErrorCodes.OUT_OF_BOARD, "Tọa độ đích nằm ngoài bàn cờ.");
         }
 
         // 1. Tượng không được qua sông
         if (to.HasCrossedRiver(piece.Side))
         {
-            return MoveValidationResult.Fail(ErrorCodes.CANNOT_CROSS_RIVER, "Tượng không được đi sang bên kia sông.");
+            return MoveValidationResult.Fail(ErrorCodes.ELEPHANT_CROSSES_RIVER, "Tượng không được đi sang bên kia sông.");
         }
 
         // 2. Kiểm tra ô đích có quân đồng minh không
         var targetPiece = board.GetPieceAt(to);
         if (targetPiece != null && targetPiece.Side == piece.Side)
         {
-            return MoveValidationResult.Fail(ErrorCodes.DESTINATION_OCCUPIED_BY_FRIEND, "Không thể đi vào ô đã có quân đồng minh.");
+            return MoveValidationResult.Fail(ErrorCodes.ALLY_AT_DESTINATION, "Không thể đi vào ô đã có quân đồng minh.");
         }
 
         // 3. Kiểm tra bước đi (đúng 2 ô chéo)
@@ -42,7 +42,7 @@ public class ElephantValidator : IMoveValidator
 
         if (dx != 2 || dy != 2)
         {
-            return MoveValidationResult.Fail(ErrorCodes.ILLEGAL_PIECE_MOVE, "Tượng chỉ được đi đường chéo đúng 2 ô.");
+            return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Tượng chỉ được đi đường chéo đúng 2 ô.");
         }
 
         // 4. Kiểm tra Mắt Tượng (ô giữa)

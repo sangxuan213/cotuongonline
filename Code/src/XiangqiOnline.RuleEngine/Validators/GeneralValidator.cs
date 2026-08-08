@@ -19,20 +19,20 @@ public class GeneralValidator : IMoveValidator
     {
         if (!to.IsValid())
         {
-            return MoveValidationResult.Fail(ErrorCodes.INVALID_COORDINATE, "Tọa độ đích nằm ngoài bàn cờ.");
+            return MoveValidationResult.Fail(ErrorCodes.OUT_OF_BOARD, "Tọa độ đích nằm ngoài bàn cờ.");
         }
 
         // 1. Phải ở trong Cung
         if (!to.IsInPalace(piece.Side))
         {
-            return MoveValidationResult.Fail(ErrorCodes.OUT_OF_PALACE, "Tướng không được đi ra khỏi Cung.");
+            return MoveValidationResult.Fail(ErrorCodes.OUTSIDE_PALACE, "Tướng không được đi ra khỏi Cung.");
         }
 
         // 2. Kiểm tra ô đích có quân đồng minh không
         var targetPiece = board.GetPieceAt(to);
         if (targetPiece != null && targetPiece.Side == piece.Side)
         {
-            return MoveValidationResult.Fail(ErrorCodes.DESTINATION_OCCUPIED_BY_FRIEND, "Không thể đi vào ô đã có quân đồng minh.");
+            return MoveValidationResult.Fail(ErrorCodes.ALLY_AT_DESTINATION, "Không thể đi vào ô đã có quân đồng minh.");
         }
 
         // 3. Kiểm tra bước đi (đúng 1 ô ngang hoặc 1 ô dọc)
@@ -44,6 +44,6 @@ public class GeneralValidator : IMoveValidator
             return MoveValidationResult.Success();
         }
 
-        return MoveValidationResult.Fail(ErrorCodes.ILLEGAL_PIECE_MOVE, "Tướng chỉ được di chuyển 1 ô theo chiều ngang hoặc dọc.");
+        return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Tướng chỉ được di chuyển 1 ô theo chiều ngang hoặc dọc.");
     }
 }

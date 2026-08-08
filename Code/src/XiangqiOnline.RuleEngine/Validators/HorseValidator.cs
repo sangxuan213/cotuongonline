@@ -8,10 +8,10 @@ namespace XiangqiOnline.RuleEngine.Validators;
 /// Validator kiểm tra luật di chuyển cho Mã (Horse).
 /// Quy tắc:
 /// - Mã đi theo hình chữ Nhật: (dx=1, dy=2) hoặc (dx=2, dy=1).
-/// - Kiểm tra Chân Mã (Horse Foot):
+/// - Kiểm tra Chân Mã (Horse Leg):
 ///   + Nếu nhảy dọc (dx=1, dy=2): Chân Mã là ô (from.X, from.Y + sign(dy)).
 ///   + Nếu nhảy ngang (dx=2, dy=1): Chân Mã là ô (from.X + sign(dx), from.Y).
-///   Nếu có quân cờ đứng ở Chân Mã -> Bị cản chân Mã (Horse Foot Blocked).
+///   Nếu có quân cờ đứng ở Chân Mã -> Bị cản chân Mã (HORSE_LEG_BLOCKED).
 /// - Không được đè lên quân đồng minh.
 /// </summary>
 public class HorseValidator : IMoveValidator
@@ -22,14 +22,14 @@ public class HorseValidator : IMoveValidator
     {
         if (!to.IsValid())
         {
-            return MoveValidationResult.Fail(ErrorCodes.INVALID_COORDINATE, "Tọa độ đích nằm ngoài bàn cờ.");
+            return MoveValidationResult.Fail(ErrorCodes.OUT_OF_BOARD, "Tọa độ đích nằm ngoài bàn cờ.");
         }
 
         // 1. Kiểm tra ô đích có quân đồng minh không
         var targetPiece = board.GetPieceAt(to);
         if (targetPiece != null && targetPiece.Side == piece.Side)
         {
-            return MoveValidationResult.Fail(ErrorCodes.DESTINATION_OCCUPIED_BY_FRIEND, "Không thể đi vào ô đã có quân đồng minh.");
+            return MoveValidationResult.Fail(ErrorCodes.ALLY_AT_DESTINATION, "Không thể đi vào ô đã có quân đồng minh.");
         }
 
         int dx = to.X - piece.Position.X;
@@ -51,13 +51,13 @@ public class HorseValidator : IMoveValidator
         }
         else
         {
-            return MoveValidationResult.Fail(ErrorCodes.ILLEGAL_PIECE_MOVE, "Mã chỉ được di chuyển theo hình chữ Nhật (1x2 hoặc 2x1).");
+            return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Mã chỉ được di chuyển theo hình chữ Nhật (1x2 hoặc 2x1).");
         }
 
         // 3. Kiểm tra cản chân Mã
         if (board.GetPieceAt(footPos) != null)
         {
-            return MoveValidationResult.Fail(ErrorCodes.HORSE_FOOT_BLOCKED, "Mã bị cản chân Mã.");
+            return MoveValidationResult.Fail(ErrorCodes.HORSE_LEG_BLOCKED, "Mã bị cản chân Mã.");
         }
 
         return MoveValidationResult.Success();

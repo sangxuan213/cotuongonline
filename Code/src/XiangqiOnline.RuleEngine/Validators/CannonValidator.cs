@@ -20,7 +20,7 @@ public class CannonValidator : IMoveValidator
     {
         if (!to.IsValid())
         {
-            return MoveValidationResult.Fail(ErrorCodes.INVALID_COORDINATE, "Tọa độ đích nằm ngoài bàn cờ.");
+            return MoveValidationResult.Fail(ErrorCodes.OUT_OF_BOARD, "Tọa độ đích nằm ngoài bàn cờ.");
         }
 
         int dx = to.X - piece.Position.X;
@@ -29,12 +29,12 @@ public class CannonValidator : IMoveValidator
         // 1. Pháo chỉ đi ngang hoặc dọc
         if (dx != 0 && dy != 0)
         {
-            return MoveValidationResult.Fail(ErrorCodes.ILLEGAL_PIECE_MOVE, "Pháo chỉ được di chuyển theo hàng ngang hoặc cột dọc.");
+            return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Pháo chỉ được di chuyển theo hàng ngang hoặc cột dọc.");
         }
 
         if (dx == 0 && dy == 0)
         {
-            return MoveValidationResult.Fail(ErrorCodes.ILLEGAL_PIECE_MOVE, "Nước đi phải thay đổi vị trí.");
+            return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Nước đi phải thay đổi vị trí.");
         }
 
         // 2. Đếm số lượng ngòi (quân cờ đứng giữa ô nguồn và ô đích)
@@ -64,7 +64,7 @@ public class CannonValidator : IMoveValidator
         {
             if (mountCount > 0)
             {
-                return MoveValidationResult.Fail(ErrorCodes.CANNON_MOUNT_INVALID, "Pháo di chuyển không ăn quân thì đường đi phải trống (0 ngòi).");
+                return MoveValidationResult.Fail(ErrorCodes.PATH_BLOCKED, "Pháo di chuyển không ăn quân thì đường đi phải trống (0 ngòi).");
             }
             return MoveValidationResult.Success();
         }
@@ -72,12 +72,12 @@ public class CannonValidator : IMoveValidator
         // 4. Trường hợp 2: Ăn quân (ô đích có quân cờ)
         if (targetPiece.Side == piece.Side)
         {
-            return MoveValidationResult.Fail(ErrorCodes.DESTINATION_OCCUPIED_BY_FRIEND, "Không thể ăn quân đồng minh.");
+            return MoveValidationResult.Fail(ErrorCodes.ALLY_AT_DESTINATION, "Không thể ăn quân đồng minh.");
         }
 
         if (mountCount != 1)
         {
-            return MoveValidationResult.Fail(ErrorCodes.CANNON_MOUNT_INVALID, "Pháo ăn quân phải có đúng 1 ngòi.");
+            return MoveValidationResult.Fail(ErrorCodes.CANNON_SCREEN_INVALID, "Pháo ăn quân phải có đúng 1 ngòi.");
         }
 
         return MoveValidationResult.Success();
