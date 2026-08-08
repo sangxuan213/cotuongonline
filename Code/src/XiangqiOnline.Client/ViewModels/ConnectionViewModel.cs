@@ -7,9 +7,9 @@ public sealed class ConnectionViewModel : ObservableObject
 {
     private readonly GameClient _client;
     private string _host = "127.0.0.1";
-    private int _port = 18180;
+    private string _portText = "18180";
     private string _displayName = "";
-    private string _status = "ChĂ†Â°a kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i";
+    private string _status = "Chưa kết nối";
     private string? _error;
     private bool _isConnected;
 
@@ -21,12 +21,12 @@ public sealed class ConnectionViewModel : ObservableObject
         ConnectCommand.Failed += ex => Error = ex.Message;
         DisconnectCommand.Failed += ex => Error = ex.Message;
         _client.ConnectionChanged += OnConnectionChanged;
-        _client.LoginCompleted += (_, name) => Ui(() => Status = $"Ă„ÂÄ‚Â£ Ă„â€˜Ă„Æ’ng nhĂ¡ÂºÂ­p: {name}");
+        _client.LoginCompleted += (_, name) => Ui(() => Status = $"Đã đăng nhập: {name}");
         _client.ErrorReceived += message => Ui(() => Error = message);
     }
 
     public string Host { get => _host; set { if (Set(ref _host, value)) ConnectCommand.NotifyCanExecuteChanged(); } }
-    public int Port { get => _port; set { if (Set(ref _port, value)) ConnectCommand.NotifyCanExecuteChanged(); } }
+    public string PortText { get => _portText; set { if (Set(ref _portText, value)) ConnectCommand.NotifyCanExecuteChanged(); } }
     public string DisplayName { get => _displayName; set { if (Set(ref _displayName, value)) ConnectCommand.NotifyCanExecuteChanged(); } }
     public string Status { get => _status; private set => Set(ref _status, value); }
     public string? Error { get => _error; private set => Set(ref _error, value); }
@@ -34,25 +34,32 @@ public sealed class ConnectionViewModel : ObservableObject
     public AsyncRelayCommand ConnectCommand { get; }
     public AsyncRelayCommand DisconnectCommand { get; }
 
-    private bool CanConnect() => !IsConnected && !string.IsNullOrWhiteSpace(Host) && Port is > 0 and <= 65535 && DisplayName.Trim().Length is >= 1 and <= 24;
+    private bool CanConnect() => !IsConnected && !string.IsNullOrWhiteSpace(Host) && TryGetPort(out _) && DisplayName.Trim().Length is >= 1 and <= 24;
 
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
         Error = null;
-        try { await _client.ConnectAndLoginAsync(Host.Trim(), Port, DisplayName.Trim(), cancellationToken); }
+        if (!TryGetPort(out var port))
+        {
+            Error = "Cổng phải là số từ 1 đến 65535.";
+            return;
+        }
+        try { await _client.ConnectAndLoginAsync(Host.Trim(), port, DisplayName.Trim(), cancellationToken); }
         catch (Exception ex) when (ex is IOException or System.Net.Sockets.SocketException or OperationCanceledException)
-        { Error = ex is OperationCanceledException ? "Ă„ÂÄ‚Â£ hĂ¡Â»Â§y kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i." : ex.Message; }
+        { Error = ex is OperationCanceledException ? "Đã hủy kết nối." : ex.Message; }
     }
+
+    private bool TryGetPort(out int port) => int.TryParse(PortText, out port) && port is > 0 and <= 65535;
 
     private void OnConnectionChanged(ConnectionState state, string? error) => Ui(() =>
     {
         IsConnected = state == ConnectionState.Connected;
         Status = state switch
         {
-            ConnectionState.Connecting => "Ă„Âang kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i...",
-            ConnectionState.Connected => "Ă„ÂÄ‚Â£ kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i, Ă„â€˜ang Ă„â€˜Ă„Æ’ng nhĂ¡ÂºÂ­p...",
-            ConnectionState.Failed => "KĂ¡ÂºÂ¿t nĂ¡Â»â€˜i thĂ¡ÂºÂ¥t bĂ¡ÂºÂ¡i",
-            _ => "ChĂ†Â°a kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i"
+            ConnectionState.Connecting => "Đang kết nối...",
+            ConnectionState.Connected => "Đã kết nối, đang đăng nhập...",
+            ConnectionState.Failed => "Kết nối thất bại",
+            _ => "Chưa kết nối"
         };
         if (!string.IsNullOrWhiteSpace(error)) Error = error;
     });

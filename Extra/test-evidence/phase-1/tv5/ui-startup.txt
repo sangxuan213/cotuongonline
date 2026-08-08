@@ -1,0 +1,9 @@
+Command:
+Launch UDM18.Client.exe normally and with --demo from the Release net10.0-windows output.
+
+Result:
+PASS: normal mode remained running and responsive through the startup check.
+PASS: demo mode remained running and responsive through the startup check.
+
+Scope:
+This verifies process startup only. It does not replace the required two-Client integration demo with the authoritative Server.
