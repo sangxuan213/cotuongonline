@@ -5,8 +5,8 @@
     <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <DockPanel Margin="0,0,0,16">
-            <Button DockPanel.Dock="Right" Content="Ă¢â€¡â€¦  Xoay bÄ‚Â n" Command="{Binding FlipBoardCommand}" Background="#475569"/>
-            <StackPanel><TextBlock Text="PhÄ‚Â²ng Ă„â€˜Ă¡ÂºÂ¥u" FontSize="30" FontWeight="Bold" Foreground="{StaticResource Ink}"/><TextBlock Foreground="{StaticResource Muted}" Margin="0,4,0,0"><Run Text="Room "/><Run Text="{Binding RoomId, Mode=OneWay, TargetNullValue=Ă¢â‚¬â€}" FontWeight="SemiBold"/><Run Text="  Ă‚Â·  Revision "/><Run Text="{Binding Revision, Mode=OneWay}"/><Run Text="  Ă‚Â·  LĂ†Â°Ă¡Â»Â£t "/><Run Text="{Binding CurrentTurn, Mode=OneWay}" FontWeight="SemiBold"/></TextBlock></StackPanel>
+            <Button DockPanel.Dock="Right" Content="⇅  Xoay bàn" Command="{Binding FlipBoardCommand}" Background="#475569"/>
+            <StackPanel><TextBlock Text="Phòng đấu" FontSize="30" FontWeight="Bold" Foreground="{StaticResource Ink}"/><TextBlock Foreground="{StaticResource Muted}" Margin="0,4,0,0"><Run Text="Room "/><Run Text="{Binding RoomId, Mode=OneWay, TargetNullValue=—}" FontWeight="SemiBold"/><Run Text="  ·  Revision "/><Run Text="{Binding Revision, Mode=OneWay}"/><Run Text="  ·  Lượt "/><Run Text="{Binding CurrentTurn, Mode=OneWay}" FontWeight="SemiBold"/></TextBlock></StackPanel>
         </DockPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="225"/></Grid.ColumnDefinitions>
@@ -17,16 +17,16 @@
             </Border>
             <StackPanel Grid.Column="2">
                 <Border Style="{StaticResource Card}">
-                    <StackPanel><TextBlock Text="TRĂ¡ÂºÂ NG THÄ‚ÂI TRĂ¡ÂºÂ¬N" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,12,0,0" FontSize="14" Foreground="{StaticResource Ink}"/></StackPanel>
+                    <StackPanel><TextBlock Text="TRẠNG THÁI TRẬN" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,12,0,0" FontSize="14" Foreground="{StaticResource Ink}"/></StackPanel>
                 </Border>
                 <Border Margin="0,18,0,0" Padding="18" CornerRadius="14" Background="#FFF7ED" BorderBrush="#FED7AA" BorderThickness="1">
-                    <StackPanel><TextBlock Text="Server authoritative" FontWeight="Bold" Foreground="#9A3412"/><TextBlock Text="Client chĂ¡Â»â€° gĂ¡Â»Â­i Ä‚Â½ Ă„â€˜Ă¡Â»â€¹nh. Board chĂ¡Â»â€° Ă„â€˜Ă¡Â»â€¢i sau MOVE_COMMITTED hoĂ¡ÂºÂ·c snapshot." TextWrapping="Wrap" Foreground="#9A3412" Margin="0,7,0,0"/></StackPanel>
+                    <StackPanel><TextBlock Text="Server authoritative" FontWeight="Bold" Foreground="#9A3412"/><TextBlock Text="Client chỉ gửi ý định. Board chỉ đổi sau MOVE_COMMITTED hoặc snapshot." TextWrapping="Wrap" Foreground="#9A3412" Margin="0,7,0,0"/></StackPanel>
                 </Border>
                 <Border Margin="0,18,0,0" Padding="18" CornerRadius="14" Background="#EFF6FF">
-                    <StackPanel><TextBlock Text="CÄ‚Â¡ch thao tÄ‚Â¡c" FontWeight="Bold" Foreground="#1E40AF"/><TextBlock Text="1. ChĂ¡Â»Ân Ä‚Â´ nguĂ¡Â»â€œn&#x0a;2. ChĂ¡Â»Ân Ä‚Â´ Ă„â€˜Ä‚Â­ch&#x0a;3. ChĂ¡Â»Â Server xÄ‚Â¡c nhĂ¡ÂºÂ­n" Foreground="#1E40AF" LineHeight="24" Margin="0,7,0,0"/></StackPanel>
+                    <StackPanel><TextBlock Text="Cách thao tác" FontWeight="Bold" Foreground="#1E40AF"/><TextBlock Text="1. Chọn ô nguồn&#x0a;2. Chọn ô đích&#x0a;3. Chờ Server xác nhận" Foreground="#1E40AF" LineHeight="24" Margin="0,7,0,0"/></StackPanel>
                 </Border>
             </StackPanel>
         </Grid>
-        <TextBlock Grid.Row="2" Text="Ă¥Â¸Â¥/Ă¥Â°â€¡ TĂ†Â°Ă¡Â»â€ºng   Ă‚Â·   Ă¤Â»â€¢/Ă¥Â£Â« SĂ„Â©   Ă‚Â·   Ă§â€ºÂ¸/Ă¨Â±Â¡ TĂ†Â°Ă¡Â»Â£ng   Ă‚Â·   Ă©Â¦Â¬ MÄ‚Â£   Ă‚Â·   Ă¨Â»Â Xe   Ă‚Â·   Ă§â€Â® PhÄ‚Â¡o   Ă‚Â·   Ă¥â€¦Âµ/Ă¥Ââ€™ TĂ¡Â»â€˜t" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,12,0,0"/>
+        <TextBlock Grid.Row="2" Text="帥/將 Tướng   ·   仕/士 Sĩ   ·   相/象 Tượng   ·   馬 Mã   ·   車 Xe   ·   炮 Pháo   ·   兵/卒 Tốt" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,12,0,0"/>
     </Grid>
 </UserControl>

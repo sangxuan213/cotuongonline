@@ -4,8 +4,8 @@
     <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <StackPanel Margin="0,0,0,22">
-            <TextBlock Text="KĂ¡ÂºÂ¿t nĂ¡Â»â€˜i mÄ‚Â¡y chĂ¡Â»Â§" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Ink}"/>
-            <TextBlock Text="ThiĂ¡ÂºÂ¿t lĂ¡ÂºÂ­p phiÄ‚Âªn chĂ†Â¡i an toÄ‚Â n qua TCP vÄ‚Â  Ă„â€˜Ă„Æ’ng nhĂ¡ÂºÂ­p bĂ¡ÂºÂ±ng tÄ‚Âªn hiĂ¡Â»Æ’n thĂ¡Â»â€¹." Foreground="{StaticResource Muted}" FontSize="14" Margin="0,5,0,0"/>
+            <TextBlock Text="Kết nối máy chủ" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Ink}"/>
+            <TextBlock Text="Thiết lập phiên chơi an toàn qua TCP và đăng nhập bằng tên hiển thị." Foreground="{StaticResource Muted}" FontSize="14" Margin="0,5,0,0"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="0.85*"/></Grid.ColumnDefinitions>
@@ -13,35 +13,35 @@
                 <StackPanel>
                     <DockPanel Margin="0,0,0,20">
                         <Border DockPanel.Dock="Left" Width="42" Height="42" CornerRadius="11" Background="#DBEAFE" Margin="0,0,12,0">
-                            <TextBlock Text="Ă¢â€ â€”" FontSize="22" Foreground="#1D4ED8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="↗" FontSize="22" Foreground="#1D4ED8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center"><TextBlock Text="Endpoint Server" FontSize="19" FontWeight="Bold" Foreground="{StaticResource Ink}"/><TextBlock Text="Do TV1 cung cĂ¡ÂºÂ¥p" Foreground="{StaticResource Muted}" FontSize="12"/></StackPanel>
+                        <StackPanel VerticalAlignment="Center"><TextBlock Text="Endpoint Server" FontSize="19" FontWeight="Bold" Foreground="{StaticResource Ink}"/><TextBlock Text="Do TV1 cung cấp" Foreground="{StaticResource Muted}" FontSize="12"/></StackPanel>
                     </DockPanel>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                        <TextBlock Text="Ă„ÂĂ¡Â»â€¹a chĂ¡Â»â€° IP / hostname" FontWeight="SemiBold"/>
+                        <TextBlock Text="Địa chỉ IP / hostname" FontWeight="SemiBold"/>
                         <TextBox Grid.Row="1" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBlock Grid.Column="2" Text="CĂ¡Â»â€¢ng" FontWeight="SemiBold"/>
-                        <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Grid.Column="2" Text="Cổng" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding PortText, UpdateSourceTrigger=PropertyChanged}"/>
                     </Grid>
-                    <TextBlock Text="TÄ‚Âªn hiĂ¡Â»Æ’n thĂ¡Â»â€¹" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" ToolTip="TĂ¡Â»Â« 1 Ă„â€˜Ă¡ÂºÂ¿n 24 kÄ‚Â½ tĂ¡Â»Â±"/>
-                    <WrapPanel Margin="0,4,0,0"><Button Content="KĂ¡ÂºÂ¿t nĂ¡Â»â€˜i Server" Command="{Binding ConnectCommand}"/><Button Content="NgĂ¡ÂºÂ¯t kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i" Command="{Binding DisconnectCommand}" Background="#475569"/></WrapPanel>
+                    <TextBlock Text="Tên hiển thị" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Từ 1 đến 24 ký tự"/>
+                    <WrapPanel Margin="0,4,0,0"><Button Content="Kết nối Server" Command="{Binding ConnectCommand}"/><Button Content="Ngắt kết nối" Command="{Binding DisconnectCommand}" Background="#475569"/></WrapPanel>
                 </StackPanel>
             </Border>
             <StackPanel Grid.Column="2">
                 <Border Style="{StaticResource Card}" Padding="20">
                     <StackPanel>
-                        <TextBlock Text="TRĂ¡ÂºÂ NG THÄ‚ÂI PHIÄ‚ÂN" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Muted}"/>
+                        <TextBlock Text="TRẠNG THÁI PHIÊN" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Muted}"/>
                         <TextBlock Text="{Binding Status}" FontSize="19" FontWeight="SemiBold" Foreground="#0369A1" Margin="0,10,0,0" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding Error}" Foreground="#B91C1C" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
                 <Border Margin="0,18,0,0" Padding="20" CornerRadius="16" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="LuĂ¡Â»â€œng Phase 1" FontWeight="Bold" Foreground="#065F46" FontSize="16"/>
-                        <TextBlock Text="1  KĂ¡ÂºÂ¿t nĂ¡Â»â€˜i TCP&#x0a;2  HELLO + LOGIN_REQUEST&#x0a;3  NhĂ¡ÂºÂ­n LOGIN_RESULT&#x0a;4  TĂ¡ÂºÂ£i danh sÄ‚Â¡ch ngĂ†Â°Ă¡Â»Âi chĂ†Â¡i" Foreground="#047857" LineHeight="25" Margin="0,10,0,0"/>
+                        <TextBlock Text="Luồng Phase 1" FontWeight="Bold" Foreground="#065F46" FontSize="16"/>
+                        <TextBlock Text="1  Kết nối TCP&#x0a;2  HELLO + LOGIN_REQUEST&#x0a;3  Nhận LOGIN_RESULT&#x0a;4  Tải danh sách người chơi" Foreground="#047857" LineHeight="25" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

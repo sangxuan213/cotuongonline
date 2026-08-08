@@ -44,6 +44,10 @@ public sealed class AsyncRelayCommand(Func<CancellationToken, Task> execute, Fun
         }
     }
 
-    public void Cancel() => _cts?.Cancel();
+    public void Cancel()
+    {
+        try { _cts?.Cancel(); }
+        catch (ObjectDisposedException) { }
+    }
     public void NotifyCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

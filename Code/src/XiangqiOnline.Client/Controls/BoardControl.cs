@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using UDM18.Client.Models;
+using XiangqiOnline.Shared.Contracts;
 
 namespace UDM18.Client.Controls;
 
@@ -64,8 +65,8 @@ public sealed class BoardControl : FrameworkElement
         dc.DrawLine(pen, geometry.Point(5, 0), geometry.Point(3, 2));
         dc.DrawLine(pen, geometry.Point(3, 7), geometry.Point(5, 9));
         dc.DrawLine(pen, geometry.Point(5, 7), geometry.Point(3, 9));
-        DrawText(dc, "SÄ‚â€NG", new Point(geometry.Left + geometry.Cell * 1.6, geometry.Top + geometry.Cell * 4.48), 16, Brushes.SaddleBrown);
-        DrawText(dc, "HÄ‚â‚¬", new Point(geometry.Left + geometry.Cell * 5.7, geometry.Top + geometry.Cell * 4.48), 16, Brushes.SaddleBrown);
+        DrawText(dc, "SÔNG", new Point(geometry.Left + geometry.Cell * 1.6, geometry.Top + geometry.Cell * 4.48), 16, Brushes.SaddleBrown);
+        DrawText(dc, "HÀ", new Point(geometry.Left + geometry.Cell * 5.7, geometry.Top + geometry.Cell * 4.48), 16, Brushes.SaddleBrown);
 
         DrawHighlight(dc, geometry, LastFrom, Color.FromArgb(110, 255, 193, 7));
         DrawHighlight(dc, geometry, LastTo, Color.FromArgb(145, 16, 185, 129));
@@ -79,6 +80,7 @@ public sealed class BoardControl : FrameworkElement
     {
         base.OnMouseLeftButtonDown(e);
         var geometry = GetGeometry();
+        if (geometry.Cell <= 0) return;
         var point = e.GetPosition(this);
         var x = (int)Math.Round((point.X - geometry.Left) / geometry.Cell);
         var y = (int)Math.Round((point.Y - geometry.Top) / geometry.Cell);
@@ -106,13 +108,13 @@ public sealed class BoardControl : FrameworkElement
 
     private static string Label(PieceState piece) => piece.Type switch
     {
-        PieceType.GENERAL => piece.Side == Side.RED ? "Ă¥Â¸Â¥" : "Ă¥Â°â€¡",
-        PieceType.ADVISOR => piece.Side == Side.RED ? "Ă¤Â»â€¢" : "Ă¥Â£Â«",
-        PieceType.ELEPHANT => piece.Side == Side.RED ? "Ă§â€ºÂ¸" : "Ă¨Â±Â¡",
-        PieceType.HORSE => "Ă©Â¦Â¬",
-        PieceType.CHARIOT => "Ă¨Â»Â",
-        PieceType.CANNON => "Ă§â€Â®",
-        _ => piece.Side == Side.RED ? "Ă¥â€¦Âµ" : "Ă¥Ââ€™"
+        PieceType.GENERAL => piece.Side == Side.RED ? "帥" : "將",
+        PieceType.ADVISOR => piece.Side == Side.RED ? "仕" : "士",
+        PieceType.ELEPHANT => piece.Side == Side.RED ? "相" : "象",
+        PieceType.HORSE => "馬",
+        PieceType.CHARIOT => "車",
+        PieceType.CANNON => "炮",
+        _ => piece.Side == Side.RED ? "兵" : "卒"
     };
 
     private static void DrawText(DrawingContext dc, string text, Point point, double size, Brush brush, bool centered = false)
@@ -125,16 +127,20 @@ public sealed class BoardControl : FrameworkElement
 
     private GeometryInfo GetGeometry()
     {
-        var cell = Math.Min((ActualWidth - Padding * 2) / 8d, (ActualHeight - Padding * 2) / 9d);
+        var cell = Math.Max(0d, Math.Min((ActualWidth - Padding * 2) / 8d, (ActualHeight - Padding * 2) / 9d));
         return new GeometryInfo((ActualWidth - cell * 8) / 2, (ActualHeight - cell * 9) / 2, cell);
     }
 
     private static void OnPiecesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (BoardControl)d;
-        if (control._observablePieces is not null) control._observablePieces.CollectionChanged -= control.OnCollectionChanged;
+        if (control._observablePieces is not null)
+            WeakEventManager<INotifyCollectionChanged, NotifyCollectionChangedEventArgs>.RemoveHandler(
+                control._observablePieces, nameof(INotifyCollectionChanged.CollectionChanged), control.OnCollectionChanged);
         control._observablePieces = e.NewValue as INotifyCollectionChanged;
-        if (control._observablePieces is not null) control._observablePieces.CollectionChanged += control.OnCollectionChanged;
+        if (control._observablePieces is not null)
+            WeakEventManager<INotifyCollectionChanged, NotifyCollectionChangedEventArgs>.AddHandler(
+                control._observablePieces, nameof(INotifyCollectionChanged.CollectionChanged), control.OnCollectionChanged);
         control.InvalidateVisual();
     }
 

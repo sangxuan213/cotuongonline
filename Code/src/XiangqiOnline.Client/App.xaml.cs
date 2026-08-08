@@ -29,8 +29,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        if (_transport is not null) _transport.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _transport?.Abort();
         base.OnExit(e);
     }
 }
-

@@ -1,5 +1,7 @@
 namespace UDM18.Client.Models;
 
+using XiangqiOnline.Shared.Contracts;
+
 public static class InitialBoard
 {
     public static IReadOnlyList<PieceState> Create()
@@ -37,5 +39,8 @@ public static class InitialBoard
     }
 
     private static void Add(List<PieceState> pieces, Side side, PieceType type, int x, int y, int number)
-        => pieces.Add(new PieceState($"{side}_{type}_{number}", side, type, new Coordinate(x, y)));
+    {
+        var pieceId = type == PieceType.GENERAL ? $"{side}_GENERAL" : $"{side}_{type}_{number}";
+        pieces.Add(new PieceState(pieceId, side, type, new Coordinate(x, y)));
+    }
 }

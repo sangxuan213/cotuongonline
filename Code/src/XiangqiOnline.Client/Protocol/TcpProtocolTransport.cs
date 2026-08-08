@@ -10,6 +10,7 @@ public sealed class TcpProtocolTransport : IProtocolTransport
     public const int MaxPayloadBytes = 65_536;
     private readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
     private readonly SemaphoreSlim _sendGate = new(1, 1);
+    private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
     private TcpClient? _client;
     private NetworkStream? _stream;
     private CancellationTokenSource? _receiveCts;
@@ -17,15 +18,16 @@ public sealed class TcpProtocolTransport : IProtocolTransport
 
     public ConnectionState State { get; private set; } = ConnectionState.Disconnected;
     public event Action<ConnectionState, string?>? StateChanged;
-    public event Func<JsonElement, Task>? MessageReceived;
+    public Func<JsonElement, Task>? MessageHandler { get; set; }
 
     public async Task ConnectAsync(string host, int port, CancellationToken cancellationToken)
     {
-        if (State is ConnectionState.Connecting or ConnectionState.Connected) return;
-        await DisconnectCoreAsync();
-        SetState(ConnectionState.Connecting);
+        await _lifecycleGate.WaitAsync(cancellationToken);
         try
         {
+            if (State is ConnectionState.Connecting or ConnectionState.Connected) return;
+            await DisconnectCoreAsync();
+            SetState(ConnectionState.Connecting);
             _client = new TcpClient { NoDelay = true };
             await _client.ConnectAsync(host, port, cancellationToken);
             _stream = _client.GetStream();
@@ -36,26 +38,27 @@ public sealed class TcpProtocolTransport : IProtocolTransport
         catch (Exception ex)
         {
             await DisconnectCoreAsync();
-            SetState(ConnectionState.Failed, ex is OperationCanceledException ? "Ă„ÂÄ‚Â£ hĂ¡Â»Â§y kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i." : ex.Message);
+            SetState(ConnectionState.Failed, ex is OperationCanceledException ? "Đã hủy kết nối." : ex.Message);
             throw;
         }
+        finally { _lifecycleGate.Release(); }
     }
 
     public async Task SendAsync(object envelope, CancellationToken cancellationToken = default)
     {
-        var stream = _stream ?? throw new InvalidOperationException("Client chĂ†Â°a kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i Server.");
         var payload = JsonSerializer.SerializeToUtf8Bytes(envelope, _json);
-        if (payload.Length > MaxPayloadBytes) throw new InvalidDataException("Payload vĂ†Â°Ă¡Â»Â£t giĂ¡Â»â€ºi hĂ¡ÂºÂ¡n 64 KiB.");
+        if (payload.Length > MaxPayloadBytes) throw new InvalidDataException("Payload vượt giới hạn 64 KiB.");
         var header = new byte[4];
         BinaryPrimitives.WriteInt32BigEndian(header, payload.Length);
         await _sendGate.WaitAsync(cancellationToken);
         try
         {
+            var stream = _stream ?? throw new InvalidOperationException("Client chưa kết nối Server.");
             await stream.WriteAsync(header, cancellationToken);
             await stream.WriteAsync(payload, cancellationToken);
             await stream.FlushAsync(cancellationToken);
         }
-        catch (Exception ex) when (ex is IOException or SocketException)
+        catch (Exception ex) when (ex is IOException or SocketException or ObjectDisposedException)
         {
             _stream?.Close();
             _client?.Close();
@@ -67,8 +70,20 @@ public sealed class TcpProtocolTransport : IProtocolTransport
 
     public async Task DisconnectAsync()
     {
-        await DisconnectCoreAsync();
-        SetState(ConnectionState.Disconnected);
+        await _lifecycleGate.WaitAsync();
+        try
+        {
+            await DisconnectCoreAsync();
+            SetState(ConnectionState.Disconnected);
+        }
+        finally { _lifecycleGate.Release(); }
+    }
+
+    public void Abort()
+    {
+        _receiveCts?.Cancel();
+        _stream?.Close();
+        _client?.Close();
     }
 
     private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
@@ -85,7 +100,7 @@ public sealed class TcpProtocolTransport : IProtocolTransport
                 var payload = new byte[length];
                 await ReadExactlyAsync(payload, cancellationToken);
                 using var document = JsonDocument.Parse(payload);
-                var handler = MessageReceived;
+                var handler = MessageHandler;
                 if (handler is not null) await handler(document.RootElement.Clone());
             }
         }
@@ -100,12 +115,12 @@ public sealed class TcpProtocolTransport : IProtocolTransport
 
     private async Task ReadExactlyAsync(Memory<byte> target, CancellationToken cancellationToken)
     {
-        var stream = _stream ?? throw new IOException("Socket Ă„â€˜Ä‚Â£ Ă„â€˜Ä‚Â³ng.");
+        var stream = _stream ?? throw new IOException("Socket đã đóng.");
         var read = 0;
         while (read < target.Length)
         {
             var count = await stream.ReadAsync(target[read..], cancellationToken);
-            if (count == 0) throw new IOException("Server Ă„â€˜Ä‚Â£ Ă„â€˜Ä‚Â³ng kĂ¡ÂºÂ¿t nĂ¡Â»â€˜i.");
+            if (count == 0) throw new IOException("Server đã đóng kết nối.");
             read += count;
         }
     }
@@ -115,7 +130,7 @@ public sealed class TcpProtocolTransport : IProtocolTransport
         _receiveCts?.Cancel();
         _stream?.Close();
         _client?.Close();
-        if (_receiveTask is not null && Task.CurrentId != _receiveTask.Id)
+        if (_receiveTask is not null)
         {
             try { await _receiveTask; } catch { }
         }
@@ -134,7 +149,13 @@ public sealed class TcpProtocolTransport : IProtocolTransport
 
     public async ValueTask DisposeAsync()
     {
-        await DisconnectCoreAsync();
-        _sendGate.Dispose();
+        await _lifecycleGate.WaitAsync();
+        try { await DisconnectCoreAsync(); }
+        finally
+        {
+            _lifecycleGate.Release();
+            _lifecycleGate.Dispose();
+            _sendGate.Dispose();
+        }
     }
 }

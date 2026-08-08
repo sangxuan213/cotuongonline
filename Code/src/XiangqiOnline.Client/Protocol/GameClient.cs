@@ -1,5 +1,5 @@
 using System.Text.Json;
-using UDM18.Client.Models;
+using XiangqiOnline.Shared.Contracts;
 
 namespace UDM18.Client.Protocol;
 
@@ -13,7 +13,7 @@ public sealed class GameClient
     public GameClient(IProtocolTransport transport)
     {
         _transport = transport;
-        _transport.MessageReceived += HandleMessageAsync;
+        _transport.MessageHandler = HandleMessageAsync;
         _transport.StateChanged += (state, error) => ConnectionChanged?.Invoke(state, error);
     }
 
@@ -50,7 +50,7 @@ public sealed class GameClient
         => SendAsync("PLAYER_LIST_REQUEST", new { }, true, cancellationToken);
 
     public Task SendChallengeAsync(string targetPlayerId, CancellationToken cancellationToken = default)
-        => SendAsync("CHALLENGE_SEND", new { targetPlayerId, timeProfile = "DEFAULT" }, true, cancellationToken);
+        => SendAsync("CHALLENGE_SEND", new { targetPlayerId, timeProfile = "STANDARD_PRO" }, true, cancellationToken);
 
     public Task AcceptChallengeAsync(string challengeId, CancellationToken cancellationToken = default)
         => SendAsync("CHALLENGE_ACCEPT", new { challengeId }, true, cancellationToken);
@@ -60,6 +60,9 @@ public sealed class GameClient
 
     public Task SendMoveAsync(string roomId, long expectedRevision, Coordinate from, Coordinate to, CancellationToken cancellationToken = default)
         => SendAsync("MOVE_REQUEST", new { clientMoveId = UlidId.New(), expectedRevision, from, to }, true, cancellationToken, roomId);
+
+    public Task RequestResyncAsync(string roomId, long lastRevision, CancellationToken cancellationToken = default)
+        => SendAsync("RESYNC_REQUEST", new { roomId, lastRevision }, true, cancellationToken, roomId);
 
     public Task DisconnectAsync() => _transport.DisconnectAsync();
 
@@ -96,12 +99,12 @@ public sealed class GameClient
                 case "GAME_STATE_SNAPSHOT": SnapshotReceived?.Invoke(ParseSnapshot(payload)); break;
                 case "MOVE_COMMITTED": ParseMoveCommitted(root, payload); break;
                 case "MOVE_REJECTED": ParseMoveRejected(root, payload); break;
-                case "ERROR_RESPONSE": ErrorReceived?.Invoke(ReadString(payload, "message") ?? "Server bÄ‚Â¡o lĂ¡Â»â€”i."); break;
+                case "ERROR_RESPONSE": ErrorReceived?.Invoke(ReadString(payload, "message") ?? "Server báo lỗi."); break;
             }
         }
-        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException or ArgumentException)
+        catch (Exception ex)
         {
-            ErrorReceived?.Invoke($"KhÄ‚Â´ng Ă„â€˜Ă¡Â»Âc Ă„â€˜Ă†Â°Ă¡Â»Â£c event {type}: {ex.Message}");
+            ErrorReceived?.Invoke($"Không đọc được event {type}: {ex.Message}");
         }
     }
 
@@ -110,7 +113,7 @@ public sealed class GameClient
         var version = ReadString(payload, "supportedVersion");
         if (version != "1.0")
         {
-            _helloAck?.TrySetException(new InvalidOperationException($"Server khÄ‚Â´ng hĂ¡Â»â€” trĂ¡Â»Â£ protocol 1.0 (nhĂ¡ÂºÂ­n: {version ?? "khÄ‚Â´ng rÄ‚Âµ"})."));
+            _helloAck?.TrySetException(new InvalidOperationException($"Server không hỗ trợ protocol 1.0 (nhận: {version ?? "không rõ"})."));
             return;
         }
         _helloAck?.TrySetResult(true);
@@ -122,10 +125,10 @@ public sealed class GameClient
         if (!status.Equals("ACCEPTED", StringComparison.OrdinalIgnoreCase) &&
             !status.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
         {
-            ErrorReceived?.Invoke($"Ă„ÂĂ„Æ’ng nhĂ¡ÂºÂ­p thĂ¡ÂºÂ¥t bĂ¡ÂºÂ¡i: {status}");
+            ErrorReceived?.Invoke($"Đăng nhập thất bại: {status}");
             return false;
         }
-        _sessionToken = ReadString(payload, "token") ?? throw new JsonException("LOGIN_RESULT thiĂ¡ÂºÂ¿u token.");
+        _sessionToken = ReadString(payload, "token") ?? throw new JsonException("LOGIN_RESULT thiếu token.");
         var player = payload.GetProperty("player");
         LoginCompleted?.Invoke(ReadString(player, "playerId") ?? "", ReadString(player, "displayName") ?? "");
         return true;
@@ -152,12 +155,12 @@ public sealed class GameClient
         ChallengeReceived?.Invoke(new ChallengeSummary(
             ReadString(challenge, "challengeId") ?? "",
             ReadString(challenge, "fromPlayerId") ?? "",
-            ReadString(challenge, "fromDisplayName") ?? "Ă„ÂĂ¡Â»â€˜i thĂ¡Â»Â§"));
+            ReadString(challenge, "fromDisplayName") ?? "Đối thủ"));
     }
 
     private void ParseRoom(JsonElement payload)
     {
-        var roomId = ReadString(payload, "roomId") ?? throw new JsonException("ROOM_CREATED thiĂ¡ÂºÂ¿u roomId.");
+        var roomId = ReadString(payload, "roomId") ?? throw new JsonException("ROOM_CREATED thiếu roomId.");
         RoomCreated?.Invoke(roomId);
         if (payload.TryGetProperty("snapshot", out var snapshot)) SnapshotReceived?.Invoke(ParseSnapshot(snapshot));
     }
@@ -190,20 +193,29 @@ public sealed class GameClient
         var from = payload.GetProperty("from");
         var to = payload.GetProperty("to");
         var revision = root.TryGetProperty("revision", out var r) ? r.GetInt64() : payload.GetProperty("revision").GetInt64();
+        var currentTurn = ReadSide(payload, "currentTurn")
+            ?? (payload.TryGetProperty("stateDelta", out var stateDelta) ? ReadSide(stateDelta, "currentTurn") : null)
+            ?? (payload.TryGetProperty("clocks", out var clocks) ? ReadSide(clocks, "activeSide") : null);
+        var movedSide = ReadSide(payload, "side");
+        currentTurn ??= movedSide switch { Side.RED => Side.BLACK, Side.BLACK => Side.RED, _ => null };
         MoveCommitted?.Invoke(revision, new MoveDelta(
             ReadString(payload, "pieceId") ?? "",
             new Coordinate(from.GetProperty("x").GetInt32(), from.GetProperty("y").GetInt32()),
             new Coordinate(to.GetProperty("x").GetInt32(), to.GetProperty("y").GetInt32()),
-            ReadString(payload, "capturedPieceId")));
+            ReadString(payload, "capturedPieceId"),
+            currentTurn));
     }
 
     private void ParseMoveRejected(JsonElement root, JsonElement payload)
     {
         var revision = payload.TryGetProperty("revision", out var r) ? r.GetInt64()
             : root.TryGetProperty("revision", out r) ? r.GetInt64() : 0;
-        MoveRejected?.Invoke(ReadString(payload, "errorCode") ?? "UNKNOWN", ReadString(payload, "message") ?? "NĂ†Â°Ă¡Â»â€ºc Ă„â€˜i bĂ¡Â»â€¹ tĂ¡Â»Â« chĂ¡Â»â€˜i.", revision);
+        MoveRejected?.Invoke(ReadString(payload, "errorCode") ?? "UNKNOWN", ReadString(payload, "message") ?? "Nước đi bị từ chối.", revision);
     }
 
     private static string? ReadString(JsonElement element, string property)
         => element.TryGetProperty(property, out var value) && value.ValueKind != JsonValueKind.Null ? value.GetString() : null;
+
+    private static Side? ReadSide(JsonElement element, string property)
+        => Enum.TryParse<Side>(ReadString(element, property), true, out var side) ? side : null;
 }
