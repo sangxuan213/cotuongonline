@@ -17,7 +17,7 @@
 | **ELEPHANT** | >= 10 | 10 | 10 | 0 | 0 | PASS |
 | **HORSE** | >= 12 | 12 | 12 | 0 | 0 | PASS |
 | **CHARIOT** | >= 10 | 10 | 10 | 0 | 0 | PASS |
-| **CANNON** | >= 14 | 13 | 13 | 0 | 0 | PASS |
+| **CANNON** | >= 14 | 14 | 14 | 0 | 0 | PASS |
 | **PAWN** | >= 10 | 10 | 10 | 0 | 0 | PASS |
 | **BoardState & Pipeline** | - | 14 | 14 | 0 | 0 | PASS |
 | **TOTAL** | **>= 70** | **83** | **83** | **0** | **0** | **ALL PASSED** |
