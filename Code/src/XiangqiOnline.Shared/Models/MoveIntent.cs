@@ -7,5 +7,5 @@ public record MoveIntent(
     string ClientMoveId,
     Position From,
     Position To,
-    long ExpectedRevision = 0
+    long ExpectedRevision
 );

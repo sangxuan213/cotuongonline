@@ -72,7 +72,14 @@ public class CannonValidatorTests
         Assert.True(_validator.Validate(BoardState.CreateInitialBoard(), cannon, new Position(1, 4)).IsValid);
     }
     [Fact] public void BlackCannon_EatRedPawn_Success() {
-        var cannon = BoardState.CreateInitialBoard().GetPieceAt(new Position(1, 2))!;
-        Assert.True(_validator.Validate(BoardState.CreateInitialBoard(), cannon, new Position(1, 6)).IsValid);
+        var blackCannon = new PieceState("BLACK_CANNON_1", PieceType.Cannon, SideColor.Black, new Position(1, 2));
+        var screenPiece = new PieceState("BLACK_PAWN_1", PieceType.Pawn, SideColor.Black, new Position(1, 4));
+        var redPawnTarget = new PieceState("RED_PAWN_1", PieceType.Pawn, SideColor.Red, new Position(1, 6));
+        var customBoard = Fixtures.BoardSetupFixture.CreateBoardWithPieces(SideColor.Black, blackCannon, screenPiece, redPawnTarget);
+
+        var result = _validator.Validate(customBoard, blackCannon, new Position(1, 6));
+
+        Assert.True(result.IsValid);
+        Assert.Equal(ErrorCodes.OK, result.ErrorCode);
     }
 }

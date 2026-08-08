@@ -4,7 +4,7 @@
 - **Module**: `XiangqiOnline.RuleEngine` & `XiangqiOnline.Shared`
 - **Target Framework**: .NET 8 / .NET 10 Solution compatible
 - **Status**: READY_FOR_TV4_REVIEW
-- **Pass Rate**: 100% (83 / 83 tests passed)
+- **Pass Rate**: 100% (84 / 84 tests passed)
 - **Failed**: 0
 - **Skipped**: 0
 
@@ -20,7 +20,7 @@
 | **CANNON** | >= 14 | 14 | 14 | 0 | 0 | PASS |
 | **PAWN** | >= 10 | 10 | 10 | 0 | 0 | PASS |
 | **BoardState & Pipeline** | - | 14 | 14 | 0 | 0 | PASS |
-| **TOTAL** | **>= 70** | **83** | **83** | **0** | **0** | **ALL PASSED** |
+| **TOTAL** | **>= 70** | **84** | **84** | **0** | **0** | **ALL PASSED** |
 
 ## 3. Canonical Verification & Contract Audits
 

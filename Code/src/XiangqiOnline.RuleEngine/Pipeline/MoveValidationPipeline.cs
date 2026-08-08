@@ -85,7 +85,7 @@ public class MoveValidationPipeline
         catch (Exception)
         {
             // Bảo vệ Server khỏi crash do lỗi hệ thống không mong muốn
-            return MoveValidationResult.Fail("INTERNAL_ERROR", "Lỗi hệ thống khi kiểm tra nước đi.");
+            return MoveValidationResult.Fail(ErrorCodes.INTERNAL_SERVER_ERROR, "Lỗi hệ thống khi kiểm tra nước đi.");
         }
     }
 }

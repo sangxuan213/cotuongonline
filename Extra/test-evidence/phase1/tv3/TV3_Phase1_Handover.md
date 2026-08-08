@@ -4,7 +4,7 @@
 - **Owner**: TV3 (Rule Engine Core)
 - **Target Reviewer**: TV4
 - **Branch**: `feature/tv3-ruleengine-p1`
-- **Common Base**: `origin/develop` @ `761e1100781a0d7c1ee3a3b2d31fbc887ea1aae8`
+- **Common Base**: `origin/develop` @ `051b125`
 - **Status**: READY_FOR_TV4_REVIEW
 
 ## 2. Shared APIs Available for TV4 Phase 2
