@@ -231,6 +231,89 @@ public class SelfCheckValidatorTests
             _validator.Validate(board, suppliedPiece, new Position(0, 5)));
     }
 
+    [Fact]
+    public void Validate_ShouldThrow_WhenSuppliedPieceSideDoesNotMatchBoardPiece()
+    {
+        var boardPiece = Piece("PIECE", PieceType.Pawn, SideColor.Red, 0, 6);
+        var suppliedPiece = boardPiece with { Side = SideColor.Black };
+        var board = Board(boardPiece, General(SideColor.Red, 4, 9));
+        Assert.Throws<InvalidOperationException>(() =>
+            _validator.Validate(board, suppliedPiece, new Position(0, 5)));
+    }
+
+    [Fact]
+    public void Validate_ShouldThrow_WhenSuppliedPieceTypeDoesNotMatchBoardPiece()
+    {
+        var boardPiece = Piece("PIECE", PieceType.Pawn, SideColor.Red, 0, 6);
+        var suppliedPiece = boardPiece with { Type = PieceType.Chariot };
+        var board = Board(boardPiece, General(SideColor.Red, 4, 9));
+        Assert.Throws<InvalidOperationException>(() =>
+            _validator.Validate(board, suppliedPiece, new Position(0, 5)));
+    }
+
+    [Fact]
+    public void Validate_ShouldThrow_WhenSuppliedPieceIsMarkedCapturedButBoardPieceIsActive()
+    {
+        var boardPiece = Piece("PIECE", PieceType.Pawn, SideColor.Red, 0, 6);
+        var suppliedPiece = boardPiece with { IsAlive = false };
+        var board = Board(boardPiece, General(SideColor.Red, 4, 9));
+        Assert.Throws<InvalidOperationException>(() =>
+            _validator.Validate(board, suppliedPiece, new Position(0, 5)));
+    }
+
+    [Fact]
+    public void GeneralMovementCanPass_WhileTargetSquareCausesSelfCheck()
+    {
+        var redGeneral = General(SideColor.Red, 4, 9);
+        var board = CheckTestFactory.Board(
+            SideColor.Red,
+            redGeneral,
+            Piece("BLACK_CHARIOT", PieceType.Chariot, SideColor.Black, 3, 0),
+            General(SideColor.Black, 5, 0));
+        var target = new Position(3, 9);
+
+        Assert.True(new MoveValidationPipeline().Validate(board, Intent(redGeneral.Position, target)).IsValid);
+        Assert.Equal(ErrorCodes.SELF_CHECK, _validator.Validate(board, redGeneral, target).ErrorCode);
+    }
+
+    [Fact]
+    public void Validate_ShouldReturnSelfCheck_ForBlackSideSymmetry()
+    {
+        var blocker = Piece("BLACK_BLOCKER", PieceType.Chariot, SideColor.Black, 4, 4);
+        var board = Board(
+            General(SideColor.Black, 4, 0), blocker,
+            Piece("RED_CHARIOT", PieceType.Chariot, SideColor.Red, 4, 9),
+            General(SideColor.Red, 3, 9));
+        AssertError(ErrorCodes.SELF_CHECK, board, blocker, new Position(5, 4));
+    }
+
+    [Fact]
+    public void Validate_ShouldReturnCheckNotResolved_WhenMoveRemovesOnlyOneDoubleChecker()
+    {
+        var defender = Piece("RED_CHARIOT", PieceType.Chariot, SideColor.Red, 2, 7);
+        var horse = Piece("BLACK_HORSE", PieceType.Horse, SideColor.Black, 3, 7);
+        var board = Board(
+            General(SideColor.Red, 4, 9), defender,
+            Piece("BLACK_CHARIOT", PieceType.Chariot, SideColor.Black, 4, 0), horse,
+            General(SideColor.Black, 5, 0));
+        AssertError(ErrorCodes.CHECK_NOT_RESOLVED, board, defender, horse.Position);
+    }
+
+    [Fact]
+    public void Validate_CaptureSimulationShouldPreserveOriginalBoard()
+    {
+        var defender = Piece("RED_CHARIOT", PieceType.Chariot, SideColor.Red, 3, 8);
+        var checker = Piece("BLACK_CHARIOT", PieceType.Chariot, SideColor.Black, 4, 8);
+        var board = CheckTestFactory.Board(SideColor.Red, General(SideColor.Red, 4, 9), defender, checker);
+        var originalTurn = board.Turn;
+
+        Assert.True(_validator.Validate(board, defender, checker.Position).IsValid);
+
+        Assert.Equal(defender, board.GetPieceAt(defender.Position));
+        Assert.Equal(checker, board.GetPieceAt(checker.Position));
+        Assert.Equal(originalTurn, board.Turn);
+    }
+
     private void AssertError(string expected, BoardState board, PieceState piece, Position target) =>
         Assert.Equal(expected, _validator.Validate(board, piece, target).ErrorCode);
 

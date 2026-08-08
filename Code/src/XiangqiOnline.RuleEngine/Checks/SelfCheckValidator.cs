@@ -32,10 +32,14 @@ public sealed class SelfCheckValidator
         }
 
         var activeSourcePiece = board.GetPieceAt(movingPiece.Position);
-        if (activeSourcePiece is null || activeSourcePiece.Id != movingPiece.Id)
+        if (activeSourcePiece is null
+            || activeSourcePiece.Id != movingPiece.Id
+            || activeSourcePiece.Side != movingPiece.Side
+            || activeSourcePiece.Type != movingPiece.Type
+            || !movingPiece.IsAlive)
         {
             throw new InvalidOperationException(
-                $"Active moving piece '{movingPiece.Id}' was not found at source {movingPiece.Position}.");
+                $"Supplied moving piece '{movingPiece.Id}' does not match the active canonical piece at source {movingPiece.Position}.");
         }
 
         var before = _checkDetector.Evaluate(board, movingPiece.Side);

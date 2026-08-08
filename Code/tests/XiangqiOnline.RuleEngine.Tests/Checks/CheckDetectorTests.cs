@@ -145,6 +145,17 @@ public class CheckDetectorTests
     public void Evaluate_ShouldRejectNullBoard() =>
         Assert.Throws<ArgumentNullException>(() => _detector.Evaluate(null!, SideColor.Red));
 
+    [Fact]
+    public void Evaluate_ShouldDetectRedAttackerAgainstBlackGeneral()
+    {
+        var blackGeneral = CheckTestFactory.General(SideColor.Black, 4, 0);
+        var redChariot = CheckTestFactory.Piece("RED_CHARIOT", PieceType.Chariot, SideColor.Red, 4, 9);
+        var status = _detector.Evaluate(CheckTestFactory.Board(blackGeneral, redChariot), SideColor.Black);
+
+        Assert.True(status.IsInCheck);
+        Assert.Equal(redChariot, Assert.Single(status.CheckingPieces));
+    }
+
     private void AssertSingleChecker(PieceState checker, PieceState general)
     {
         var status = _detector.Evaluate(CheckTestFactory.Board(checker, general), general.Side);
