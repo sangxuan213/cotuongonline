@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/XiangqiOnline.Server/XiangqiOnline.Server.csproj" />
     <Project Path="src/XiangqiOnline.Shared/XiangqiOnline.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
