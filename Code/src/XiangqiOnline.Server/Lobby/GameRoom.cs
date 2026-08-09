@@ -1,4 +1,4 @@
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Enums;
 
 namespace XiangqiOnline.Server.Lobby;
 
@@ -49,18 +49,18 @@ public sealed class GameRoom
     public string TimeProfile { get; }
     public DateTimeOffset CreatedAtUtc { get; }
     public GameRoomStatus Status { get; private set; } = GameRoomStatus.CREATED;
-    public Side CurrentTurn { get; private set; } = Side.RED;
+    public SideColor CurrentTurn { get; private set; } = SideColor.Red;
     public long Revision { get; private set; }
 
     public bool HasPlayer(string playerId) =>
         RedPlayerId == playerId || BlackPlayerId == playerId;
 
-    public Side GetSideForPlayer(string playerId)
+    public SideColor GetSideForPlayer(string playerId)
     {
         if (RedPlayerId == playerId)
-            return Side.RED;
+            return SideColor.Red;
         if (BlackPlayerId == playerId)
-            return Side.BLACK;
+            return SideColor.Black;
 
         throw new InvalidOperationException("Player is not a member of this room.");
     }
@@ -79,7 +79,7 @@ public sealed class GameRoom
             throw new InvalidOperationException("Only non-terminal rooms can start.");
 
         Status = GameRoomStatus.PLAYING;
-        CurrentTurn = Side.RED;
+        CurrentTurn = SideColor.Red;
     }
 
     public long CommitRevision()
@@ -88,7 +88,7 @@ public sealed class GameRoom
             throw new InvalidOperationException("Only playing rooms can commit revisions.");
 
         Revision++;
-        CurrentTurn = CurrentTurn == Side.RED ? Side.BLACK : Side.RED;
+        CurrentTurn = CurrentTurn == SideColor.Red ? SideColor.Black : SideColor.Red;
         return Revision;
     }
 

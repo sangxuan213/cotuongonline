@@ -1,5 +1,5 @@
 using XiangqiOnline.Server.Lobby;
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Enums;
 
 namespace XiangqiOnline.Server.Tests.Lobby;
 
@@ -19,7 +19,7 @@ public sealed class GameRoomTests
     {
         var room = NewRoom();
 
-        Assert.Equal(Side.RED, room.CurrentTurn);
+        Assert.Equal(SideColor.Red, room.CurrentTurn);
         Assert.Equal(0, room.Revision);
         Assert.Equal(GameRoomStatus.CREATED, room.Status);
     }
@@ -33,7 +33,7 @@ public sealed class GameRoomTests
         room.Start();
 
         Assert.Equal(GameRoomStatus.PLAYING, room.Status);
-        Assert.Equal(Side.RED, room.CurrentTurn);
+        Assert.Equal(SideColor.Red, room.CurrentTurn);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class GameRoomTests
         var revision = room.CommitRevision();
 
         Assert.Equal(1, revision);
-        Assert.Equal(Side.BLACK, room.CurrentTurn);
+        Assert.Equal(SideColor.Black, room.CurrentTurn);
     }
 
     [Fact]

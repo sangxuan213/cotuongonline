@@ -1,5 +1,4 @@
 using XiangqiOnline.Server.Lobby;
-using XiangqiOnline.Shared.Contracts;
 
 namespace XiangqiOnline.Server.Tests.Lobby;
 

@@ -1,5 +1,3 @@
-using XiangqiOnline.Shared.Contracts;
-
 namespace XiangqiOnline.Server.Lobby;
 
 public enum ChallengeStatus

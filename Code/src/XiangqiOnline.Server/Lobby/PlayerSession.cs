@@ -1,6 +1,13 @@
-using XiangqiOnline.Shared.Contracts;
-
 namespace XiangqiOnline.Server.Lobby;
+
+public enum PlayerStatus
+{
+    AVAILABLE,
+    INVITING,
+    INVITED,
+    IN_GAME,
+    OFFLINE
+}
 
 public enum PlayerSessionConnectionState
 {
