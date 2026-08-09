@@ -21,8 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\XiangqiOnline.Shared\XiangqiOnline.Shared.csproj" />
+<ProjectReference Include="..\..\src\XiangqiOnline.Shared\XiangqiOnline.Shared.csproj" />
     <ProjectReference Include="..\..\src\XiangqiOnline.RuleEngine\XiangqiOnline.RuleEngine.csproj" />
+    <ProjectReference Include="..\..\src\XiangqiOnline.Persistence\XiangqiOnline.Persistence.csproj" />
     <ProjectReference Include="..\..\src\XiangqiOnline.Server\XiangqiOnline.Server.csproj" />
   </ItemGroup>
 

@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\XiangqiOnline.Shared\XiangqiOnline.Shared.csproj" />
     <ProjectReference Include="..\XiangqiOnline.RuleEngine\XiangqiOnline.RuleEngine.csproj" />
+    <ProjectReference Include="..\XiangqiOnline.Persistence\XiangqiOnline.Persistence.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
