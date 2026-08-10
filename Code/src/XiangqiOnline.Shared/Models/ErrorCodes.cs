@@ -29,4 +29,8 @@ public static class ErrorCodes
     public const string GAME_NOT_ACTIVE = "GAME_NOT_ACTIVE";
     public const string TIME_EXPIRED = "TIME_EXPIRED";
     public const string INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
+    public const string DISPLAY_NAME_INVALID = "DISPLAY_NAME_INVALID";
+    public const string DISPLAY_NAME_TAKEN = "DISPLAY_NAME_TAKEN";
+    public const string INVALID_SESSION = "INVALID_SESSION";
+    public const string DUPLICATE_SESSION = "DUPLICATE_SESSION";
 }
