@@ -27,7 +27,7 @@ namespace XiangqiOnline.Shared.Protocol
         public static async Task WriteFrameAsync(Stream stream, ReadOnlyMemory<byte> payload, CancellationToken ct = default)
         {
             if (payload.Length == 0)
-                throw new FrameEncodeException("Payload rỗng không hợp lệ (length = 0).");
+                throw new FrameEncodeException("Payload rỗng không hợp lệ (length = 0).", "INVALID_FRAME_LENGTH");
             if (payload.Length > MaxPayloadBytes)
                 throw new FrameEncodeException($"Payload {payload.Length} byte vượt giới hạn {MaxPayloadBytes} byte.");
 
@@ -55,12 +55,12 @@ namespace XiangqiOnline.Shared.Protocol
 
             uint length = BinaryPrimitives.ReadUInt32BigEndian(header);
             if (length == 0 || length > MaxPayloadBytes)
-                throw new FrameDecodeException($"INVALID_FRAME_LENGTH: length={length}");
+                throw new FrameDecodeException("INVALID_FRAME_LENGTH", $"Độ dài frame sai: length={length}");
 
             var payload = new byte[length];
             int payloadRead = await ReadExactlyAsync(stream, payload, ct).ConfigureAwait(false);
             if (payloadRead != payload.Length)
-                throw new FrameDecodeException("Kết nối đóng giữa frame (payload không đủ byte).");
+                throw new FrameDecodeException("INVALID_FRAME_LENGTH", "Kết nối đóng giữa frame (payload không đủ byte).");
 
             return payload;
         }
@@ -79,7 +79,7 @@ namespace XiangqiOnline.Shared.Protocol
                 if (read == 0)
                 {
                     if (totalRead == 0) return 0;
-                    throw new FrameDecodeException("Kết nối đóng giữa frame.");
+                    throw new FrameDecodeException("INVALID_FRAME_LENGTH", "Kết nối đóng giữa frame.");
                 }
                 totalRead += read;
             }
@@ -87,13 +87,24 @@ namespace XiangqiOnline.Shared.Protocol
         }
     }
 
+    /// <summary>Framing-level failure. ErrorCode maps to Technical Contract Appendix A.</summary>
     public class FrameDecodeException : Exception
     {
-        public FrameDecodeException(string message) : base(message) { }
+        public string ErrorCode { get; }
+
+        public FrameDecodeException(string errorCode, string message) : base(message)
+        {
+            ErrorCode = errorCode;
+        }
     }
 
     public class FrameEncodeException : Exception
     {
-        public FrameEncodeException(string message) : base(message) { }
+        public string ErrorCode { get; }
+
+        public FrameEncodeException(string message, string errorCode = "PAYLOAD_TOO_LARGE") : base(message)
+        {
+            ErrorCode = errorCode;
+        }
     }
 }
