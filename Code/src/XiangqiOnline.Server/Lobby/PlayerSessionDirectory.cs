@@ -15,6 +15,8 @@ public sealed class PlayerSessionDirectory
         _playerIdFactory = playerIdFactory ?? (() => Guid.NewGuid().ToString("N"));
     }
 
+    public event Action<PlayerListUpdated>? PlayerListUpdated;
+
     public int Count
     {
         get
@@ -41,6 +43,8 @@ public sealed class PlayerSessionDirectory
         if (string.IsNullOrWhiteSpace(connectionId))
             return LoginResult.Fail(ErrorCodes.INVALID_SESSION, "Connection id is required.");
 
+        PlayerListUpdated? update = null;
+        LoginResult result;
         lock (_gate)
         {
             if (_sessionsByConnectionId.TryGetValue(connectionId, out var existingConnectionSession) &&
@@ -60,8 +64,12 @@ public sealed class PlayerSessionDirectory
             _sessionsByConnectionId[session.ConnectionId] = session;
             _activeSessionsByDisplayName[session.DisplayName] = session;
 
-            return LoginResult.Success(session);
+            update = CreatePlayerListUpdated(session.PlayerId, "LOGIN_ACCEPTED");
+            result = LoginResult.Success(session);
         }
+
+        Publish(update);
+        return result;
     }
 
     public bool TryGetByPlayerId(string playerId, out PlayerSession session)
@@ -82,6 +90,7 @@ public sealed class PlayerSessionDirectory
 
     public void MarkOfflineByConnectionId(string connectionId, DateTimeOffset nowUtc)
     {
+        PlayerListUpdated? update = null;
         lock (_gate)
         {
             if (!_sessionsByConnectionId.TryGetValue(connectionId, out var session))
@@ -89,6 +98,78 @@ public sealed class PlayerSessionDirectory
 
             session.MarkOffline(nowUtc);
             _activeSessionsByDisplayName.Remove(session.DisplayName);
+            update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_OFFLINE");
         }
+
+        Publish(update);
+    }
+
+    public IReadOnlyList<PlayerDirectoryEntry> GetSnapshot()
+    {
+        lock (_gate)
+        {
+            return CreateSnapshot();
+        }
+    }
+
+    public bool MarkInviting(string playerId, string challengeId)
+    {
+        return UpdatePlayerStatus(playerId, session => session.MarkInviting(challengeId), "PLAYER_INVITING");
+    }
+
+    public bool MarkInvited(string playerId, string challengeId)
+    {
+        return UpdatePlayerStatus(playerId, session => session.MarkInvited(challengeId), "PLAYER_INVITED");
+    }
+
+    public bool ClearChallenge(string playerId)
+    {
+        return UpdatePlayerStatus(playerId, session => session.ClearChallenge(), "CHALLENGE_CLEARED");
+    }
+
+    public bool EnterRoom(string playerId, string roomId)
+    {
+        return UpdatePlayerStatus(playerId, session => session.EnterRoom(roomId), "PLAYER_IN_GAME");
+    }
+
+    public bool LeaveRoom(string playerId)
+    {
+        return UpdatePlayerStatus(playerId, session => session.LeaveRoom(), "PLAYER_LEFT_ROOM");
+    }
+
+    private bool UpdatePlayerStatus(string playerId, Action<PlayerSession> updateSession, string reason)
+    {
+        PlayerListUpdated? update = null;
+        lock (_gate)
+        {
+            if (!_sessionsByPlayerId.TryGetValue(playerId, out var session))
+                return false;
+
+            updateSession(session);
+            update = CreatePlayerListUpdated(session.PlayerId, reason);
+        }
+
+        Publish(update);
+        return true;
+    }
+
+    private PlayerListUpdated CreatePlayerListUpdated(string changedPlayerId, string reason) =>
+        new(changedPlayerId, reason, CreateSnapshot());
+
+    private IReadOnlyList<PlayerDirectoryEntry> CreateSnapshot() =>
+        _sessionsByPlayerId.Values
+            .Select(session => new PlayerDirectoryEntry(
+                session.PlayerId,
+                session.DisplayName,
+                session.Status,
+                session.ConnectionState))
+            .OrderBy(player => player.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(player => player.PlayerId, StringComparer.Ordinal)
+            .ToArray();
+
+    private void Publish(PlayerListUpdated? update)
+    {
+        if (update is not null)
+            PlayerListUpdated?.Invoke(update);
     }
 }
