@@ -24,7 +24,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // Arrange
         var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
         var board = BoardState.CreateInitialBoard();
-        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), match.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         // Act
         var result = _db.Service.CommitMove(match, board, intent);
@@ -44,8 +44,8 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
         var board = BoardState.CreateInitialBoard();
         var clientMoveId = IdGenerator.NewUlid();
-        var intent1 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), match.Revision);
-        var intent2 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), match.Revision);
+        var intent1 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
+        var intent2 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         // Act
         var first = _db.Service.CommitMove(match, board, intent1);
@@ -65,7 +65,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         var board = BoardState.CreateInitialBoard();
 
         // Illegal move: move RED_HORSE to a position that is not a valid horse move, e.g. (1,9) -> (0,0)
-        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(1, 9), new Position(0, 0), match.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(1, 9), new Position(0, 0), (match.FinalRevision ?? 0));
 
         // Act
         var result = _db.Service.CommitMove(match, board, intent);
@@ -83,12 +83,19 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // so the move insert violates the FK -> transaction rollback -> PersistenceFailure.
         var fakeMatch = new MatchRecord(
             MatchId: "does-not-exist",
+            RoomId: "room-fake",
+            RedPlayerId: "red",
+            BlackPlayerId: "black",
+            RuleProfileId: "UDM18_WXF_PRO_2018",
+            RuleProfileVersion: "1.1",
+            TimeProfile: "STANDARD",
+            ConfigJson: "{}",
             Status: "PLAYING",
-            CurrentTurn: XiangqiOnline.Shared.Enums.SideColor.Red,
-            Revision: 0,
-            BoardHash: "");
+            StartedAtUtc: DateTime.UtcNow,
+            FinalRevision: 0,
+            TotalMoves: 0);
         var board = BoardState.CreateInitialBoard();
-        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), fakeMatch.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (fakeMatch.FinalRevision ?? 0));
 
         // Act
         var result = _db.Service.CommitMove(fakeMatch, board, intent);
@@ -104,22 +111,22 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // Arrange
         var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
         var board = BoardState.CreateInitialBoard();
-        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), match.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         // Act: commit a legal move first (revision becomes 1)
         var ok = _db.Service.CommitMove(match, board, intent);
         Assert.True(ok.IsCommitted);
 
         var before = _db.Service.GetMatch(match.MatchId)!;
-        Assert.Equal(1L, before.Revision);
+        Assert.Equal(1L, before.FinalRevision);
 
         // Attempt a duplicate to exercise the unique path (still 1 row, revision unchanged)
-        var dup = new MoveIntent(intent.ClientMoveId, new Position(0, 9), new Position(0, 7), before.Revision);
+        var dup = new MoveIntent(intent.ClientMoveId, new Position(0, 9), new Position(0, 7), (before.FinalRevision ?? 0));
         var dupResult = _db.Service.CommitMove(match, board, dup);
         Assert.True(dupResult.IsDuplicate);
 
         var after = _db.Service.GetMatch(match.MatchId)!;
-        Assert.Equal(1L, after.Revision); // revision unchanged on duplicate
+        Assert.Equal(1L, after.FinalRevision); // revision unchanged on duplicate
         Assert.Equal(1, _db.Service.CountMoves(match.MatchId));
     }
 
@@ -131,7 +138,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         var board = BoardState.CreateInitialBoard();
         var from = new Position(0, 9);
         var to = new Position(0, 7);
-        var intent = new MoveIntent(IdGenerator.NewUlid(), from, to, match.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), from, to, (match.FinalRevision ?? 0));
 
         // Act
         var result = _db.Service.CommitMove(match, board, intent);
@@ -159,7 +166,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // Arrange
         var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
         var board = BoardState.CreateInitialBoard();
-        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), match.Revision);
+        var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         // Act
         var result = _db.Service.CommitMove(match, board, intent);
@@ -173,4 +180,12 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     }
 
     private static int Assert_CountPieces(BoardState board) => board.GetActivePieces().Count();
+
+    [Fact(Skip = "BLOCKED_BY_TV2: Final RoomState and broadcast integration seam does not exist yet.")]
+    public void Final_RoomActor_and_broadcast_integration_works()
+    {
+        // This test proves that the persistence layer successfully integrates with TV2's RoomActor
+        // and emits the correct MOVE_COMMITTED broadcast event.
+        // Marked skipped as per TV6-D3 requirements because TV2 is incomplete.
+    }
 }

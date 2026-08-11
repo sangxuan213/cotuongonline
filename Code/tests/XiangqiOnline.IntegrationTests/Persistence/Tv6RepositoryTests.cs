@@ -32,22 +32,32 @@ public sealed class Tv6RepositoryTests : IDisposable
     [Fact]
     public void Parameterized_sql_prevents_injection()
     {
-        var match = _matchRepo.Create("m-inject", "red", "black");
+        var match = _matchRepo.Create("m-inject", "r-inject", "red", "black");
         var maliciousClientMoveId = "'; DROP TABLE moves; --";
 
         // This should be treated literally as a value, not executed as SQL.
         var move = new MoveRecord(
             MoveId: "mv-inject",
-            MatchId: match.MatchId,
             ClientMoveId: maliciousClientMoveId,
+            MatchId: match.MatchId,
+            MoveIndex: 1,
+            Revision: 1,
+            Side: "RED",
             PieceId: "P1",
+            PieceType: "PAWN",
             From: new Position(0, 0),
             To: new Position(0, 1),
             CapturedPieceId: null,
+            MoveClass: "IDLE",
+            ClassificationFactsJson: "{}",
+            IsCapture: 0,
+            IsCheck: 0,
+            IsCheckmate: 0,
+            RedRemainingMs: 600000,
+            BlackRemainingMs: 600000,
             BoardHashBefore: "h1",
             BoardHashAfter: "h2",
-            MoveNumber: 1,
-            Result: "COMMITTED");
+            CreatedAtUtc: DateTime.UtcNow);
 
         var inserted = _moveRepo.TryInsert(move);
         Assert.True(inserted);
@@ -64,7 +74,7 @@ public sealed class Tv6RepositoryTests : IDisposable
     [Fact]
     public void Repository_uses_transaction_and_disposes_cleanly()
     {
-        var match = _matchRepo.Create("m-tx", "red", "black");
+        var match = _matchRepo.Create("m-tx", "r-tx", "red", "black");
 
         using (var conn = new SqliteConnection(_db.Options.BuildConnectionString()))
         {
@@ -73,16 +83,26 @@ public sealed class Tv6RepositoryTests : IDisposable
             var repo = new MoveRepository(conn, NullLogger<MoveRepository>.Instance);
             var move = new MoveRecord(
                 MoveId: "mv-tx",
-                MatchId: match.MatchId,
                 ClientMoveId: "c-tx",
+                MatchId: match.MatchId,
+                MoveIndex: 1,
+                Revision: 1,
+                Side: "RED",
                 PieceId: "P1",
+                PieceType: "PAWN",
                 From: new Position(0, 0),
                 To: new Position(0, 1),
                 CapturedPieceId: null,
+                MoveClass: "IDLE",
+                ClassificationFactsJson: "{}",
+                IsCapture: 0,
+                IsCheck: 0,
+                IsCheckmate: 0,
+                RedRemainingMs: 600000,
+                BlackRemainingMs: 600000,
                 BoardHashBefore: "h1",
                 BoardHashAfter: "h2",
-                MoveNumber: 1,
-                Result: "COMMITTED");
+                CreatedAtUtc: DateTime.UtcNow);
             var inserted = repo.TryInsert(move);
             Assert.True(inserted);
             tx.Commit();
@@ -95,19 +115,29 @@ public sealed class Tv6RepositoryTests : IDisposable
     [Fact]
     public void Repository_rejects_duplicate_client_move()
     {
-        var match = _matchRepo.Create("m-dup", "red", "black");
+        var match = _matchRepo.Create("m-dup", "r-dup", "red", "black");
         var makeMove = (string id, string clientMoveId) => new MoveRecord(
             MoveId: id,
-            MatchId: match.MatchId,
             ClientMoveId: clientMoveId,
+            MatchId: match.MatchId,
+            MoveIndex: id == "a" ? 1 : 2,
+            Revision: id == "a" ? 1 : 2,
+            Side: "RED",
             PieceId: "P1",
+            PieceType: "PAWN",
             From: new Position(0, 0),
             To: new Position(0, 1),
             CapturedPieceId: null,
+            MoveClass: "IDLE",
+            ClassificationFactsJson: "{}",
+            IsCapture: 0,
+            IsCheck: 0,
+            IsCheckmate: 0,
+            RedRemainingMs: 600000,
+            BlackRemainingMs: 600000,
             BoardHashBefore: "h1",
             BoardHashAfter: "h2",
-            MoveNumber: 1,
-            Result: "COMMITTED");
+            CreatedAtUtc: DateTime.UtcNow);
 
         Assert.True(_moveRepo.TryInsert(makeMove("a", "same-id")));
         Assert.False(_moveRepo.TryInsert(makeMove("b", "same-id")));

@@ -61,13 +61,13 @@ public sealed class MoveCommittingService
             var boardAfter = board.ApplyMove(intent.From, intent.To);
             var hashBefore = BoardHasher.Hash(boardBefore);
             var hashAfter = BoardHasher.Hash(boardAfter);
-            var nextRevision = match.Revision + 1;
+            var nextRevision = (match.FinalRevision ?? 0) + 1;
             var moveIndex = match.TotalMoves + 1;
 
             var movingPiece = board.GetPieceAt(intent.From);
             var capturedPiece = board.GetPieceAt(intent.To);
-            var pieceType = movingPiece!.PieceType.ToString().ToUpperInvariant();
-            var side = intent.Side == SideColor.Red ? "RED" : "BLACK";
+            var pieceType = movingPiece!.Type.ToString().ToUpperInvariant();
+            var side = movingPiece.Side == SideColor.Red ? "RED" : "BLACK";
 
             var isCapture = capturedPiece != null ? 1 : 0;
             var isCheck = validation.IsCheck ? 1 : 0;
