@@ -8,13 +8,21 @@ namespace XiangqiOnline.Persistence.Repositories;
 public interface IMatchRepository
 {
     /// <summary>Tạo trận đấu mới và trả về bản ghi đã lưu.</summary>
-    MatchRecord Create(string matchId, string? whitePlayerId = null, string? blackPlayerId = null);
+    MatchRecord Create(
+        string matchId,
+        string roomId,
+        string redPlayerId,
+        string blackPlayerId,
+        string ruleProfileId = "UDM18_WXF_PRO_2018",
+        string ruleProfileVersion = "1.1",
+        string timeProfile = "STANDARD",
+        string configJson = "{}");
 
     /// <summary>Lấy thông tin trận đấu theo matchId; null nếu không tồn tại.</summary>
     MatchRecord? Get(string matchId);
 
     /// <summary>
-    /// Cập nhật turn/revision/board_hash của trận. Chỉ dùng trong transaction commit để đảm bảo atomic.
+    /// Cập nhật revision và total_moves của trận trong atomic move commit transaction.
     /// </summary>
-    void UpdateBoardState(string matchId, string currentTurn, long revision, string boardHash);
+    void UpdateBoardState(string matchId, long revision, int totalMoves);
 }

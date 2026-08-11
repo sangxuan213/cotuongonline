@@ -17,60 +17,71 @@ public sealed class MatchRepository : IMatchRepository
     private readonly SqliteConnection? _externalConnection;
     private readonly ILogger<MatchRepository> _logger;
 
-    /// <summary>Ctor dùng với connection factory (mỗi lệnh mở connection riêng).</summary>
     public MatchRepository(IDbConnectionFactory connectionFactory, ILogger<MatchRepository> logger)
     {
         _connectionFactory = connectionFactory;
         _logger = logger;
     }
 
-    /// <summary>Ctor dùng chung một connection (trong transaction).</summary>
     public MatchRepository(SqliteConnection connection, ILogger<MatchRepository> logger)
     {
         _externalConnection = connection;
         _logger = logger;
     }
 
-    private SqliteConnection GetConnection()
-    {
-        return _externalConnection ?? _connectionFactory.CreateConnection();
-    }
+    private SqliteConnection GetConnection() => _externalConnection ?? _connectionFactory.CreateConnection();
 
-    private void EnsurePlayerExists(SqliteConnection conn, string? playerId)
+    private static void EnsurePlayerExists(SqliteConnection conn, string playerId)
     {
-        if (string.IsNullOrWhiteSpace(playerId))
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(playerId)) return;
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-                INSERT INTO players (player_id, display_name)
-                VALUES (@playerId, @displayName)
-                ON CONFLICT(player_id) DO NOTHING;";
+            INSERT INTO players (player_id, display_name, created_at_utc)
+            VALUES (@playerId, @displayName, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            ON CONFLICT(player_id) DO NOTHING;";
         cmd.Parameters.AddWithValue("@playerId", playerId);
         cmd.Parameters.AddWithValue("@displayName", playerId);
         cmd.ExecuteNonQuery();
     }
 
-    public MatchRecord Create(string matchId, string? whitePlayerId = null, string? blackPlayerId = null)
+    public MatchRecord Create(
+        string matchId,
+        string roomId,
+        string redPlayerId,
+        string blackPlayerId,
+        string ruleProfileId = "UDM18_WXF_PRO_2018",
+        string ruleProfileVersion = "1.1",
+        string timeProfile = "STANDARD",
+        string configJson = "{}")
     {
         var conn = GetConnection();
         var opened = EnsureOpen(conn);
         try
         {
-            EnsurePlayerExists(conn, whitePlayerId);
+            EnsurePlayerExists(conn, redPlayerId);
             EnsurePlayerExists(conn, blackPlayerId);
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO matches (match_id, white_player_id, black_player_id, status, current_turn, revision, board_hash)
-                VALUES (@matchId, @white, @black, 'PLAYING', 'RED', 0, '')
-                RETURNING match_id, white_player_id, black_player_id, status, current_turn, revision, board_hash, created_at_utc, updated_at_utc;";
+                INSERT INTO matches
+                    (match_id, room_id, red_player_id, black_player_id, rule_profile_id,
+                     rule_profile_version, time_profile, config_json, status, started_at_utc, total_moves)
+                VALUES
+                    (@matchId, @roomId, @red, @black, @ruleProfile,
+                     @ruleVersion, @timeProfile, @config, 'PLAYING', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0)
+                RETURNING match_id, room_id, red_player_id, black_player_id, rule_profile_id,
+                          rule_profile_version, time_profile, config_json, status, started_at_utc,
+                          ended_at_utc, result_type, end_reason, winner_side, final_revision, total_moves;";
 
             cmd.Parameters.AddWithValue("@matchId", matchId);
-            cmd.Parameters.AddWithValue("@white", (object?)whitePlayerId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@black", (object?)blackPlayerId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@roomId", roomId);
+            cmd.Parameters.AddWithValue("@red", redPlayerId);
+            cmd.Parameters.AddWithValue("@black", blackPlayerId);
+            cmd.Parameters.AddWithValue("@ruleProfile", ruleProfileId);
+            cmd.Parameters.AddWithValue("@ruleVersion", ruleProfileVersion);
+            cmd.Parameters.AddWithValue("@timeProfile", timeProfile);
+            cmd.Parameters.AddWithValue("@config", configJson);
 
             using var reader = cmd.ExecuteReader();
             if (!reader.Read())
@@ -78,7 +89,7 @@ public sealed class MatchRepository : IMatchRepository
                 throw new InvalidOperationException("Không tạo được trận đấu.");
             }
 
-            return MapMatch(reader, whitePlayerId, blackPlayerId);
+            return MapMatch(reader);
         }
         finally
         {
@@ -94,17 +105,14 @@ public sealed class MatchRepository : IMatchRepository
         {
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT match_id, white_player_id, black_player_id, status, current_turn, revision, board_hash, created_at_utc, updated_at_utc
+                SELECT match_id, room_id, red_player_id, black_player_id, rule_profile_id,
+                       rule_profile_version, time_profile, config_json, status, started_at_utc,
+                       ended_at_utc, result_type, end_reason, winner_side, final_revision, total_moves
                 FROM matches WHERE match_id = @matchId;";
             cmd.Parameters.AddWithValue("@matchId", matchId);
 
             using var reader = cmd.ExecuteReader();
-            if (!reader.Read())
-            {
-                return null;
-            }
-
-            return MapMatch(reader);
+            return reader.Read() ? MapMatch(reader) : null;
         }
         finally
         {
@@ -112,7 +120,7 @@ public sealed class MatchRepository : IMatchRepository
         }
     }
 
-    public void UpdateBoardState(string matchId, string currentTurn, long revision, string boardHash)
+    public void UpdateBoardState(string matchId, long revision, int totalMoves)
     {
         var conn = GetConnection();
         var opened = EnsureOpen(conn);
@@ -121,12 +129,11 @@ public sealed class MatchRepository : IMatchRepository
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 UPDATE matches
-                SET current_turn = @turn, revision = @revision, board_hash = @hash,
-                    updated_at_utc = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                SET total_moves = @totalMoves,
+                    final_revision = @revision
                 WHERE match_id = @matchId;";
-            cmd.Parameters.AddWithValue("@turn", currentTurn);
             cmd.Parameters.AddWithValue("@revision", revision);
-            cmd.Parameters.AddWithValue("@hash", boardHash);
+            cmd.Parameters.AddWithValue("@totalMoves", totalMoves);
             cmd.Parameters.AddWithValue("@matchId", matchId);
             cmd.ExecuteNonQuery();
         }
@@ -136,33 +143,31 @@ public sealed class MatchRepository : IMatchRepository
         }
     }
 
-    private static MatchRecord MapMatch(SqliteDataReader reader, string? whiteOverride = null, string? blackOverride = null)
+    private static MatchRecord MapMatch(SqliteDataReader reader)
     {
-        var matchIdIdx = reader.GetOrdinal("match_id");
-        var whiteIdx = reader.GetOrdinal("white_player_id");
-        var blackIdx = reader.GetOrdinal("black_player_id");
-        var statusIdx = reader.GetOrdinal("status");
-        var turnIdx = reader.GetOrdinal("current_turn");
-        var revisionIdx = reader.GetOrdinal("revision");
-        var hashIdx = reader.GetOrdinal("board_hash");
-
-        var turn = reader.GetString(turnIdx);
         return new MatchRecord(
-            MatchId: reader.GetString(matchIdIdx),
-            Status: reader.GetString(statusIdx),
-            CurrentTurn: turn == "BLACK" ? SideColor.Black : SideColor.Red,
-            Revision: reader.GetInt64(revisionIdx),
-            BoardHash: reader.GetString(hashIdx),
-            WhitePlayerId: whiteOverride ?? (reader.IsDBNull(whiteIdx) ? null : reader.GetString(whiteIdx)),
-            BlackPlayerId: blackOverride ?? (reader.IsDBNull(blackIdx) ? null : reader.GetString(blackIdx)));
+            MatchId: reader.GetString(0),
+            RoomId: reader.GetString(1),
+            RedPlayerId: reader.GetString(2),
+            BlackPlayerId: reader.GetString(3),
+            RuleProfileId: reader.GetString(4),
+            RuleProfileVersion: reader.GetString(5),
+            TimeProfile: reader.GetString(6),
+            ConfigJson: reader.GetString(7),
+            Status: reader.GetString(8),
+            StartedAtUtc: DateTime.Parse(reader.GetString(9)),
+            EndedAtUtc: reader.IsDBNull(10) ? null : DateTime.Parse(reader.GetString(10)),
+            ResultType: reader.IsDBNull(11) ? null : reader.GetString(11),
+            EndReason: reader.IsDBNull(12) ? null : reader.GetString(12),
+            WinnerSide: reader.IsDBNull(13) ? null : reader.GetString(13),
+            FinalRevision: reader.IsDBNull(14) ? null : reader.GetInt64(14),
+            TotalMoves: reader.GetInt32(15)
+        );
     }
 
     private static bool EnsureOpen(SqliteConnection conn)
     {
-        if (conn.State == System.Data.ConnectionState.Open)
-        {
-            return false;
-        }
+        if (conn.State == System.Data.ConnectionState.Open) return false;
         conn.Open();
         return true;
     }

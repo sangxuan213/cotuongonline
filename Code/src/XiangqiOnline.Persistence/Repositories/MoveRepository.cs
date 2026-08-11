@@ -28,10 +28,7 @@ public sealed class MoveRepository : IMoveRepository
         _logger = logger;
     }
 
-    private SqliteConnection GetConnection()
-    {
-        return _externalConnection ?? _connectionFactory.CreateConnection();
-    }
+    private SqliteConnection GetConnection() => _externalConnection ?? _connectionFactory.CreateConnection();
 
     public bool TryInsert(MoveRecord move)
     {
@@ -42,32 +39,45 @@ public sealed class MoveRepository : IMoveRepository
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO moves
-                    (move_id, match_id, client_move_id, piece_id, from_x, from_y, to_x, to_y,
-                     captured_piece_id, board_hash_before, board_hash_after, move_number, result)
+                    (move_id, client_move_id, match_id, move_index, revision, side,
+                     piece_id, piece_type, from_x, from_y, to_x, to_y, captured_piece_id,
+                     move_class, classification_facts_json, is_capture, is_check, is_checkmate,
+                     red_remaining_ms, black_remaining_ms, board_hash_before, board_hash_after, created_at_utc)
                 VALUES
-                    (@moveId, @matchId, @clientMoveId, @pieceId, @fromX, @fromY, @toX, @toY,
-                     @captured, @hashBefore, @hashAfter, @moveNumber, @result);";
+                    (@moveId, @clientMoveId, @matchId, @moveIndex, @revision, @side,
+                     @pieceId, @pieceType, @fromX, @fromY, @toX, @toY, @captured,
+                     @moveClass, @factsJson, @isCapture, @isCheck, @isCheckmate,
+                     @redMs, @blackMs, @hashBefore, @hashAfter, @createdAt);";
 
             cmd.Parameters.AddWithValue("@moveId", move.MoveId);
-            cmd.Parameters.AddWithValue("@matchId", move.MatchId);
             cmd.Parameters.AddWithValue("@clientMoveId", move.ClientMoveId);
+            cmd.Parameters.AddWithValue("@matchId", move.MatchId);
+            cmd.Parameters.AddWithValue("@moveIndex", move.MoveIndex);
+            cmd.Parameters.AddWithValue("@revision", move.Revision);
+            cmd.Parameters.AddWithValue("@side", move.Side);
             cmd.Parameters.AddWithValue("@pieceId", move.PieceId);
+            cmd.Parameters.AddWithValue("@pieceType", move.PieceType);
             cmd.Parameters.AddWithValue("@fromX", move.From.X);
             cmd.Parameters.AddWithValue("@fromY", move.From.Y);
             cmd.Parameters.AddWithValue("@toX", move.To.X);
             cmd.Parameters.AddWithValue("@toY", move.To.Y);
             cmd.Parameters.AddWithValue("@captured", (object?)move.CapturedPieceId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@moveClass", move.MoveClass);
+            cmd.Parameters.AddWithValue("@factsJson", move.ClassificationFactsJson ?? "{}");
+            cmd.Parameters.AddWithValue("@isCapture", move.IsCapture);
+            cmd.Parameters.AddWithValue("@isCheck", move.IsCheck);
+            cmd.Parameters.AddWithValue("@isCheckmate", move.IsCheckmate);
+            cmd.Parameters.AddWithValue("@redMs", move.RedRemainingMs);
+            cmd.Parameters.AddWithValue("@blackMs", move.BlackRemainingMs);
             cmd.Parameters.AddWithValue("@hashBefore", move.BoardHashBefore);
             cmd.Parameters.AddWithValue("@hashAfter", move.BoardHashAfter);
-            cmd.Parameters.AddWithValue("@moveNumber", move.MoveNumber);
-            cmd.Parameters.AddWithValue("@result", move.Result);
+            cmd.Parameters.AddWithValue("@createdAt", move.CreatedAtUtc?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"));
 
             cmd.ExecuteNonQuery();
             return true;
         }
         catch (SqliteException ex) when (ex.SqliteErrorCode == 19 && ex.SqliteExtendedErrorCode == 2067) // SQLITE_CONSTRAINT_UNIQUE
         {
-            // Duplicate (match_id, client_move_id) -> unique constraint violation.
             _logger.LogWarning("Duplicate clientMoveId detected. matchId={MatchId} clientMoveId={ClientMoveId}",
                 move.MatchId, move.ClientMoveId);
             return false;
@@ -86,8 +96,10 @@ public sealed class MoveRepository : IMoveRepository
         {
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT move_id, match_id, client_move_id, piece_id, from_x, from_y, to_x, to_y,
-                       captured_piece_id, board_hash_before, board_hash_after, move_number, result, created_at_utc
+                SELECT move_id, client_move_id, match_id, move_index, revision, side,
+                       piece_id, piece_type, from_x, from_y, to_x, to_y, captured_piece_id,
+                       move_class, classification_facts_json, is_capture, is_check, is_checkmate,
+                       red_remaining_ms, black_remaining_ms, board_hash_before, board_hash_after, created_at_utc
                 FROM moves
                 WHERE match_id = @matchId AND client_move_id = @clientMoveId
                 LIMIT 1;";
@@ -129,10 +141,12 @@ public sealed class MoveRepository : IMoveRepository
         {
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT move_id, match_id, client_move_id, piece_id, from_x, from_y, to_x, to_y,
-                       captured_piece_id, board_hash_before, board_hash_after, move_number, result, created_at_utc
+                SELECT move_id, client_move_id, match_id, move_index, revision, side,
+                       piece_id, piece_type, from_x, from_y, to_x, to_y, captured_piece_id,
+                       move_class, classification_facts_json, is_capture, is_check, is_checkmate,
+                       red_remaining_ms, black_remaining_ms, board_hash_before, board_hash_after, created_at_utc
                 FROM moves WHERE match_id = @matchId
-                ORDER BY move_number ASC;";
+                ORDER BY move_index ASC;";
             cmd.Parameters.AddWithValue("@matchId", matchId);
 
             using var reader = cmd.ExecuteReader();
@@ -152,25 +166,32 @@ public sealed class MoveRepository : IMoveRepository
     {
         return new MoveRecord(
             MoveId: reader.GetString(0),
-            MatchId: reader.GetString(1),
-            ClientMoveId: reader.GetString(2),
-            PieceId: reader.GetString(3),
-            From: new Position(reader.GetInt32(4), reader.GetInt32(5)),
-            To: new Position(reader.GetInt32(6), reader.GetInt32(7)),
-            CapturedPieceId: reader.IsDBNull(8) ? null : reader.GetString(8),
-            BoardHashBefore: reader.GetString(9),
-            BoardHashAfter: reader.GetString(10),
-            MoveNumber: reader.GetInt32(11),
-            Result: reader.GetString(12),
-            CreatedAtUtc: reader.IsDBNull(13) ? null : DateTime.Parse(reader.GetString(13)));
+            ClientMoveId: reader.GetString(1),
+            MatchId: reader.GetString(2),
+            MoveIndex: reader.GetInt32(3),
+            Revision: reader.GetInt64(4),
+            Side: reader.GetString(5),
+            PieceId: reader.GetString(6),
+            PieceType: reader.GetString(7),
+            From: new Position(reader.GetInt32(8), reader.GetInt32(9)),
+            To: new Position(reader.GetInt32(10), reader.GetInt32(11)),
+            CapturedPieceId: reader.IsDBNull(12) ? null : reader.GetString(12),
+            MoveClass: reader.GetString(13),
+            ClassificationFactsJson: reader.GetString(14),
+            IsCapture: reader.GetInt32(15),
+            IsCheck: reader.GetInt32(16),
+            IsCheckmate: reader.GetInt32(17),
+            RedRemainingMs: reader.GetInt32(18),
+            BlackRemainingMs: reader.GetInt32(19),
+            BoardHashBefore: reader.GetString(20),
+            BoardHashAfter: reader.GetString(21),
+            CreatedAtUtc: reader.IsDBNull(22) ? null : DateTime.Parse(reader.GetString(22))
+        );
     }
 
     private static bool EnsureOpen(SqliteConnection conn)
     {
-        if (conn.State == System.Data.ConnectionState.Open)
-        {
-            return false;
-        }
+        if (conn.State == System.Data.ConnectionState.Open) return false;
         conn.Open();
         return true;
     }

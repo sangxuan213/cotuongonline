@@ -49,10 +49,18 @@ public sealed class GamePersistenceService
     }
 
     /// <summary>Tạo trận đấu mới.</summary>
-    public MatchRecord CreateMatch(string matchId, string? white = null, string? black = null)
+    public MatchRecord CreateMatch(
+        string matchId,
+        string? redPlayerId = null,
+        string? blackPlayerId = null,
+        string? roomId = null)
     {
+        var red = string.IsNullOrWhiteSpace(redPlayerId) ? "red-player" : redPlayerId;
+        var black = string.IsNullOrWhiteSpace(blackPlayerId) ? "black-player" : blackPlayerId;
+        var room = string.IsNullOrWhiteSpace(roomId) ? "room-" + matchId : roomId;
+
         var repo = new MatchRepository(_connectionFactory, _loggerFactory.CreateLogger<MatchRepository>());
-        return repo.Create(matchId, white, black);
+        return repo.Create(matchId, room, red, black);
     }
 
     /// <summary>Lấy trận đấu.</summary>
