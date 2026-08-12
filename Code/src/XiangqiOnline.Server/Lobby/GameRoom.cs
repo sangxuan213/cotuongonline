@@ -1,4 +1,5 @@
 using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.RuleEngine.Models;
 
 namespace XiangqiOnline.Server.Lobby;
 
@@ -19,7 +20,8 @@ public sealed class GameRoom
         string blackPlayerId,
         string ruleProfileId,
         string timeProfile,
-        DateTimeOffset createdAtUtc)
+        DateTimeOffset createdAtUtc,
+        BoardState? initialBoard = null)
     {
         if (string.IsNullOrWhiteSpace(roomId))
             throw new ArgumentException("Room id is required.", nameof(roomId));
@@ -40,6 +42,7 @@ public sealed class GameRoom
         RuleProfileId = ruleProfileId;
         TimeProfile = timeProfile;
         CreatedAtUtc = createdAtUtc;
+        Board = initialBoard ?? BoardState.CreateInitialBoard(SideColor.Red);
     }
 
     public string RoomId { get; }
@@ -48,6 +51,7 @@ public sealed class GameRoom
     public string RuleProfileId { get; }
     public string TimeProfile { get; }
     public DateTimeOffset CreatedAtUtc { get; }
+    public BoardState Board { get; }
     public GameRoomStatus Status { get; private set; } = GameRoomStatus.CREATED;
     public SideColor CurrentTurn { get; private set; } = SideColor.Red;
     public long Revision { get; private set; }
