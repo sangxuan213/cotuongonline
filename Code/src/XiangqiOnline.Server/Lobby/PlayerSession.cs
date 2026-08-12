@@ -85,11 +85,13 @@ public sealed class PlayerSession
         ConnectionState = PlayerSessionConnectionState.RECONNECTING;
     }
 
-    public void Reconnect(string connectionId, DateTimeOffset reconnectedAtUtc)
+    internal void Reconnect(string connectionId, DateTimeOffset reconnectedAtUtc)
     {
         ConnectionId = RequireId(connectionId, nameof(connectionId));
         LastSeenAtUtc = reconnectedAtUtc;
         ConnectionState = PlayerSessionConnectionState.CONNECTED;
+        Status = RoomId is not null ? PlayerStatus.IN_GAME : PlayerStatus.AVAILABLE;
+        ActiveChallengeId = null;
     }
 
     public void MarkOffline(DateTimeOffset lastSeenAtUtc)

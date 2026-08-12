@@ -36,4 +36,6 @@ public static class ErrorCodes
     public const string PLAYER_NOT_AVAILABLE = "PLAYER_NOT_AVAILABLE";
     public const string CHALLENGE_NOT_FOUND = "CHALLENGE_NOT_FOUND";
     public const string CHALLENGE_NOT_PENDING = "CHALLENGE_NOT_PENDING";
+    public const string CHALLENGE_UNAUTHORIZED = "CHALLENGE_UNAUTHORIZED";
+    public const string CHALLENGE_EXPIRED = "CHALLENGE_EXPIRED";
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
@@ -69,15 +70,17 @@ public sealed class ChallengeManager
                 return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_FOUND, "Challenge was not found.");
             if (!challenge.IsPending)
                 return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_PENDING, "Challenge is no longer pending.");
+            if (nowUtc >= challenge.ExpiresAtUtc)
+            {
+                challenge.Expire(nowUtc);
+                _players.ClearChallenge(challenge.ChallengerPlayerId);
+                _players.ClearChallenge(challenge.TargetPlayerId);
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_EXPIRED, "Challenge expired before it could be accepted.");
+            }
+            if (acceptingPlayerId != challenge.TargetPlayerId)
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_UNAUTHORIZED, "Only the challenged player can accept this challenge.");
 
-            try
-            {
-                challenge.Accept(acceptingPlayerId, nowUtc);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_PENDING, ex.Message);
-            }
+            challenge.Accept(acceptingPlayerId, nowUtc);
 
             var board = BoardState.CreateInitialBoard(SideColor.Red);
             var room = new GameRoom(
@@ -98,7 +101,34 @@ public sealed class ChallengeManager
         }
     }
 
-    public ChallengeActionResult RejectChallenge(string challengeId, string rejectingPlayerId)
+    public ChallengeActionResult RejectChallenge(string challengeId, string rejectingPlayerId, DateTimeOffset nowUtc)
+    {
+        lock (_gate)
+        {
+            if (!_challengesById.TryGetValue(challengeId, out var challenge))
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_FOUND, "Challenge was not found.");
+            if (!challenge.IsPending)
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_PENDING, "Challenge is no longer pending.");
+            if (nowUtc >= challenge.ExpiresAtUtc)
+            {
+                challenge.Expire(nowUtc);
+                _players.ClearChallenge(challenge.ChallengerPlayerId);
+                _players.ClearChallenge(challenge.TargetPlayerId);
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_EXPIRED, "Challenge expired before it could be rejected.");
+            }
+            if (rejectingPlayerId != challenge.TargetPlayerId)
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_UNAUTHORIZED, "Only the challenged player can reject this challenge.");
+
+            challenge.Reject(rejectingPlayerId);
+
+            _players.ClearChallenge(challenge.ChallengerPlayerId);
+            _players.ClearChallenge(challenge.TargetPlayerId);
+
+            return ChallengeActionResult.Rejected(challenge);
+        }
+    }
+
+    public ChallengeActionResult CancelChallenge(string challengeId, string cancellingPlayerId)
     {
         lock (_gate)
         {
@@ -109,21 +139,36 @@ public sealed class ChallengeManager
 
             try
             {
-                challenge.Reject(rejectingPlayerId);
+                challenge.Cancel(cancellingPlayerId);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
-                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_NOT_PENDING, ex.Message);
+                return ChallengeActionResult.Fail(ErrorCodes.CHALLENGE_UNAUTHORIZED, "Only the challenger can cancel this challenge.");
             }
 
             _players.ClearChallenge(challenge.ChallengerPlayerId);
             _players.ClearChallenge(challenge.TargetPlayerId);
 
-            return ChallengeActionResult.Rejected(challenge);
+            return ChallengeActionResult.Cancelled(challenge);
         }
     }
 
-    public bool TryGetChallenge(string challengeId, out Challenge challenge)
+    public void ExpireOverdueChallenges(DateTimeOffset nowUtc)
+    {
+        lock (_gate)
+        {
+            foreach (var challenge in _challengesById.Values.Where(c => c.IsPending).ToArray())
+            {
+                if (challenge.Expire(nowUtc))
+                {
+                    _players.ClearChallenge(challenge.ChallengerPlayerId);
+                    _players.ClearChallenge(challenge.TargetPlayerId);
+                }
+            }
+        }
+    }
+
+    public bool TryGetChallenge(string challengeId, [MaybeNullWhen(false)] out Challenge challenge)
     {
         lock (_gate)
         {
@@ -131,7 +176,7 @@ public sealed class ChallengeManager
         }
     }
 
-    public bool TryGetRoom(string roomId, out GameRoom room)
+    public bool TryGetRoom(string roomId, [MaybeNullWhen(false)] out GameRoom room)
     {
         lock (_gate)
         {
@@ -139,12 +184,12 @@ public sealed class ChallengeManager
         }
     }
 
-    private bool TryGetAvailablePlayer(string playerId, out PlayerSession session)
+    private bool TryGetAvailablePlayer(string playerId, [MaybeNullWhen(false)] out PlayerSession session)
     {
         if (_players.TryGetByPlayerId(playerId, out session!) && session.CanReceiveChallenge)
             return true;
 
-        session = null!;
+        session = null;
         return false;
     }
 }

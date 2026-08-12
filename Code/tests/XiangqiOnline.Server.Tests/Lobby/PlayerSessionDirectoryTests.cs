@@ -93,5 +93,94 @@ public sealed class PlayerSessionDirectoryTests
         Assert.Equal(0, directory.Count);
     }
 
+    [Fact]
+    public void ReconnectConnectionMovesSessionToNewConnectionAndRemovesStaleMapping()
+    {
+        var directory = NewDirectory("p1");
+        Assert.True(directory.Login("Alice", "conn-1", Now).IsSuccess);
+
+        var result = directory.ReconnectConnection("conn-1", "conn-2", Now.AddSeconds(5));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Session);
+        Assert.Equal("p1", result.Session!.PlayerId);
+        Assert.Equal("conn-2", result.Session.ConnectionId);
+        Assert.Equal(PlayerStatus.AVAILABLE, result.Session.Status);
+        Assert.Equal(PlayerSessionConnectionState.CONNECTED, result.Session.ConnectionState);
+        Assert.True(directory.TryGetByConnectionId("conn-2", out var byNewConnection));
+        Assert.Same(result.Session, byNewConnection);
+        Assert.False(directory.TryGetByConnectionId("conn-1", out _));
+    }
+
+    [Fact]
+    public void ReconnectConnectionRestoresOfflineSessionToAvailable()
+    {
+        var directory = NewDirectory("p1");
+        Assert.True(directory.Login("Alice", "conn-1", Now).IsSuccess);
+        directory.MarkOfflineByConnectionId("conn-1", Now.AddSeconds(5));
+
+        var result = directory.ReconnectConnection("conn-1", "conn-2", Now.AddSeconds(6));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(PlayerStatus.AVAILABLE, result.Session!.Status);
+        Assert.Equal(PlayerSessionConnectionState.CONNECTED, result.Session.ConnectionState);
+    }
+
+    [Fact]
+    public void ReconnectConnectionKeepsInGameStatusForPlayerInRoom()
+    {
+        var directory = NewDirectory("p1");
+        Assert.True(directory.Login("Alice", "conn-1", Now).IsSuccess);
+
+        Assert.True(directory.EnterRoom("p1", "room-1"));
+        directory.MarkOfflineByConnectionId("conn-1", Now.AddSeconds(5));
+
+        var result = directory.ReconnectConnection("conn-1", "conn-2", Now.AddSeconds(6));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(PlayerStatus.IN_GAME, result.Session!.Status);
+        Assert.Equal("room-1", result.Session.RoomId);
+    }
+
+    [Fact]
+    public void ReconnectConnectionRejectsUnknownCurrentConnection()
+    {
+        var directory = NewDirectory("p1");
+
+        var result = directory.ReconnectConnection("missing", "conn-2", Now);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.INVALID_SESSION, result.ErrorCode);
+    }
+
+    [Fact]
+    public void ReconnectConnectionRejectsDuplicateNewConnectionId()
+    {
+        var nextId = 0;
+        var directory = new PlayerSessionDirectory(() => $"p{++nextId}");
+        Assert.True(directory.Login("Alice", "conn-1", Now).IsSuccess);
+        Assert.True(directory.Login("Bob", "conn-2", Now).IsSuccess);
+
+        var result = directory.ReconnectConnection("conn-1", "conn-2", Now.AddSeconds(5));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.DUPLICATE_SESSION, result.ErrorCode);
+    }
+
+    [Fact]
+    public void ReconnectConnectionRejectsDisplayNameTakenByAnotherActiveSession()
+    {
+        var nextId = 0;
+        var directory = new PlayerSessionDirectory(() => $"p{++nextId}");
+        Assert.True(directory.Login("Alice", "conn-1", Now).IsSuccess);
+        directory.MarkOfflineByConnectionId("conn-1", Now.AddSeconds(5));
+        Assert.True(directory.Login("Alice", "conn-2", Now.AddSeconds(6)).IsSuccess);
+
+        var result = directory.ReconnectConnection("conn-1", "conn-3", Now.AddSeconds(7));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.DISPLAY_NAME_TAKEN, result.ErrorCode);
+    }
+
     private static PlayerSessionDirectory NewDirectory(string playerId) => new(() => playerId);
 }

@@ -1,5 +1,6 @@
 using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.Shared.Models;
 
 namespace XiangqiOnline.Server.Tests.Lobby;
 
@@ -41,13 +42,15 @@ public sealed class GameRoomTests
     {
         var room = NewRoom();
 
-        Assert.Throws<InvalidOperationException>(() => room.CommitRevision());
+        Assert.Throws<InvalidOperationException>(() => room.CommitRevision(room.Board.ApplyMove(new Position(0, 6), new Position(0, 5))));
+        Assert.Equal(SideColor.Red, room.Board.Turn);
 
         room.Start();
-        var revision = room.CommitRevision();
+        var revision = room.CommitRevision(room.Board.ApplyMove(new Position(0, 6), new Position(0, 5)));
 
         Assert.Equal(1, revision);
         Assert.Equal(SideColor.Black, room.CurrentTurn);
+        Assert.Equal(SideColor.Black, room.Board.Turn);
     }
 
     [Fact]

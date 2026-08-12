@@ -88,6 +88,45 @@ public sealed class PlayerSessionDirectory
         }
     }
 
+    public ReconnectResult ReconnectConnection(string currentConnectionId, string newConnectionId, DateTimeOffset nowUtc)
+    {
+        if (string.IsNullOrWhiteSpace(newConnectionId))
+            return ReconnectResult.Fail(ErrorCodes.INVALID_SESSION, "Connection id is required.");
+
+        PlayerListUpdated? update = null;
+        ReconnectResult result;
+        lock (_gate)
+        {
+            if (!_sessionsByConnectionId.TryGetValue(currentConnectionId, out var session))
+                return ReconnectResult.Fail(ErrorCodes.INVALID_SESSION, "No session is bound to the current connection.");
+
+            if (_sessionsByConnectionId.TryGetValue(newConnectionId, out var otherConnectionSession) &&
+                !ReferenceEquals(otherConnectionSession, session) &&
+                otherConnectionSession.ConnectionState != PlayerSessionConnectionState.DISCONNECTED)
+            {
+                return ReconnectResult.Fail(ErrorCodes.DUPLICATE_SESSION, "New connection id already has an active session.");
+            }
+
+            if (_activeSessionsByDisplayName.TryGetValue(session.DisplayName, out var displayNameSession) &&
+                !ReferenceEquals(displayNameSession, session) &&
+                displayNameSession.ConnectionState != PlayerSessionConnectionState.DISCONNECTED)
+            {
+                return ReconnectResult.Fail(ErrorCodes.DISPLAY_NAME_TAKEN, "Display name is already in use by another active connection.");
+            }
+
+            _sessionsByConnectionId.Remove(session.ConnectionId);
+            session.Reconnect(newConnectionId, nowUtc);
+            _sessionsByConnectionId[session.ConnectionId] = session;
+            _activeSessionsByDisplayName[session.DisplayName] = session;
+
+            update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_RECONNECTED");
+            result = ReconnectResult.Success(session);
+        }
+
+        Publish(update);
+        return result;
+    }
+
     public void MarkOfflineByConnectionId(string connectionId, DateTimeOffset nowUtc)
     {
         PlayerListUpdated? update = null;

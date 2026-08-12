@@ -1,3 +1,5 @@
+using XiangqiOnline.RuleEngine.Attacks;
+using XiangqiOnline.RuleEngine.Checks;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Validators;
 using XiangqiOnline.Shared.Enums;
@@ -10,15 +12,17 @@ namespace XiangqiOnline.RuleEngine.Pipeline;
 /// 1. Kiểm tra tọa độ (OUT_OF_BOARD)
 /// 2. Kiểm tra ô đích khác ô nguồn (INVALID_GEOMETRY)
 /// 3. Kiểm tra ô nguồn có quân cờ (NO_PIECE_AT_SOURCE)
-/// 4. Kiểm tra đúng lượt & chính chủ (NOT_YOUR_TURN / NOT_YOUR_PIECE) - dựa trên Server Authoritative board.Turn
+/// 4. Kiểm tra đúng lượt (NOT_YOUR_TURN) - dựa trên Server Authoritative board.Turn
 /// 5. Kiểm tra ô đích không chứa quân đồng minh (ALLY_AT_DESTINATION)
 /// 6. Kiểm tra hình học & cản đường riêng từng loại quân (Piece-specific IMoveValidator)
+/// 7. Mô phỏng nước đi và kiểm tra tự chiếu (SELF_CHECK / CHECK_NOT_RESOLVED / GENERALS_FACING)
 /// </summary>
 public class MoveValidationPipeline
 {
     private readonly Dictionary<PieceType, IMoveValidator> _validators;
+    private readonly SelfCheckValidator _selfCheckValidator;
 
-    public MoveValidationPipeline()
+    public MoveValidationPipeline(SelfCheckValidator? selfCheckValidator = null)
     {
         var validatorList = new IMoveValidator[]
         {
@@ -32,6 +36,7 @@ public class MoveValidationPipeline
         };
 
         _validators = validatorList.ToDictionary(v => v.MatchingPieceType, v => v);
+        _selfCheckValidator = selfCheckValidator ?? CreateDefaultSelfCheckValidator();
     }
 
     /// <summary>
@@ -61,7 +66,7 @@ public class MoveValidationPipeline
                 return MoveValidationResult.Fail(ErrorCodes.NO_PIECE_AT_SOURCE, "Không có quân cờ ở vị trí nguồn.");
             }
 
-            // 4. Kiểm tra đúng lượt đi & chính chủ (Server-authoritative check)
+            // 4. Kiểm tra đúng lượt đi (Server-authoritative check)
             if (movingPiece.Side != board.Turn)
             {
                 return MoveValidationResult.Fail(ErrorCodes.NOT_YOUR_TURN, "Chưa tới lượt đi của bạn.");
@@ -80,12 +85,42 @@ public class MoveValidationPipeline
                 return MoveValidationResult.Fail(ErrorCodes.INVALID_GEOMETRY, "Không tìm thấy luật cho loại quân này.");
             }
 
-            return pieceValidator.Validate(board, movingPiece, intent.To);
+            var moveResult = pieceValidator.Validate(board, movingPiece, intent.To);
+            if (!moveResult.IsValid)
+            {
+                return moveResult;
+            }
+
+            // 7. Mô phỏng nước đi trên bàn cờ tạm và kiểm tra tự chiếu / tướng đối mặt
+            return _selfCheckValidator.Validate(board, movingPiece, intent.To);
         }
-        catch (Exception)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
         {
             // Bảo vệ Server khỏi crash do lỗi hệ thống không mong muốn
+            System.Diagnostics.Trace.TraceError(
+                "Move validation failed unexpectedly for {From}->{To}: {Exception}",
+                intent.From, intent.To, ex);
             return MoveValidationResult.Fail(ErrorCodes.INTERNAL_SERVER_ERROR, "Lỗi hệ thống khi kiểm tra nước đi.");
         }
+    }
+
+    private static SelfCheckValidator CreateDefaultSelfCheckValidator()
+    {
+        var facingDetector = new GeneralsFacingDetector();
+        var attackDetector = new AttackDetector(new IAttackRule[]
+        {
+            new GeneralAttackRule(facingDetector),
+            new AdvisorAttackRule(),
+            new ElephantAttackRule(),
+            new HorseAttackRule(),
+            new ChariotAttackRule(),
+            new CannonAttackRule(),
+            new PawnAttackRule()
+        });
+        return new SelfCheckValidator(new CheckDetector(attackDetector), facingDetector);
     }
 }

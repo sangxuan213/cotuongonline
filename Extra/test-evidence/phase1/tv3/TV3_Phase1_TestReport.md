@@ -36,3 +36,4 @@
   - `PieceType.Chariot` (renamed from `Rook`).
   - `MoveIntent(string ClientMoveId, Position From, Position To, long ExpectedRevision)`.
   - `ErrorCodes` string values without `ERR_` prefixes (`HORSE_LEG_BLOCKED`, `ELEPHANT_EYE_BLOCKED`, `ELEPHANT_CROSSES_RIVER`, `CANNON_SCREEN_INVALID`, `PAWN_RETREATS`, `OUTSIDE_PALACE`, `ALLY_AT_DESTINATION`, `INVALID_GEOMETRY`, `PATH_BLOCKED`, `NO_PIECE_AT_SOURCE`, `NOT_YOUR_TURN`, `OUT_OF_BOARD`).
+  - **Lưu ý**: Danh sách `ErrorCodes` trên chỉ liệt kê tập con di chuyển (movement subset) của TV3. Các mã do `MoveValidationPipeline` / `SelfCheckValidator` trả về (`INTERNAL_SERVER_ERROR`, `GENERALS_FACING`, `CHECK_NOT_RESOLVED`, `SELF_CHECK`) được triển khai ở giai đoạn TV4.

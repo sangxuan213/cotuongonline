@@ -99,7 +99,7 @@ public sealed class P1Tv2D5ServerAcceptanceTests
         var result = manager.AcceptChallenge(send.Challenge!.ChallengeId, charlie.PlayerId, Now.AddSeconds(1));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorCodes.CHALLENGE_NOT_PENDING, result.ErrorCode);
+        Assert.Equal(ErrorCodes.CHALLENGE_UNAUTHORIZED, result.ErrorCode);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class P1Tv2D5ServerAcceptanceTests
         var bob = Login(players, "Bob", "conn-2");
         var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
 
-        var reject = manager.RejectChallenge(send.Challenge!.ChallengeId, bob.PlayerId);
+        var reject = manager.RejectChallenge(send.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(5));
 
         Assert.True(reject.IsSuccess);
         Assert.Null(reject.Room);

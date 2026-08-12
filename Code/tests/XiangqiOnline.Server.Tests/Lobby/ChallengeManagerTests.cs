@@ -90,7 +90,7 @@ public sealed class ChallengeManagerTests
         var bob = Login(players, "Bob", "conn-2");
         var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
 
-        var reject = manager.RejectChallenge(send.Challenge!.ChallengeId, bob.PlayerId);
+        var reject = manager.RejectChallenge(send.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(5));
 
         Assert.True(reject.IsSuccess);
         Assert.Equal(ChallengeStatus.REJECTED, reject.Challenge!.Status);
@@ -120,10 +120,119 @@ public sealed class ChallengeManagerTests
         var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
         Assert.True(manager.AcceptChallenge(send.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(1)).IsSuccess);
 
-        var result = manager.RejectChallenge(send.Challenge.ChallengeId, bob.PlayerId);
+        var result = manager.RejectChallenge(send.Challenge.ChallengeId, bob.PlayerId, Now.AddSeconds(5));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodes.CHALLENGE_NOT_PENDING, result.ErrorCode);
+    }
+
+    [Fact]
+    public void AcceptAfterExpiryExpiresChallengeAndClearsBothPlayers()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        var result = manager.AcceptChallenge(send.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(31));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.CHALLENGE_EXPIRED, result.ErrorCode);
+        Assert.Equal(ChallengeStatus.EXPIRED, send.Challenge.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, alice.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
+        Assert.Null(alice.ActiveChallengeId);
+        Assert.Null(bob.ActiveChallengeId);
+    }
+
+    [Fact]
+    public void AcceptByNonTargetPlayerReturnsUnauthorized()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var charlie = Login(players, "Charlie", "conn-3");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        var result = manager.AcceptChallenge(send.Challenge!.ChallengeId, alice.PlayerId, Now.AddSeconds(1));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.CHALLENGE_UNAUTHORIZED, result.ErrorCode);
+        Assert.Equal(ChallengeStatus.PENDING, send.Challenge.Status);
+    }
+
+    [Fact]
+    public void RejectByNonTargetPlayerReturnsUnauthorized()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var charlie = Login(players, "Charlie", "conn-3");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        var result = manager.RejectChallenge(send.Challenge!.ChallengeId, alice.PlayerId, Now.AddSeconds(5));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.CHALLENGE_UNAUTHORIZED, result.ErrorCode);
+        Assert.Equal(ChallengeStatus.PENDING, send.Challenge.Status);
+    }
+
+    [Fact]
+    public void SendChallengeWithNonPositiveLifetimeThrows()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+
+        Assert.Throws<ArgumentException>(() =>
+            manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void CancelChallengeReleasesBothPlayers()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        var result = manager.CancelChallenge(send.Challenge!.ChallengeId, alice.PlayerId);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ChallengeStatus.CANCELLED, send.Challenge.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, alice.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
+        Assert.Null(alice.ActiveChallengeId);
+        Assert.Null(bob.ActiveChallengeId);
+    }
+
+    [Fact]
+    public void CancelByNonChallengerReturnsUnauthorized()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        var result = manager.CancelChallenge(send.Challenge!.ChallengeId, bob.PlayerId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodes.CHALLENGE_UNAUTHORIZED, result.ErrorCode);
+    }
+
+    [Fact]
+    public void ExpireOverdueChallengesSweepsAndClearsPlayers()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var send = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "COURSE_DEMO", Now, TimeSpan.FromSeconds(30));
+
+        manager.ExpireOverdueChallenges(Now.AddSeconds(31));
+
+        Assert.Equal(ChallengeStatus.EXPIRED, send.Challenge!.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, alice.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
     }
 
     private static (PlayerSessionDirectory Players, ChallengeManager Manager) CreateLobby()

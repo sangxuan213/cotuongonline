@@ -38,24 +38,7 @@ public class CannonValidator : IMoveValidator
         }
 
         // 2. Đếm số lượng ngòi (quân cờ đứng giữa ô nguồn và ô đích)
-        int stepX = Math.Sign(dx);
-        int stepY = Math.Sign(dy);
-
-        int currX = piece.Position.X + stepX;
-        int currY = piece.Position.Y + stepY;
-        int mountCount = 0;
-
-        while (currX != to.X || currY != to.Y)
-        {
-            var posBetween = new Position(currX, currY);
-            if (board.GetPieceAt(posBetween) != null)
-            {
-                mountCount++;
-            }
-
-            currX += stepX;
-            currY += stepY;
-        }
+        int mountCount = BoardPathHelper.CountPiecesBetween(board, piece.Position, to);
 
         var targetPiece = board.GetPieceAt(to);
 

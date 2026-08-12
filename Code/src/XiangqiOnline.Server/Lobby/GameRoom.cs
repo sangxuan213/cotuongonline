@@ -51,9 +51,9 @@ public sealed class GameRoom
     public string RuleProfileId { get; }
     public string TimeProfile { get; }
     public DateTimeOffset CreatedAtUtc { get; }
-    public BoardState Board { get; }
+    public BoardState Board { get; private set; }
     public GameRoomStatus Status { get; private set; } = GameRoomStatus.CREATED;
-    public SideColor CurrentTurn { get; private set; } = SideColor.Red;
+    public SideColor CurrentTurn => Board.Turn;
     public long Revision { get; private set; }
 
     public bool HasPlayer(string playerId) =>
@@ -83,16 +83,17 @@ public sealed class GameRoom
             throw new InvalidOperationException("Only non-terminal rooms can start.");
 
         Status = GameRoomStatus.PLAYING;
-        CurrentTurn = SideColor.Red;
     }
 
-    public long CommitRevision()
+    public long CommitRevision(BoardState nextBoard)
     {
         if (Status != GameRoomStatus.PLAYING)
             throw new InvalidOperationException("Only playing rooms can commit revisions.");
+        if (nextBoard is null)
+            throw new ArgumentNullException(nameof(nextBoard));
 
+        Board = nextBoard;
         Revision++;
-        CurrentTurn = CurrentTurn == SideColor.Red ? SideColor.Black : SideColor.Red;
         return Revision;
     }
 

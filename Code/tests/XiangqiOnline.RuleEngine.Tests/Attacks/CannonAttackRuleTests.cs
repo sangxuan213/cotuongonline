@@ -16,14 +16,14 @@ public class CannonAttackRuleTests
         var attacker = Cannon(1, 2);
         var screen = Piece("SCREEN", SideColor.Red, 1, 4);
         var target = new Position(1, 6);
-        var board = BoardSetupFixture.CreateBoardWithPieces(attacker, screen);
+        var board = BoardSetupFixture.CreateBoardWithPieces(attacker, screen, Piece("TARGET", SideColor.Red, 1, 6));
 
         Assert.True(_rule.CanAttack(board, attacker, target));
     }
 
     [Fact]
     public void CanAttack_ShouldReturnTrue_ForHorizontalTargetWithExactlyOneScreen() =>
-        Assert.True(Attack(new Position(8, 2), Piece("SCREEN", SideColor.Black, 4, 2)));
+        Assert.True(Attack(new Position(8, 2), Piece("TARGET", SideColor.Red, 8, 2), Piece("SCREEN", SideColor.Black, 4, 2)));
 
     [Fact]
     public void CanAttack_ShouldReturnFalse_WithNoScreen() =>
@@ -60,7 +60,7 @@ public class CannonAttackRuleTests
     [InlineData(SideColor.Red)]
     [InlineData(SideColor.Black)]
     public void CanAttack_ShouldAllowScreenFromEitherSide(SideColor screenSide) =>
-        Assert.True(Attack(new Position(1, 6), Piece("SCREEN", screenSide, 1, 4)));
+        Assert.True(Attack(new Position(1, 6), Piece("TARGET", SideColor.Red, 1, 6), Piece("SCREEN", screenSide, 1, 4)));
 
     private bool Attack(Position target, params PieceState[] others)
     {
