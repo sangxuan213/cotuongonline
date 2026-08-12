@@ -33,4 +33,7 @@ public static class ErrorCodes
     public const string DISPLAY_NAME_TAKEN = "DISPLAY_NAME_TAKEN";
     public const string INVALID_SESSION = "INVALID_SESSION";
     public const string DUPLICATE_SESSION = "DUPLICATE_SESSION";
+    public const string PLAYER_NOT_AVAILABLE = "PLAYER_NOT_AVAILABLE";
+    public const string CHALLENGE_NOT_FOUND = "CHALLENGE_NOT_FOUND";
+    public const string CHALLENGE_NOT_PENDING = "CHALLENGE_NOT_PENDING";
 }
