@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using XiangqiOnline.Server;
-using XiangqiOnline.Shared.Transport;
+using XiangqiOnline.Server.Networking;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -14,10 +14,13 @@ var options = configuration.GetSection("Server").Get<ServerOptions>() ?? new Ser
 
 Console.WriteLine($"[Server] Đang khởi động, bind {options.BindAddress}:{options.Port} ...");
 
-TcpServerHost host;
+MessageRouter router = new();
+router.Register("HELLO", HelloMessageHandler.HandleAsync);
+
+GameServerHost host;
 try
 {
-    host = new TcpServerHost(options.BindAddress, options.Port);
+    host = new GameServerHost(options.BindAddress, options.Port, router);
 }
 catch (Exception ex)
 {
@@ -26,14 +29,13 @@ catch (Exception ex)
     return 1;
 }
 
-host.ClientAccepted += client =>
+host.ConnectionOpened += id =>
 {
-    var remote = client.Client.RemoteEndPoint;
-    Console.WriteLine($"[Server] Client kết nối từ {remote}.");
+    Console.WriteLine($"[Server] Connection #{id} — accept xong, bắt đầu receive loop.");
 };
-host.AcceptLoopFaulted += ex =>
+host.ConnectionClosed += id =>
 {
-    Console.Error.WriteLine($"[Server] Accept loop lỗi: {ex.Message}");
+    Console.WriteLine($"[Server] Connection #{id} đã đóng.");
 };
 
 using var cts = new CancellationTokenSource();
