@@ -62,7 +62,8 @@ public sealed class DatabaseInitializer
     public static string GetCurrentSchemaSha256()
     {
         var path = GetSchemaFilePath();
-        var bytes = File.ReadAllBytes(path);
+        var text = File.ReadAllText(path).Replace("\r\n", "\n");
+        var bytes = Encoding.UTF8.GetBytes(text);
         using var sha256 = SHA256.Create();
         var hashBytes = sha256.ComputeHash(bytes);
         return Convert.ToHexStringLower(hashBytes);
