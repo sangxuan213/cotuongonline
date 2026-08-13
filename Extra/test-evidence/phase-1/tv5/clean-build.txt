@@ -1,11 +1,20 @@
-Command:
-dotnet build Code/src/XiangqiOnline.Client/XiangqiOnline.Client.csproj -c Release --nologo -warnaserror
+TV5 Day 6 evidence - regenerated after sync with origin/develop
+Date: 2026-08-13 (Asia/Saigon)
+SDK: 10.0.302
+Solution: Code/XiangqiOnline.slnx
+
+Commands:
+dotnet restore Code/XiangqiOnline.slnx --nologo
+dotnet clean Code/XiangqiOnline.slnx -c Release --nologo
+dotnet restore Code/XiangqiOnline.slnx --nologo
+dotnet build Code/XiangqiOnline.slnx -c Release --no-restore --nologo
 
 Result:
-Build succeeded.
-0 Warning(s)
-0 Error(s)
+Restore succeeded; all projects up-to-date on the final restore.
+Clean succeeded: 0 warnings, 0 errors.
+Release build succeeded: 0 warnings, 0 errors.
+11 projects built.
 
 Target frameworks:
-XiangqiOnline.Shared: net10.0
-XiangqiOnline.Client: net10.0-windows
+Client: net10.0-windows
+Shared, Server, RuleEngine, tools and non-WPF tests: net10.0

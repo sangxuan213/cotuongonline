@@ -1,5 +1,8 @@
 using System.Text.Json;
-using XiangqiOnline.Shared.Contracts;
+using UDM18.Client.Models;
+using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.Shared.Models;
+using XiangqiOnline.Shared.Protocol;
 
 namespace UDM18.Client.Protocol;
 
@@ -35,7 +38,7 @@ public sealed class GameClient
         try
         {
             await _transport.ConnectAsync(host, port, cancellationToken);
-            await SendAsync("HELLO", new { protocolVersion = "1.0", clientName = "UDM18.WPF" }, false, cancellationToken);
+            await SendAsync("HELLO", new { protocolVersion = ProtocolConstants.ProtocolVersion, clientName = "UDM18.WPF" }, false, cancellationToken);
             await _helloAck.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
             await SendAsync("LOGIN_REQUEST", new { displayName, resumeToken = (string?)null }, false, cancellationToken);
         }
@@ -58,7 +61,7 @@ public sealed class GameClient
     public Task RejectChallengeAsync(string challengeId, CancellationToken cancellationToken = default)
         => SendAsync("CHALLENGE_REJECT", new { challengeId, reason = "USER_REJECTED" }, true, cancellationToken);
 
-    public Task SendMoveAsync(string roomId, long expectedRevision, Coordinate from, Coordinate to, CancellationToken cancellationToken = default)
+    public Task SendMoveAsync(string roomId, long expectedRevision, Position from, Position to, CancellationToken cancellationToken = default)
         => SendAsync("MOVE_REQUEST", new { clientMoveId = UlidId.New(), expectedRevision, from, to }, true, cancellationToken, roomId);
 
     public Task RequestResyncAsync(string roomId, long lastRevision, CancellationToken cancellationToken = default)
@@ -70,7 +73,7 @@ public sealed class GameClient
     {
         var envelope = new
         {
-            protocolVersion = "1.0",
+            protocolVersion = ProtocolConstants.ProtocolVersion,
             type,
             requestId = UlidId.New(),
             sessionToken = authenticated ? _sessionToken : null,
@@ -140,7 +143,7 @@ public sealed class GameClient
         var result = new List<PlayerSummary>();
         foreach (var player in array.EnumerateArray())
         {
-            Enum.TryParse(ReadString(player, "status"), true, out PlayerStatus status);
+            Enum.TryParse(ReadString(player, "status"), true, out LobbyPlayerStatus status);
             result.Add(new PlayerSummary(
                 ReadString(player, "playerId") ?? "",
                 ReadString(player, "displayName") ?? "",
@@ -176,14 +179,14 @@ public sealed class GameClient
             if (captured) continue;
             parsed.Add(new PieceState(
                 ReadString(piece, "pieceId") ?? "UNKNOWN",
-                Enum.Parse<Side>(ReadString(piece, "side")!, true),
+                Enum.Parse<SideColor>(ReadString(piece, "side")!, true),
                 Enum.Parse<PieceType>(ReadString(piece, "type")!, true),
-                new Coordinate(piece.GetProperty("x").GetInt32(), piece.GetProperty("y").GetInt32())));
+                new Position(piece.GetProperty("x").GetInt32(), piece.GetProperty("y").GetInt32())));
         }
         return new GameSnapshot(
             ReadString(payload, "roomId") ?? "",
             payload.GetProperty("revision").GetInt64(),
-            Enum.Parse<Side>(ReadString(payload, "currentTurn")!, true),
+            Enum.Parse<SideColor>(ReadString(payload, "currentTurn")!, true),
             parsed,
             ReadString(payload, "status") ?? "PLAYING");
     }
@@ -197,11 +200,11 @@ public sealed class GameClient
             ?? (payload.TryGetProperty("stateDelta", out var stateDelta) ? ReadSide(stateDelta, "currentTurn") : null)
             ?? (payload.TryGetProperty("clocks", out var clocks) ? ReadSide(clocks, "activeSide") : null);
         var movedSide = ReadSide(payload, "side");
-        currentTurn ??= movedSide switch { Side.RED => Side.BLACK, Side.BLACK => Side.RED, _ => null };
+        currentTurn ??= movedSide switch { SideColor.Red => SideColor.Black, SideColor.Black => SideColor.Red, _ => null };
         MoveCommitted?.Invoke(revision, new MoveDelta(
             ReadString(payload, "pieceId") ?? "",
-            new Coordinate(from.GetProperty("x").GetInt32(), from.GetProperty("y").GetInt32()),
-            new Coordinate(to.GetProperty("x").GetInt32(), to.GetProperty("y").GetInt32()),
+            new Position(from.GetProperty("x").GetInt32(), from.GetProperty("y").GetInt32()),
+            new Position(to.GetProperty("x").GetInt32(), to.GetProperty("y").GetInt32()),
             ReadString(payload, "capturedPieceId"),
             currentTurn));
     }
@@ -216,6 +219,6 @@ public sealed class GameClient
     private static string? ReadString(JsonElement element, string property)
         => element.TryGetProperty(property, out var value) && value.ValueKind != JsonValueKind.Null ? value.GetString() : null;
 
-    private static Side? ReadSide(JsonElement element, string property)
-        => Enum.TryParse<Side>(ReadString(element, property), true, out var side) ? side : null;
+    private static SideColor? ReadSide(JsonElement element, string property)
+        => Enum.TryParse<SideColor>(ReadString(element, property), true, out var side) ? side : null;
 }

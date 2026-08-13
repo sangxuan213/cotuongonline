@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
+using UDM18.Client.Models;
 using UDM18.Client.Protocol;
-using XiangqiOnline.Shared.Contracts;
 
 namespace UDM18.Client.ViewModels;
 
@@ -16,7 +16,7 @@ public sealed class LobbyViewModel : ObservableObject
     {
         _client = client;
         RefreshCommand = new AsyncRelayCommand(ct => _client.RequestPlayersAsync(ct), () => _client.State == ConnectionState.Connected);
-        ChallengeCommand = new AsyncRelayCommand(SendChallengeAsync, () => SelectedPlayer?.Status == PlayerStatus.AVAILABLE);
+        ChallengeCommand = new AsyncRelayCommand(SendChallengeAsync, () => SelectedPlayer?.Status == LobbyPlayerStatus.AVAILABLE);
         AcceptCommand = new AsyncRelayCommand(ct => _client.AcceptChallengeAsync(IncomingChallenge!.ChallengeId, ct), () => IncomingChallenge is not null);
         RejectCommand = new AsyncRelayCommand(ct => _client.RejectChallengeAsync(IncomingChallenge!.ChallengeId, ct), () => IncomingChallenge is not null);
         foreach (var command in new[] { RefreshCommand, ChallengeCommand, AcceptCommand, RejectCommand })
@@ -41,10 +41,10 @@ public sealed class LobbyViewModel : ObservableObject
     {
         _demoMode = true;
         Players.Clear();
-        Players.Add(new PlayerSummary("DEMO-01", "Minh Anh", PlayerStatus.AVAILABLE));
-        Players.Add(new PlayerSummary("DEMO-02", "Quang Huy", PlayerStatus.IN_GAME));
-        Players.Add(new PlayerSummary("DEMO-03", "Lan Chi", PlayerStatus.AVAILABLE));
-        Players.Add(new PlayerSummary("DEMO-04", "Gia Bảo", PlayerStatus.INVITING));
+        Players.Add(new PlayerSummary("DEMO-01", "Minh Anh", LobbyPlayerStatus.AVAILABLE));
+        Players.Add(new PlayerSummary("DEMO-02", "Quang Huy", LobbyPlayerStatus.IN_GAME));
+        Players.Add(new PlayerSummary("DEMO-03", "Lan Chi", LobbyPlayerStatus.AVAILABLE));
+        Players.Add(new PlayerSummary("DEMO-04", "Gia Bảo", LobbyPlayerStatus.INVITING));
         Status = "CHẾ ĐỘ DEMO CỤC BỘ — dữ liệu này không đến từ Server.";
     }
 

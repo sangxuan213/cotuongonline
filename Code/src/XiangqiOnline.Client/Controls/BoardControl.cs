@@ -5,7 +5,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using UDM18.Client.Models;
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.Shared.Models;
 
 namespace UDM18.Client.Controls;
 
@@ -18,13 +19,13 @@ public sealed class BoardControl : FrameworkElement
         nameof(Pieces), typeof(IEnumerable), typeof(BoardControl),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, OnPiecesChanged));
     public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
-        nameof(Selected), typeof(Coordinate?), typeof(BoardControl),
+        nameof(Selected), typeof(Position?), typeof(BoardControl),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
     public static readonly DependencyProperty LastFromProperty = DependencyProperty.Register(
-        nameof(LastFrom), typeof(Coordinate?), typeof(BoardControl),
+        nameof(LastFrom), typeof(Position?), typeof(BoardControl),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
     public static readonly DependencyProperty LastToProperty = DependencyProperty.Register(
-        nameof(LastTo), typeof(Coordinate?), typeof(BoardControl),
+        nameof(LastTo), typeof(Position?), typeof(BoardControl),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
         nameof(Orientation), typeof(BoardOrientation), typeof(BoardControl),
@@ -33,9 +34,9 @@ public sealed class BoardControl : FrameworkElement
         nameof(CoordinateClickedCommand), typeof(ICommand), typeof(BoardControl));
 
     public IEnumerable? Pieces { get => (IEnumerable?)GetValue(PiecesProperty); set => SetValue(PiecesProperty, value); }
-    public Coordinate? Selected { get => (Coordinate?)GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
-    public Coordinate? LastFrom { get => (Coordinate?)GetValue(LastFromProperty); set => SetValue(LastFromProperty, value); }
-    public Coordinate? LastTo { get => (Coordinate?)GetValue(LastToProperty); set => SetValue(LastToProperty, value); }
+    public Position? Selected { get => (Position?)GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
+    public Position? LastFrom { get => (Position?)GetValue(LastFromProperty); set => SetValue(LastFromProperty, value); }
+    public Position? LastTo { get => (Position?)GetValue(LastToProperty); set => SetValue(LastToProperty, value); }
     public BoardOrientation Orientation { get => (BoardOrientation)GetValue(OrientationProperty); set => SetValue(OrientationProperty, value); }
     public ICommand? CoordinateClickedCommand { get => (ICommand?)GetValue(CoordinateClickedCommandProperty); set => SetValue(CoordinateClickedCommandProperty, value); }
 
@@ -94,12 +95,12 @@ public sealed class BoardControl : FrameworkElement
         var view = BoardGeometry.CanonicalToView(piece.Position, Orientation);
         var center = geometry.Point(view.X, view.Y);
         var radius = geometry.Cell * 0.38;
-        var color = piece.Side == Side.RED ? Color.FromRgb(185, 28, 28) : Color.FromRgb(31, 41, 55);
+        var color = piece.Side == SideColor.Red ? Color.FromRgb(185, 28, 28) : Color.FromRgb(31, 41, 55);
         dc.DrawEllipse(new SolidColorBrush(Color.FromRgb(255, 250, 235)), new Pen(new SolidColorBrush(color), 2.6), center, radius, radius);
         DrawText(dc, Label(piece), new Point(center.X, center.Y), Math.Max(13, radius * .82), new SolidColorBrush(color), centered: true);
     }
 
-    private void DrawHighlight(DrawingContext dc, GeometryInfo geometry, Coordinate? coordinate, Color color)
+    private void DrawHighlight(DrawingContext dc, GeometryInfo geometry, Position? coordinate, Color color)
     {
         if (coordinate is null) return;
         var view = BoardGeometry.CanonicalToView(coordinate.Value, Orientation);
@@ -108,13 +109,13 @@ public sealed class BoardControl : FrameworkElement
 
     private static string Label(PieceState piece) => piece.Type switch
     {
-        PieceType.GENERAL => piece.Side == Side.RED ? "帥" : "將",
-        PieceType.ADVISOR => piece.Side == Side.RED ? "仕" : "士",
-        PieceType.ELEPHANT => piece.Side == Side.RED ? "相" : "象",
-        PieceType.HORSE => "馬",
-        PieceType.CHARIOT => "車",
-        PieceType.CANNON => "炮",
-        _ => piece.Side == Side.RED ? "兵" : "卒"
+        PieceType.General => piece.Side == SideColor.Red ? "帥" : "將",
+        PieceType.Advisor => piece.Side == SideColor.Red ? "仕" : "士",
+        PieceType.Elephant => piece.Side == SideColor.Red ? "相" : "象",
+        PieceType.Horse => "馬",
+        PieceType.Chariot => "車",
+        PieceType.Cannon => "炮",
+        _ => piece.Side == SideColor.Red ? "兵" : "卒"
     };
 
     private static void DrawText(DrawingContext dc, string text, Point point, double size, Brush brush, bool centered = false)

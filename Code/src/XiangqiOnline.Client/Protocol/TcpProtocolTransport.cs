@@ -2,12 +2,13 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Net.Sockets;
 using System.Text.Json;
+using XiangqiOnline.Shared.Protocol;
 
 namespace UDM18.Client.Protocol;
 
 public sealed class TcpProtocolTransport : IProtocolTransport
 {
-    public const int MaxPayloadBytes = 65_536;
+    public const int MaxPayloadBytes = TcpFrameCodec.MaxPayloadBytes;
     private readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
     private readonly SemaphoreSlim _sendGate = new(1, 1);
     private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
@@ -49,7 +50,7 @@ public sealed class TcpProtocolTransport : IProtocolTransport
         var payload = JsonSerializer.SerializeToUtf8Bytes(envelope, _json);
         if (payload.Length > MaxPayloadBytes) throw new InvalidDataException("Payload vượt giới hạn 64 KiB.");
         var header = new byte[4];
-        BinaryPrimitives.WriteInt32BigEndian(header, payload.Length);
+        BinaryPrimitives.WriteUInt32BigEndian(header, (uint)payload.Length);
         await _sendGate.WaitAsync(cancellationToken);
         try
         {
@@ -94,9 +95,10 @@ public sealed class TcpProtocolTransport : IProtocolTransport
             while (!cancellationToken.IsCancellationRequested)
             {
                 await ReadExactlyAsync(header, cancellationToken);
-                var length = BinaryPrimitives.ReadInt32BigEndian(header);
-                if (length is <= 0 or > MaxPayloadBytes)
-                    throw new InvalidDataException($"INVALID_FRAME_LENGTH: {length}");
+                var unsignedLength = BinaryPrimitives.ReadUInt32BigEndian(header);
+                if (unsignedLength is 0 or > MaxPayloadBytes)
+                    throw new InvalidDataException($"INVALID_FRAME_LENGTH: {unsignedLength}");
+                var length = (int)unsignedLength;
                 var payload = new byte[length];
                 await ReadExactlyAsync(payload, cancellationToken);
                 using var document = JsonDocument.Parse(payload);

@@ -1,26 +1,26 @@
 namespace UDM18.Client.Models;
 
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Models;
 
 public static class BoardGeometry
 {
-    public static Coordinate ViewToCanonical(int viewX, int viewY, BoardOrientation orientation)
+    public static Position ViewToCanonical(int viewX, int viewY, BoardOrientation orientation)
     {
         if (viewX is < 0 or > 8)
             throw new ArgumentOutOfRangeException(nameof(viewX), viewX, "Board x must be 0..8.");
         if (viewY is < 0 or > 9)
             throw new ArgumentOutOfRangeException(nameof(viewY), viewY, "Board y must be 0..9.");
         return orientation == BoardOrientation.RedAtBottom
-            ? new Coordinate(viewX, viewY)
-            : new Coordinate(8 - viewX, 9 - viewY);
+            ? new Position(viewX, viewY)
+            : new Position(8 - viewX, 9 - viewY);
     }
 
-    public static Coordinate CanonicalToView(Coordinate coordinate, BoardOrientation orientation)
+    public static Position CanonicalToView(Position coordinate, BoardOrientation orientation)
     {
-        if (!coordinate.IsInsideBoard)
+        if (!coordinate.IsValid())
             throw new ArgumentOutOfRangeException(nameof(coordinate));
         return orientation == BoardOrientation.RedAtBottom
             ? coordinate
-            : new Coordinate(8 - coordinate.X, 9 - coordinate.Y);
+            : new Position(8 - coordinate.X, 9 - coordinate.Y);
     }
 }

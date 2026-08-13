@@ -1,7 +1,8 @@
 using System.Collections.ObjectModel;
 using UDM18.Client.Models;
 using UDM18.Client.Protocol;
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.Shared.Models;
 
 namespace UDM18.Client.ViewModels;
 
@@ -10,10 +11,10 @@ public sealed class GameRoomViewModel : ObservableObject
     private readonly GameClient _client;
     private string? _roomId;
     private long _revision;
-    private Side _currentTurn;
-    private Coordinate? _selected;
-    private Coordinate? _lastFrom;
-    private Coordinate? _lastTo;
+    private SideColor _currentTurn;
+    private Position? _selected;
+    private Position? _lastFrom;
+    private Position? _lastTo;
     private bool _isMovePending;
     private string _status = "Đang chờ Server tạo phòng và gửi snapshot.";
     private BoardOrientation _orientation = BoardOrientation.RedAtBottom;
@@ -22,7 +23,7 @@ public sealed class GameRoomViewModel : ObservableObject
     public GameRoomViewModel(GameClient client)
     {
         _client = client;
-        CoordinateClickedCommand = new RelayCommand<Coordinate>(OnCoordinateClicked, _ => !IsMovePending && RoomId is not null);
+        CoordinateClickedCommand = new RelayCommand<Position>(OnCoordinateClicked, _ => !IsMovePending && RoomId is not null);
         FlipBoardCommand = new RelayCommand(() => Orientation = Orientation == BoardOrientation.RedAtBottom ? BoardOrientation.BlackAtBottom : BoardOrientation.RedAtBottom);
         _client.RoomCreated += roomId => Ui(() => { RoomId = roomId; Status = "Đã vào phòng; đang chờ snapshot authoritative từ Server."; });
         _client.SnapshotReceived += snapshot => Ui(() => ApplySnapshot(snapshot));
@@ -34,24 +35,24 @@ public sealed class GameRoomViewModel : ObservableObject
     public ObservableCollection<PieceState> Pieces { get; } = [];
     public string? RoomId { get => _roomId; private set { if (Set(ref _roomId, value)) CoordinateClickedCommand.NotifyCanExecuteChanged(); } }
     public long Revision { get => _revision; private set => Set(ref _revision, value); }
-    public Side CurrentTurn { get => _currentTurn; private set => Set(ref _currentTurn, value); }
-    public Coordinate? Selected { get => _selected; private set => Set(ref _selected, value); }
-    public Coordinate? LastFrom { get => _lastFrom; private set => Set(ref _lastFrom, value); }
-    public Coordinate? LastTo { get => _lastTo; private set => Set(ref _lastTo, value); }
+    public SideColor CurrentTurn { get => _currentTurn; private set => Set(ref _currentTurn, value); }
+    public Position? Selected { get => _selected; private set => Set(ref _selected, value); }
+    public Position? LastFrom { get => _lastFrom; private set => Set(ref _lastFrom, value); }
+    public Position? LastTo { get => _lastTo; private set => Set(ref _lastTo, value); }
     public bool IsMovePending { get => _isMovePending; private set { if (Set(ref _isMovePending, value)) CoordinateClickedCommand.NotifyCanExecuteChanged(); } }
     public string Status { get => _status; private set => Set(ref _status, value); }
     public BoardOrientation Orientation { get => _orientation; private set => Set(ref _orientation, value); }
-    public RelayCommand<Coordinate> CoordinateClickedCommand { get; }
+    public RelayCommand<Position> CoordinateClickedCommand { get; }
     public RelayCommand FlipBoardCommand { get; }
 
     public void LoadDemoData()
     {
         _demoMode = true;
-        ApplySnapshot(new GameSnapshot("DEMO-ROOM", 18, Side.RED, InitialBoard.Create()));
+        ApplySnapshot(new GameSnapshot("DEMO-ROOM", 18, SideColor.Red, InitialBoard.Create()));
         Status = "CHẾ ĐỘ DEMO CỤC BỘ — board mẫu 32 quân, không phải state từ Server.";
     }
 
-    private async void OnCoordinateClicked(Coordinate coordinate)
+    private async void OnCoordinateClicked(Position coordinate)
     {
         if (Selected is null)
         {
@@ -138,7 +139,7 @@ public sealed class GameRoomViewModel : ObservableObject
         }
         Pieces[index] = moving with { Position = delta.To };
         Revision = revision;
-        CurrentTurn = delta.CurrentTurn ?? (moving.Side == Side.RED ? Side.BLACK : Side.RED);
+        CurrentTurn = delta.CurrentTurn ?? (moving.Side == SideColor.Red ? SideColor.Black : SideColor.Red);
         LastFrom = delta.From;
         LastTo = delta.To;
         IsMovePending = false;

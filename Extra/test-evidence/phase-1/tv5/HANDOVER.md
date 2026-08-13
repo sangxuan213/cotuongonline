@@ -1,23 +1,29 @@
-# TV5 Phase 1 handover
+# TV5 Phase 1 — Day 6 handover
 
-## Đã hoàn thành
+Evidence in this directory was regenerated on 2026-08-13 after merging the latest `origin/develop` baseline into `khang`.
 
-- WPF MVVM shell cho Connection, Lobby và GameRoom.
-- TCP JSON framing với header 4 byte big-endian.
-- HELLO, login, player list, challenge và room flow.
-- Bàn cờ 9x10, 32 quân, canonical coordinate và xoay bàn.
-- MOVE_REQUEST chỉ thay đổi bàn sau MOVE_COMMITTED.
-- Pending guard, MOVE_REJECTED, capture, current turn và revision handling.
-- RESYNC_REQUEST khi thiếu revision hoặc không tìm thấy quân.
-- Shared Contracts dùng chung cho DTO và enum.
-- UTF-8 cho toàn bộ nội dung giao diện.
-- 15 smoke tests và clean build .NET 10.
-- Demo mode vượt qua kiểm tra khởi động ứng dụng.
+## Integration changes
 
-## Gate cần phối hợp bên ngoài
+- Preserved the official TV1 protocol, transport and shared model contracts.
+- Adapted the client to `SideColor`, `PieceType` and `Position` from `XiangqiOnline.Shared`.
+- Removed TV5's obsolete duplicate shared game-contract types.
+- Locked the client frame limit to `TcpFrameCodec.MaxPayloadBytes` and used unsigned big-endian frame lengths.
+- Added Client, Client SmokeTests and LoadTest to the complete `Code/XiangqiOnline.slnx` build surface.
+- Kept TV2 lobby/session, TV3 RuleEngine and TV4 attack/check/self-check implementations unchanged.
 
-- Chưa ghi nhận demo hai Client thật vì repository hiện chưa có Server Phase 1 chạy hoàn chỉnh để thực hiện kịch bản lobby, challenge và move end-to-end.
-- Cần TV2 review và phê duyệt theo cặp reviewer đã khóa.
-- PR tiếp theo phải đi vào `develop`; PR #3 trước đó đã được merge vào `main`.
+## Verified behavior
 
-Không dùng tài liệu này để tự xác nhận Phase 1 PASS khi các gate phối hợp bên ngoài chưa hoàn tất.
+- WPF MVVM shell starts in normal and demo modes.
+- Connection, Lobby and GameRoom navigation remains responsive.
+- Board renders 9x10 with 32 stable pieces; board rotation keeps canonical coordinates.
+- HELLO precedes LOGIN_REQUEST and the protocol version is `1.0`.
+- Client sends authoritative move intent and changes board state only after commit/snapshot.
+- Rejected, malformed, unknown-piece and revision-gap events preserve safe state and surface errors/resync.
+- Full Release solution build: 0 warnings, 0 errors.
+- Combined tests: 339 passed, 0 failed, 0 skipped.
+
+## Scope
+
+- Full reconnect orchestration and clocks are outside TV5 Phase 1 scope.
+- The production Server currently accepts TCP connections but does not yet wire the TV2 lobby services to a protocol request dispatcher; a two-client authoritative lobby/game demo therefore remains a server-side integration task, not evidence claimed here.
+- No GitHub CI result is claimed.

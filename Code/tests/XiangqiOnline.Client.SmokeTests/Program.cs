@@ -4,7 +4,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using UDM18.Client.Models;
-using XiangqiOnline.Shared.Contracts;
+using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.Shared.Models;
+using XiangqiOnline.Shared.Protocol;
 using UDM18.Client.Protocol;
 using UDM18.Client.ViewModels;
 
@@ -14,6 +16,7 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Coordinate mapping preserves canonical protocol", TestCoordinateMapping),
     ("ULID identifiers are valid and unique", TestUlids),
     ("TCP framing handles fragmented server messages", TestTcpFraming),
+    ("Real TV1 framing completes HELLO and LOGIN handshake", TestRealWireHandshake),
     ("Login waits for HELLO_ACK", TestHandshakeOrder),
     ("Challenge uses STANDARD_PRO contract profile", TestChallengeProfile),
     ("Only current-turn pieces can be selected", TestSourceSelection),
@@ -24,7 +27,8 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Revision gap preserves board and requests resync", TestRevisionGap),
     ("Snapshot clears stale move highlights", TestSnapshotClearsHighlights),
     ("Older snapshots cannot overwrite current state", TestOldSnapshot),
-    ("Malformed events report errors without crashing", TestMalformedEvent)
+    ("Malformed events report errors without crashing", TestMalformedEvent),
+    ("ERROR_RESPONSE is surfaced without disconnecting", TestErrorResponse)
 };
 
 var failures = 0;
@@ -41,7 +45,7 @@ static Task TestInitialBoard()
     var pieces = InitialBoard.Create();
     Check(pieces.Count == 32, "Expected 32 pieces.");
     Check(pieces.Select(p => p.PieceId).Distinct().Count() == 32, "Piece IDs must be unique.");
-    Check(pieces.All(p => p.Position.IsInsideBoard), "Every piece must be on board.");
+    Check(pieces.All(p => p.Position.IsValid()), "Every piece must be on board.");
     Check(pieces.Any(p => p.PieceId == "RED_GENERAL") && pieces.Any(p => p.PieceId == "BLACK_GENERAL"), "General IDs must match the baseline contract.");
     Check(pieces.All(p => p.PieceId is not "RED_GENERAL_1" and not "BLACK_GENERAL_1"), "Numbered general IDs are forbidden.");
     return Task.CompletedTask;
@@ -49,10 +53,10 @@ static Task TestInitialBoard()
 
 static Task TestCoordinateMapping()
 {
-    var canonical = new Coordinate(1, 9);
+    var canonical = new Position(1, 9);
     Check(BoardGeometry.CanonicalToView(canonical, BoardOrientation.RedAtBottom) == canonical, "Red view changed coordinate.");
     var blackView = BoardGeometry.CanonicalToView(canonical, BoardOrientation.BlackAtBottom);
-    Check(blackView == new Coordinate(7, 0), "Black rotation incorrect.");
+    Check(blackView == new Position(7, 0), "Black rotation incorrect.");
     Check(BoardGeometry.ViewToCanonical(blackView.X, blackView.Y, BoardOrientation.BlackAtBottom) == canonical, "Round trip failed.");
     return Task.CompletedTask;
 }
@@ -81,14 +85,15 @@ static async Task TestTcpFraming()
     await transport.SendAsync(new { protocolVersion = "1.0", type = "PING", payload = new { nonce = "N1" } });
     var header = new byte[4];
     await stream.ReadExactlyAsync(header);
-    var length = BinaryPrimitives.ReadInt32BigEndian(header);
-    Check(length is > 0 and <= TcpProtocolTransport.MaxPayloadBytes, "Invalid outbound frame length.");
+    var unsignedLength = BinaryPrimitives.ReadUInt32BigEndian(header);
+    Check(unsignedLength is > 0 and <= TcpProtocolTransport.MaxPayloadBytes, "Invalid outbound frame length.");
+    var length = (int)unsignedLength;
     var request = new byte[length];
     await stream.ReadExactlyAsync(request);
     using (var doc = JsonDocument.Parse(request)) Check(doc.RootElement.GetProperty("type").GetString() == "PING", "Outbound JSON incorrect.");
 
     var eventBytes = Encoding.UTF8.GetBytes("{\"type\":\"PONG\",\"payload\":{\"nonce\":\"N1\"}}");
-    BinaryPrimitives.WriteInt32BigEndian(header, eventBytes.Length);
+    BinaryPrimitives.WriteUInt32BigEndian(header, (uint)eventBytes.Length);
     await stream.WriteAsync(header.AsMemory(0, 1));
     await stream.WriteAsync(header.AsMemory(1, 3));
     for (var offset = 0; offset < eventBytes.Length; offset += 3)
@@ -112,6 +117,51 @@ static async Task TestHandshakeOrder()
     Check(transport.SentTypes.SequenceEqual(["HELLO", "LOGIN_REQUEST", "PLAYER_LIST_REQUEST"]), "Player list was not requested after login.");
 }
 
+static async Task TestRealWireHandshake()
+{
+    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+    await using var transport = new TcpProtocolTransport();
+    var client = new GameClient(transport);
+    var acceptTask = listener.AcceptTcpClientAsync(timeout.Token).AsTask();
+    var loginTask = client.ConnectAndLoginAsync("127.0.0.1", port, "Tester", timeout.Token);
+    using var server = await acceptTask;
+    var stream = server.GetStream();
+
+    var helloBytes = await TcpFrameCodec.ReadFrameAsync(stream, timeout.Token);
+    Check(helloBytes is not null, "TV1 codec did not receive HELLO.");
+    using (var hello = JsonDocument.Parse(helloBytes!))
+    {
+        Check(hello.RootElement.GetProperty("protocolVersion").GetString() == ProtocolConstants.ProtocolVersion, "HELLO envelope version mismatch.");
+        Check(hello.RootElement.GetProperty("type").GetString() == "HELLO", "First real-wire request was not HELLO.");
+        Check(hello.RootElement.GetProperty("clientSequence").GetInt64() == 1, "HELLO clientSequence mismatch.");
+    }
+
+    var ack = JsonSerializer.SerializeToUtf8Bytes(new ServerEventEnvelope<object>
+    {
+        Type = "HELLO_ACK",
+        EventId = UlidId.New(),
+        ServerSequence = 1,
+        ServerTimeUtc = DateTimeOffset.UtcNow,
+        Payload = new { supportedVersion = ProtocolConstants.ProtocolVersion, serverId = "TV1-TEST" }
+    }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+    await TcpFrameCodec.WriteFrameAsync(stream, ack, timeout.Token);
+    await loginTask;
+
+    var loginBytes = await TcpFrameCodec.ReadFrameAsync(stream, timeout.Token);
+    Check(loginBytes is not null, "TV1 codec did not receive LOGIN_REQUEST.");
+    using (var login = JsonDocument.Parse(loginBytes!))
+    {
+        Check(login.RootElement.GetProperty("type").GetString() == "LOGIN_REQUEST", "HELLO_ACK did not release LOGIN_REQUEST.");
+        Check(login.RootElement.GetProperty("clientSequence").GetInt64() == 2, "LOGIN_REQUEST clientSequence mismatch.");
+    }
+
+    await transport.DisconnectAsync();
+    listener.Stop();
+}
+
 static async Task TestChallengeProfile()
 {
     var transport = new FakeTransport();
@@ -126,12 +176,12 @@ static async Task TestSourceSelection()
     var (transport, vm) = CreateGame();
     await transport.EmitAsync(RoomCreated("ROOM-1"));
     await transport.EmitAsync(Snapshot("ROOM-1", 1));
-    vm.CoordinateClickedCommand.Execute(new Coordinate(4, 4));
+    vm.CoordinateClickedCommand.Execute(new Position(4, 4));
     Check(vm.Selected is null, "Empty source square was selected.");
-    vm.CoordinateClickedCommand.Execute(new Coordinate(0, 0));
+    vm.CoordinateClickedCommand.Execute(new Position(0, 0));
     Check(vm.Selected is null, "Opponent piece was selected.");
-    vm.CoordinateClickedCommand.Execute(new Coordinate(1, 9));
-    Check(vm.Selected == new Coordinate(1, 9), "Current-turn piece was not selected.");
+    vm.CoordinateClickedCommand.Execute(new Position(1, 9));
+    Check(vm.Selected == new Position(1, 9), "Current-turn piece was not selected.");
 }
 
 static async Task TestAuthoritativeMoveFlow()
@@ -141,14 +191,14 @@ static async Task TestAuthoritativeMoveFlow()
     await transport.EmitAsync(Snapshot("ROOM-1", 1));
     var before = vm.Pieces.Single(p => p.PieceId == "RED_HORSE_1").Position;
     vm.CoordinateClickedCommand.Execute(before);
-    vm.CoordinateClickedCommand.Execute(new Coordinate(2, 7));
+    vm.CoordinateClickedCommand.Execute(new Position(2, 7));
     Check(vm.Pieces.Single(p => p.PieceId == "RED_HORSE_1").Position == before, "Client mutated board before commit.");
     Check(transport.LastSent?.GetProperty("type").GetString() == "MOVE_REQUEST", "MOVE_REQUEST was not sent.");
     Check(vm.IsMovePending, "Pending guard was not enabled.");
     await transport.EmitAsync(MoveCommitted(2));
-    Check(vm.Pieces.Single(p => p.PieceId == "RED_HORSE_1").Position == new Coordinate(2, 7), "Committed move not applied.");
+    Check(vm.Pieces.Single(p => p.PieceId == "RED_HORSE_1").Position == new Position(2, 7), "Committed move not applied.");
     Check(vm.Revision == 2 && !vm.IsMovePending, "Revision/pending state incorrect.");
-    Check(vm.CurrentTurn == Side.BLACK, "Current turn was not synchronized from the committed event.");
+    Check(vm.CurrentTurn == SideColor.Black, "Current turn was not synchronized from the committed event.");
 }
 
 static async Task TestCommittedCapture()
@@ -160,7 +210,7 @@ static async Task TestCommittedCapture()
       {"type":"MOVE_COMMITTED","revision":2,"payload":{"side":"RED","pieceId":"RED_CHARIOT_1","from":{"x":0,"y":9},"to":{"x":0,"y":3},"capturedPieceId":"BLACK_PAWN_1","clocks":{"activeSide":"BLACK"}}}
       """));
     Check(vm.Pieces.All(p => p.PieceId != "BLACK_PAWN_1"), "Captured target remains on board.");
-    Check(vm.Pieces.Single(p => p.PieceId == "RED_CHARIOT_1").Position == new Coordinate(0, 3), "Capturing piece did not move.");
+    Check(vm.Pieces.Single(p => p.PieceId == "RED_CHARIOT_1").Position == new Position(0, 3), "Capturing piece did not move.");
     Check(vm.Pieces.Count == 31 && vm.Revision == 2, "Capture state is inconsistent.");
 }
 
@@ -170,8 +220,8 @@ static async Task TestRejectedMove()
     await transport.EmitAsync(RoomCreated("ROOM-1"));
     await transport.EmitAsync(Snapshot("ROOM-1", 4));
     var before = vm.Pieces.Select(p => (p.PieceId, p.Position)).ToArray();
-    vm.CoordinateClickedCommand.Execute(new Coordinate(0, 6));
-    vm.CoordinateClickedCommand.Execute(new Coordinate(0, 5));
+    vm.CoordinateClickedCommand.Execute(new Position(0, 6));
+    vm.CoordinateClickedCommand.Execute(new Position(0, 5));
     await transport.EmitAsync(Json("""
       {"type":"MOVE_REJECTED","payload":{"errorCode":"NOT_YOUR_TURN","message":"Không đúng lượt","revision":4}}
       """));
@@ -236,6 +286,17 @@ static async Task TestMalformedEvent()
     Check(transport.State == ConnectionState.Connected, "Malformed event closed the connection.");
 }
 
+static async Task TestErrorResponse()
+{
+    var transport = new FakeTransport();
+    var client = new GameClient(transport);
+    string? error = null;
+    client.ErrorReceived += message => error = message;
+    await transport.EmitAsync(Json("""{"type":"ERROR_RESPONSE","payload":{"errorCode":"INVALID_REQUEST","message":"Invalid request"}}"""));
+    Check(error == "Invalid request", "ERROR_RESPONSE message was not surfaced.");
+    Check(transport.State == ConnectionState.Connected, "ERROR_RESPONSE closed the connection.");
+}
+
 static (FakeTransport, GameRoomViewModel) CreateGame()
 {
     var transport = new FakeTransport();
@@ -254,8 +315,8 @@ static JsonElement Snapshot(string roomId, long revision)
     var pieces = InitialBoard.Create().Select(p => new
     {
         pieceId = p.PieceId,
-        side = p.Side.ToString(),
-        type = p.Type.ToString(),
+        side = p.Side.ToString().ToUpperInvariant(),
+        type = p.Type.ToString().ToUpperInvariant(),
         x = p.Position.X,
         y = p.Position.Y,
         captured = false
