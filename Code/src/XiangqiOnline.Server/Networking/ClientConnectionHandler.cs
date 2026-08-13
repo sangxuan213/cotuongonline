@@ -29,13 +29,19 @@ namespace XiangqiOnline.Server.Networking
         private Task? _runTask;
         private bool _disposed;
 
+        /// <summary>Server-assigned id that identifies this connection in session state.</summary>
+        public string ConnectionId { get; }
+
         /// <summary>Raised when the peer disconnects cleanly or the connection faults.</summary>
         public event Action<ClientConnectionHandler>? ConnectionClosed;
 
-        public ClientConnectionHandler(TcpClient client, MessageRouter router)
+        public ClientConnectionHandler(TcpClient client, MessageRouter router, string connectionId)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _router = router ?? throw new ArgumentNullException(nameof(router));
+            if (string.IsNullOrWhiteSpace(connectionId))
+                throw new ArgumentException("Connection id is required.", nameof(connectionId));
+            ConnectionId = connectionId;
             _stream = client.GetStream();
             _receiveLoop = new ConnectionReceiveLoop(_stream);
         }

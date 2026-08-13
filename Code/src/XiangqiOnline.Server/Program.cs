@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using XiangqiOnline.Server;
+using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Server.Networking;
 
 var configuration = new ConfigurationBuilder()
@@ -16,6 +17,13 @@ Console.WriteLine($"[Server] Đang khởi động, bind {options.BindAddress}:{o
 
 MessageRouter router = new();
 router.Register("HELLO", HelloMessageHandler.HandleAsync);
+
+var players = new PlayerSessionDirectory();
+LobbyMessageRoutes.Register(router, players);
+players.PlayerListUpdated += update =>
+{
+    Console.WriteLine($"[Lobby] Player list changed ({update.Reason}): {update.Players.Count} player(s).");
+};
 
 GameServerHost host;
 try

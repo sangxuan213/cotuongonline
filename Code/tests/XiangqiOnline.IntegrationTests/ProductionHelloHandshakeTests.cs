@@ -1,9 +1,11 @@
 using System;
 using System.Buffers.Binary;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading.Tasks;
+using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Server.Networking;
 using XiangqiOnline.Shared.Protocol;
 using XiangqiOnline.Shared.Transport;
@@ -88,10 +90,91 @@ namespace XiangqiOnline.IntegrationTests
             }
         }
 
+        [Fact]
+        public async Task RealServer_Login_RegistersPlayerAndAppearsInPlayerList()
+        {
+            await using var server = CreateServer();
+            await server.StartAsync();
+
+            using var client = new TcpClient();
+            await client.ConnectAsync("127.0.0.1", server.BoundPort!.Value);
+            var stream = client.GetStream();
+
+            var hello = new
+            {
+                protocolVersion = "1.0",
+                type = "HELLO",
+                requestId = "01J000000000000000000HELLO",
+                sessionToken = (string?)null,
+                roomId = (string?)null,
+                clientSequence = 1L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { protocolVersion = "1.0", clientName = "UDM18.WPF" }
+            };
+            await FakeTv5Client.SendAsync(stream, hello);
+            var ack = await FakeTv5Client.ReadOneFrameAsync(stream);
+            Assert.NotNull(ack);
+
+            var login = new
+            {
+                protocolVersion = "1.0",
+                type = "LOGIN_REQUEST",
+                requestId = "01J000000000000000000LOGIN",
+                sessionToken = (string?)null,
+                roomId = (string?)null,
+                clientSequence = 2L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { displayName = "Tester", resumeToken = (string?)null }
+            };
+            await FakeTv5Client.SendAsync(stream, login);
+
+            var loginResultJson = await FakeTv5Client.ReadOneFrameAsync(stream);
+            Assert.NotNull(loginResultJson);
+            using (var doc = JsonDocument.Parse(loginResultJson!.Value.GetRawText()))
+            {
+                var root = doc.RootElement;
+                Assert.Equal("LOGIN_RESULT", root.GetProperty("type").GetString());
+                Assert.Equal("01J000000000000000000LOGIN", root.GetProperty("causationRequestId").GetString());
+                Assert.Equal("ACCEPTED", root.GetProperty("payload").GetProperty("status").GetString());
+                Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("payload").GetProperty("token").GetString()));
+                Assert.Equal("Tester", root.GetProperty("payload").GetProperty("player").GetProperty("displayName").GetString());
+                Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()));
+            }
+
+            var token = JsonDocument.Parse(loginResultJson!.Value.GetRawText())
+                .RootElement.GetProperty("payload").GetProperty("token").GetString();
+
+            var playerListRequest = new
+            {
+                protocolVersion = "1.0",
+                type = "PLAYER_LIST_REQUEST",
+                requestId = "01J000000000000000000PLIST",
+                sessionToken = token,
+                roomId = (string?)null,
+                clientSequence = 3L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { }
+            };
+            await FakeTv5Client.SendAsync(stream, playerListRequest);
+
+            var playerListJson = await FakeTv5Client.ReadOneFrameAsync(stream);
+            Assert.NotNull(playerListJson);
+            using (var doc = JsonDocument.Parse(playerListJson!.Value.GetRawText()))
+            {
+                var root = doc.RootElement;
+                Assert.Equal("PLAYER_LIST_UPDATED", root.GetProperty("type").GetString());
+                var players = root.GetProperty("payload").GetProperty("players").EnumerateArray().ToArray();
+                var tester = players.SingleOrDefault(p => p.GetProperty("displayName").GetString() == "Tester");
+                Assert.NotNull(tester);
+                Assert.Equal("AVAILABLE", tester.GetProperty("status").GetString());
+            }
+        }
+
         private static GameServerHost CreateServer()
         {
             var router = new MessageRouter();
             router.Register("HELLO", HelloMessageHandler.HandleAsync);
+            LobbyMessageRoutes.Register(router, new PlayerSessionDirectory());
             return new GameServerHost("127.0.0.1", 0, router);
         }
 
