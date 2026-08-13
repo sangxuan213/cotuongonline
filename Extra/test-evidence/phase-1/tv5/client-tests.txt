@@ -1,1 +1,27 @@
-Pending final re-validation client test result against origin/develop 7e3bf7a.
+TV5 Day 6 final client test evidence
+Date: 2026-08-13 (Asia/Saigon)
+Validated code commit: 1ec02e7d26adfdb5a9d6f085b88901ac7533bc96
+
+Command:
+dotnet run --project Code/tests/XiangqiOnline.Client.SmokeTests/XiangqiOnline.Client.SmokeTests.csproj -c Release --no-build --no-restore
+
+Result:
+PASS  Initial board has 32 stable pieces
+PASS  Coordinate mapping preserves canonical protocol
+PASS  ULID identifiers are valid and unique
+PASS  TCP framing handles fragmented server messages
+PASS  Real TV1 framing completes HELLO and LOGIN handshake
+PASS  Login waits for HELLO_ACK
+PASS  Challenge uses STANDARD_PRO contract profile
+PASS  Only current-turn pieces can be selected
+PASS  Board changes only after MOVE_COMMITTED
+PASS  Committed capture removes only target
+PASS  MOVE_REJECTED preserves board
+PASS  Unknown piece delta preserves board revision
+PASS  Revision gap preserves board and requests resync
+PASS  Snapshot clears stale move highlights
+PASS  Older snapshots cannot overwrite current state
+PASS  Malformed events report errors without crashing
+PASS  ERROR_RESPONSE is surfaced without disconnecting
+
+17/17 passed; 0 failed; 0 skipped.
