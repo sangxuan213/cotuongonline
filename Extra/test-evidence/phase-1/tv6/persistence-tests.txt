@@ -1,0 +1,33 @@
+TV6 PERSISTENCE LAYER TEST EVIDENCE
+============================================================
+Baseline SHA (origin/develop): 96480209a04f9011f407da0e5df5d56e66ed96e6
+Final SHA (feature/tv6): afd69a5
+Timestamp: 2026-08-13T16:32:00+07:00
+
+PERSISTENCE GATES VERIFIED:
+1. Schema & Initialization: PASS
+   - Tables: players, matches, moves, position_history, schema_versions
+   - Strict adherence to UDM18_Database_Schema_v1.1.sql (FKs, CHECK constraints, indexes).
+
+2. CRUD Operations: PASS
+   - Player creation / read
+   - Match creation / query
+   - Move insert / list by match / client move ID query
+   - Position history insert / retrieve
+
+3. Game / Session Persistence: PASS
+   - Create match with room_id, red/black players, rule profile, time profile
+   - Update match revision, total_moves atomically
+
+4. Move / History Persistence & Ordering: PASS
+   - PERSIST_FIRST pattern enforced
+   - Unique constraints on (match_id, move_index) and (match_id, revision) prevent out-of-order or duplicate commits
+   - SHA-256 board_hash_before and board_hash_after recorded
+   - canonical_piece_map_json validated as structured JSON
+
+5. Transaction Atomicity & Failure Behavior: PASS
+   - Full rollback on foreign key violations (FK constraint failure)
+   - Full rollback on duplicate clientMoveId / revision conflict
+   - Partial work rolled back completely; zero orphaned rows
+
+Result: PERSISTENCE GATE PASS
