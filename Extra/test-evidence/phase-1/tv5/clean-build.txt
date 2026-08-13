@@ -1,0 +1,21 @@
+TV5 Day 6 final re-validation build evidence
+Date: 2026-08-13 (Asia/Saigon)
+Baseline: origin/develop 7e3bf7af6e4194c15f1aacd66c87b7cf2ef5ca14
+Validated code commit: 1ec02e7d26adfdb5a9d6f085b88901ac7533bc96
+SDK: 10.0.302
+Solution: Code/XiangqiOnline.slnx
+
+Commands:
+dotnet restore Code/XiangqiOnline.slnx --nologo
+dotnet clean Code/XiangqiOnline.slnx -c Release --nologo
+dotnet restore Code/XiangqiOnline.slnx --nologo
+dotnet build Code/XiangqiOnline.slnx -c Release --no-restore --nologo
+
+Result:
+- Restore: PASS
+- Clean: PASS
+- Release build: PASS
+- Warnings: 0
+- Errors: 0
+- Client target: net10.0-windows
+- Server, Shared, RuleEngine and non-WPF tests: net10.0

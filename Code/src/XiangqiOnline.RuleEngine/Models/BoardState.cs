@@ -55,6 +55,11 @@ public record BoardState
         var movingPiece = GetPieceAt(from);
         if (movingPiece == null) return this;
 
+        // Từ chối nước đi không hợp lệ: đích ngoài bàn cờ, đích trùng nguồn, hoặc ô đích có quân đồng phe.
+        if (!to.IsValid() || from == to) return this;
+        var targetPiece = GetPieceAt(to);
+        if (targetPiece != null && targetPiece.Side == movingPiece.Side) return this;
+
         var builder = Pieces.ToBuilder();
         builder.Remove(from);
 

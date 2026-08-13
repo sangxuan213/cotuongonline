@@ -16,7 +16,7 @@ public sealed class CannonAttackRule : IAttackRule
         }
 
         var targetPiece = board.GetPieceAt(target);
-        if (targetPiece?.Side == attacker.Side)
+        if (targetPiece is null || targetPiece.Side == attacker.Side)
         {
             return false;
         }

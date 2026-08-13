@@ -1,5 +1,12 @@
 # TV3 Phase 1 - Rule Engine Handover Document for TV4
 
+## 0. Baseline Snapshot
+> **Lưu ý**: Tài liệu này mô tả lịch sử baseline tại commit `051b125`
+> (nhánh `feature/tv3-ruleengine-p1`, khi **AttackDetector / SelfCheck chưa được triển khai**).
+> Trên nhánh `develop` hiện tại, các tính năng TV4 (`AttackDetector`, `SelfCheckValidator`,
+> `CheckDetector`, `GeneralsFacingDetector`) **đã được implement**; vui lòng tham chiếu
+> `Extra/test-evidence/phase1/tv4/*` để xem trạng thái mới nhất.
+
 ## 1. Handover Overview
 - **Owner**: TV3 (Rule Engine Core)
 - **Target Reviewer**: TV4
@@ -30,5 +37,5 @@ TV4 can consume the following stable abstractions from TV3:
 
 - **Framework modified**: NO (.NET 10 solution build intact).
 - **Client / Server / DB modified**: NO.
-- **TV4 features implemented (AttackDetector / SelfCheck)**: NO.
+- **TV4 features implemented (AttackDetector / SelfCheck)**: NO — tại baseline `051b125`. (Đã implement trên `develop` từ TV4.)
 - **Phase 2 / Phase 3 added**: NO.

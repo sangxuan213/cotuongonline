@@ -32,3 +32,12 @@
 - `chore/*`: Nhánh công việc kỹ thuật
 
 Không push chức năng trực tiếp vào `main`.
+
+## Kiểm tra Client Phase 1
+
+```powershell
+dotnet build Code/src/XiangqiOnline.Client/XiangqiOnline.Client.csproj -c Release -warnaserror
+dotnet run --project Code/tests/XiangqiOnline.Client.SmokeTests/XiangqiOnline.Client.SmokeTests.csproj -c Release
+```
+
+Client dùng Shared Contracts tại `Code/src/XiangqiOnline.Shared/Contracts` và chỉ cập nhật bàn cờ sau event authoritative từ Server.

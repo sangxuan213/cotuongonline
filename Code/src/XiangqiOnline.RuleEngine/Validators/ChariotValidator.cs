@@ -44,22 +44,9 @@ public class ChariotValidator : IMoveValidator
         }
 
         // 3. Kiểm tra vật cản trên đường đi (Path blocking)
-        int stepX = Math.Sign(dx);
-        int stepY = Math.Sign(dy);
-
-        int currX = piece.Position.X + stepX;
-        int currY = piece.Position.Y + stepY;
-
-        while (currX != to.X || currY != to.Y)
+        if (BoardPathHelper.CountPiecesBetween(board, piece.Position, to) > 0)
         {
-            var posBetween = new Position(currX, currY);
-            if (board.GetPieceAt(posBetween) != null)
-            {
-                return MoveValidationResult.Fail(ErrorCodes.PATH_BLOCKED, "Xe bị cản đường.");
-            }
-
-            currX += stepX;
-            currY += stepY;
+            return MoveValidationResult.Fail(ErrorCodes.PATH_BLOCKED, "Xe bị cản đường.");
         }
 
         return MoveValidationResult.Success();

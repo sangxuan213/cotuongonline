@@ -143,7 +143,7 @@ public class SelfCheckValidatorTests
     }
 
     [Fact]
-    public void MovementPipelineCanPass_WhileSelfCheckFails()
+    public void MovementPipelineAndSelfCheckBothRejectIllegalMove()
     {
         var blocker = Piece("RED_BLOCKER", PieceType.Chariot, SideColor.Red, 4, 5);
         var board = CheckTestFactory.Board(
@@ -153,7 +153,7 @@ public class SelfCheckValidatorTests
             General(SideColor.Black, 3, 0));
         var target = new Position(5, 5);
 
-        Assert.True(new MoveValidationPipeline().Validate(board, Intent(blocker.Position, target)).IsValid);
+        Assert.Equal(ErrorCodes.SELF_CHECK, new MoveValidationPipeline().Validate(board, Intent(blocker.Position, target)).ErrorCode);
         Assert.Equal(ErrorCodes.SELF_CHECK, _validator.Validate(board, blocker, target).ErrorCode);
     }
 
@@ -262,7 +262,7 @@ public class SelfCheckValidatorTests
     }
 
     [Fact]
-    public void GeneralMovementCanPass_WhileTargetSquareCausesSelfCheck()
+    public void GeneralMovementRejected_WhenTargetSquareCausesSelfCheck()
     {
         var redGeneral = General(SideColor.Red, 4, 9);
         var board = CheckTestFactory.Board(
@@ -272,7 +272,7 @@ public class SelfCheckValidatorTests
             General(SideColor.Black, 5, 0));
         var target = new Position(3, 9);
 
-        Assert.True(new MoveValidationPipeline().Validate(board, Intent(redGeneral.Position, target)).IsValid);
+        Assert.Equal(ErrorCodes.SELF_CHECK, new MoveValidationPipeline().Validate(board, Intent(redGeneral.Position, target)).ErrorCode);
         Assert.Equal(ErrorCodes.SELF_CHECK, _validator.Validate(board, redGeneral, target).ErrorCode);
     }
 
