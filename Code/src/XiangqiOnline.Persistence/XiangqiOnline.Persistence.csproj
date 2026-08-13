@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Database\Schema.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Database\Schema.sql" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

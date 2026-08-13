@@ -189,7 +189,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // Now try to commit another real move — this will attempt revision 2, move_index 2
         // which are already taken, causing a constraint violation → rollback
         var boardAfterFirst = board.ApplyMove(new Position(0, 9), new Position(0, 7));
-        var intent2 = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 6), new Position(0, 5), (matchAfterFirst.FinalRevision ?? 0));
+        var intent2 = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 0), new Position(0, 2), (matchAfterFirst.FinalRevision ?? 0));
 
         // The service should detect persistence failure (conflict on revision/move_index)
         var result = _db.Service.CommitMove(matchAfterFirst, boardAfterFirst, intent2);

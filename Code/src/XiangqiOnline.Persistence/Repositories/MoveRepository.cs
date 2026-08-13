@@ -76,8 +76,12 @@ public sealed class MoveRepository : IMoveRepository
             cmd.ExecuteNonQuery();
             return true;
         }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // SQLITE_CONSTRAINT (covers UNIQUE, FK, CHECK)
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // SQLITE_CONSTRAINT
         {
+            if (ex.Message.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase) || ex.SqliteExtendedErrorCode == 787)
+            {
+                throw; // Rethrow FK violation so service catches it as PersistenceFailure
+            }
             _logger.LogWarning("Constraint violation on move insert. matchId={MatchId} clientMoveId={ClientMoveId} error={Error}",
                 move.MatchId, move.ClientMoveId, ex.Message);
             return false;
