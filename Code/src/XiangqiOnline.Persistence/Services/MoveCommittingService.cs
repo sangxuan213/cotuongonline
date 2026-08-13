@@ -98,11 +98,13 @@ public sealed class MoveCommittingService
                 BoardHashAfter: hashAfter,
                 CreatedAtUtc: DateTime.UtcNow);
 
+            var canonicalPieceMapJson = CanonicalPieceMapSerializer.Serialize(boardAfter);
+
             var positionHistory = new PositionHistoryRecord(
                 MatchId: match.MatchId,
                 Revision: nextRevision,
                 BoardHash: hashAfter,
-                CanonicalPieceMapJson: BoardHasher.Hash(boardAfter),
+                CanonicalPieceMapJson: canonicalPieceMapJson,
                 SideToMove: boardAfter.Turn == SideColor.Red ? "RED" : "BLACK",
                 MoveClass: moveClass,
                 ClassificationFactsJson: "{}",
@@ -125,7 +127,7 @@ public sealed class MoveCommittingService
         {
             _logger.LogError(ex, "Persistence failure during move commit. matchId={MatchId} clientMoveId={ClientMoveId}",
                 match.MatchId, intent.ClientMoveId);
-            return new MoveCommitResult(MoveCommitStatus.PersistenceFailure, ErrorCode: "PERSISTENCE_FAILURE", Message: ex.Message);
+            return new MoveCommitResult(MoveCommitStatus.PersistenceFailure, ErrorCode: "PERSISTENCE_FAILED", Message: ex.Message);
         }
     }
 

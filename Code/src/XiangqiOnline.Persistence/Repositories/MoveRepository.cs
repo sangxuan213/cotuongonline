@@ -76,10 +76,10 @@ public sealed class MoveRepository : IMoveRepository
             cmd.ExecuteNonQuery();
             return true;
         }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19 && ex.SqliteExtendedErrorCode == 2067) // SQLITE_CONSTRAINT_UNIQUE
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // SQLITE_CONSTRAINT (covers UNIQUE, FK, CHECK)
         {
-            _logger.LogWarning("Duplicate clientMoveId detected. matchId={MatchId} clientMoveId={ClientMoveId}",
-                move.MatchId, move.ClientMoveId);
+            _logger.LogWarning("Constraint violation on move insert. matchId={MatchId} clientMoveId={ClientMoveId} error={Error}",
+                move.MatchId, move.ClientMoveId, ex.Message);
             return false;
         }
         finally

@@ -89,4 +89,11 @@ public sealed class GamePersistenceService
         var repo = new MoveRepository(_connectionFactory, _loggerFactory.CreateLogger<MoveRepository>());
         return repo.ListByMatch(matchId);
     }
+
+    /// <summary>Lấy lịch sử vị trí của trận.</summary>
+    public IReadOnlyList<PositionHistoryRecord> ListPositionHistory(string matchId)
+    {
+        var repo = new PositionHistoryRepository(_connectionFactory, _loggerFactory.CreateLogger<PositionHistoryRepository>());
+        return repo.ListByMatch(matchId);
+    }
 }
