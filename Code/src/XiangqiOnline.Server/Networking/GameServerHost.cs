@@ -51,8 +51,8 @@ namespace XiangqiOnline.Server.Networking
 
         private void OnClientAccepted(TcpClient client)
         {
-            var connection = new ClientConnectionHandler(client, _router);
             long id = Interlocked.Increment(ref _nextConnectionId);
+            var connection = new ClientConnectionHandler(client, _router, id.ToString());
             _connections[id] = connection;
             ConnectionOpened?.Invoke(id.ToString());
 
