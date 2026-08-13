@@ -1,0 +1,25 @@
+TV6 PHASE 1 FULL TEST SUITE EVIDENCE
+============================================================
+Baseline SHA (origin/develop): 96480209a04f9011f407da0e5df5d56e66ed96e6
+Final SHA (feature/tv6): afd69a5
+Timestamp: 2026-08-13T16:32:00+07:00
+
+COMMAND:
+dotnet test Code/XiangqiOnline.slnx -c Release
+
+TEST RESULTS BY ASSEMBLY:
+- XiangqiOnline.Shared.Tests.dll:
+  Passed: 27, Failed: 0, Skipped: 0, Total: 27
+
+- XiangqiOnline.RuleEngine.Tests.dll:
+  Passed: 229, Failed: 0, Skipped: 0, Total: 229
+
+- XiangqiOnline.Server.Tests.dll:
+  Passed: 63, Failed: 0, Skipped: 0, Total: 63
+
+- XiangqiOnline.IntegrationTests.dll:
+  Passed: 31, Failed: 0, Skipped: 0, Total: 31
+
+GRAND TOTAL:
+Passed: 350, Failed: 0, Skipped: 0, Total: 350
+Result: FULL TEST GATE PASS

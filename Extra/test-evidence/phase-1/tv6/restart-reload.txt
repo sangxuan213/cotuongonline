@@ -1,0 +1,26 @@
+TV6 MANDATORY PERSISTENCE RESTART / RELOAD EVIDENCE
+============================================================
+Baseline SHA (origin/develop): 96480209a04f9011f407da0e5df5d56e66ed96e6
+Final SHA (feature/tv6): afd69a5
+Timestamp: 2026-08-13T16:32:00+07:00
+
+RESTART TEST FLOW:
+1. Process/Layer A:
+   - Initialize SQLite database at disk location
+   - Create Match (matchId, roomId, redPlayerId, blackPlayerId)
+   - Commit initial move (RED_CHARIOT_1 0,9 -> 0,7)
+   - Record revision (1), move count (1), board hashes
+   - Flush and close SQLite database connection
+
+2. Process/Layer B (Fresh connection/process reload):
+   - Reopen SQLite database file from disk
+   - Query Match record by matchId
+   - Query Moves list by matchId
+   - Query Position History by matchId
+   - Verify all fields match 100% byte-for-byte with Process A output
+
+TEST VERIFICATION:
+- Re-opened database contains identical match, moves, and position history records.
+- Proves database persistence is REAL on disk (SQLite disk file), NOT in-memory.
+
+Result: MANDATORY RESTART TEST PASS
