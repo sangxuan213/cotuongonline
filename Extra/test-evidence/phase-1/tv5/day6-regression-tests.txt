@@ -1,0 +1,25 @@
+TV5 Day 6 full regression evidence - regenerated after sync with origin/develop
+Date: 2026-08-13 (Asia/Saigon)
+
+Command:
+dotnet test Code/XiangqiOnline.slnx -c Release --no-build --no-restore --logger trx
+
+Results:
+- XiangqiOnline.IntegrationTests: 3 passed, 0 failed, 0 skipped
+- XiangqiOnline.Shared.Tests: 27 passed, 0 failed, 0 skipped
+- XiangqiOnline.Server.Tests: 63 passed, 0 failed, 0 skipped
+- XiangqiOnline.RuleEngine.Tests: 229 passed, 0 failed, 0 skipped
+- XiangqiOnline.Protocol.Tests: 0 tests discovered (placeholder project)
+
+xUnit subtotal: 322 passed, 0 failed, 0 skipped.
+Client smoke tests: 17 passed, 0 failed, 0 skipped.
+Combined Day 6 total: 339 passed, 0 failed, 0 skipped.
+
+Wire compatibility tests passed:
+- TV5 client reader parses a frame produced by TV1 TcpFrameCodec.
+- TV1 server receive loop parses a frame produced by the TV5 client wire format.
+- MaxPayloadBytes matches across both implementations.
+- The real TV5 transport exchanges HELLO/HELLO_ACK/LOGIN_REQUEST with TV1 TcpFrameCodec.
+- ERROR_RESPONSE is surfaced without disconnecting the client.
+
+No test was disabled or skipped. No GitHub CI result is claimed by this evidence.

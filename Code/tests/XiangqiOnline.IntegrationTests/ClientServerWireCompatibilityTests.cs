@@ -140,7 +140,7 @@ namespace XiangqiOnline.IntegrationTests
             {
                 var payload = JsonSerializer.SerializeToUtf8Bytes(envelope, JsonOptions);
                 var header = new byte[4];
-                BinaryPrimitives.WriteInt32BigEndian(header, payload.Length);
+                BinaryPrimitives.WriteUInt32BigEndian(header, (uint)payload.Length);
                 await stream.WriteAsync(header);
                 await stream.WriteAsync(payload);
                 await stream.FlushAsync();
@@ -150,9 +150,10 @@ namespace XiangqiOnline.IntegrationTests
             {
                 var header = new byte[4];
                 await ReadExactlyAsync(stream, header);
-                var length = BinaryPrimitives.ReadInt32BigEndian(header);
-                if (length is <= 0 or > 65_536)
-                    throw new InvalidDataException($"INVALID_FRAME_LENGTH: {length}");
+                var unsignedLength = BinaryPrimitives.ReadUInt32BigEndian(header);
+                if (unsignedLength is 0 or > 65_536)
+                    throw new InvalidDataException($"INVALID_FRAME_LENGTH: {unsignedLength}");
+                var length = (int)unsignedLength;
                 var payload = new byte[length];
                 await ReadExactlyAsync(stream, payload);
                 using var document = JsonDocument.Parse(payload);

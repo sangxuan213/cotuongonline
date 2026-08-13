@@ -1,11 +1,1 @@
-Command:
-dotnet build Code/src/XiangqiOnline.Client/XiangqiOnline.Client.csproj -c Release --nologo -warnaserror
-
-Result:
-Build succeeded.
-0 Warning(s)
-0 Error(s)
-
-Target frameworks:
-XiangqiOnline.Shared: net10.0
-XiangqiOnline.Client: net10.0-windows
+Pending final re-validation build result against origin/develop 7e3bf7a.
