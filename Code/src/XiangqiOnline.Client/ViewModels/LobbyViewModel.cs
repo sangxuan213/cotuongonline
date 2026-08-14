@@ -23,6 +23,12 @@ public sealed class LobbyViewModel : ObservableObject
             command.Failed += ex => Ui(() => Status = $"Không thực hiện được yêu cầu: {ex.Message}");
         _client.PlayersUpdated += OnPlayersUpdated;
         _client.ChallengeReceived += challenge => Ui(() => { IncomingChallenge = challenge; Status = $"{challenge.FromDisplayName} mời bạn thi đấu."; });
+        _client.ChallengeRejected += challengeId => Ui(() =>
+        {
+            if (IncomingChallenge?.ChallengeId != challengeId) return;
+            IncomingChallenge = null;
+            Status = "Lời thách đấu đã bị từ chối.";
+        });
         _client.RoomCreated += id => Ui(() => { IncomingChallenge = null; Status = $"Phòng {id} đã được tạo."; });
         _client.ConnectionChanged += (_, _) => Ui(() => RefreshCommand.NotifyCanExecuteChanged());
         _client.ErrorReceived += error => Ui(() => Status = error);

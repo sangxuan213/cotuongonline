@@ -234,8 +234,10 @@ namespace XiangqiOnline.IntegrationTests
             directory ??= new PlayerSessionDirectory();
             var router = new MessageRouter();
             router.Register("HELLO", HelloMessageHandler.HandleAsync);
-            LobbyMessageRoutes.Register(router, directory);
-            return new GameServerHost("127.0.0.1", 0, router, directory);
+            var challenges = new ChallengeManager(directory);
+            var server = new GameServerHost("127.0.0.1", 0, router, directory);
+            LobbyMessageRoutes.Register(router, directory, challenges, server);
+            return server;
         }
 
         private static async Task<string> LoginAsync(NetworkStream stream, string displayName, string requestSuffix)

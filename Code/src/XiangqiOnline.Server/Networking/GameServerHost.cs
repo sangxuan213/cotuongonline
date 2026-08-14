@@ -16,7 +16,7 @@ namespace XiangqiOnline.Server.Networking
     /// tested path is the shipped path. Builds on the TV1 networking stack; it does
     /// not open its own sockets or reinvent framing.
     /// </summary>
-    public sealed class GameServerHost : IAsyncDisposable
+    public sealed class GameServerHost : IAsyncDisposable, IConnectionRegistry
     {
         private readonly TcpServerHost _tcpHost;
         private readonly MessageRouter _router;
@@ -36,6 +36,12 @@ namespace XiangqiOnline.Server.Networking
         public int? BoundPort => _tcpHost.BoundPort;
 
         public int ActiveConnectionCount => _connections.Count;
+
+        public bool TryGetConnection(string connectionId, out ClientConnectionHandler connection)
+        {
+            connection = null!;
+            return long.TryParse(connectionId, out var id) && _connections.TryGetValue(id, out connection!);
+        }
 
         public GameServerHost(string bindAddress, int port, MessageRouter router)
             : this(bindAddress, port, router, null)

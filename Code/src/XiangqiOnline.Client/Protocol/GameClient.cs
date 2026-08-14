@@ -24,6 +24,7 @@ public sealed class GameClient
     public event Action<string, string>? LoginCompleted;
     public event Action<IReadOnlyList<PlayerSummary>>? PlayersUpdated;
     public event Action<ChallengeSummary>? ChallengeReceived;
+    public event Action<string>? ChallengeRejected;
     public event Action<string>? RoomCreated;
     public event Action<GameSnapshot>? SnapshotReceived;
     public event Action<long, MoveDelta>? MoveCommitted;
@@ -98,6 +99,7 @@ public sealed class GameClient
                 case "LOGIN_RESULT": if (ParseLogin(payload)) await RequestPlayersAsync(); break;
                 case "PLAYER_LIST_UPDATED": ParsePlayers(payload); break;
                 case "CHALLENGE_RECEIVED": ParseChallenge(payload); break;
+                case "CHALLENGE_REJECTED": ParseChallengeRejected(payload); break;
                 case "ROOM_CREATED": ParseRoom(payload); break;
                 case "GAME_STATE_SNAPSHOT": SnapshotReceived?.Invoke(ParseSnapshot(payload)); break;
                 case "MOVE_COMMITTED": ParseMoveCommitted(root, payload); break;
@@ -159,6 +161,13 @@ public sealed class GameClient
             ReadString(challenge, "challengeId") ?? "",
             ReadString(challenge, "fromPlayerId") ?? "",
             ReadString(challenge, "fromDisplayName") ?? "Đối thủ"));
+    }
+
+    private void ParseChallengeRejected(JsonElement payload)
+    {
+        var challengeId = ReadString(payload, "challengeId")
+            ?? throw new JsonException("CHALLENGE_REJECTED thiếu challengeId.");
+        ChallengeRejected?.Invoke(challengeId);
     }
 
     private void ParseRoom(JsonElement payload)

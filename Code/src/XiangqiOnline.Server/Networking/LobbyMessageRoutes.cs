@@ -11,13 +11,26 @@ namespace XiangqiOnline.Server.Networking
     /// </summary>
     public static class LobbyMessageRoutes
     {
-        public static void Register(MessageRouter router, PlayerSessionDirectory directory)
+        public static void Register(
+            MessageRouter router,
+            PlayerSessionDirectory directory,
+            ChallengeManager challenges,
+            IConnectionRegistry connections)
         {
             router.Register("LOGIN_REQUEST", (request, connection, ct) =>
                 LoginMessageHandler.HandleAsync(request, connection, directory, ct));
 
             router.Register("PLAYER_LIST_REQUEST", (request, connection, ct) =>
                 PlayerListMessageHandler.HandleAsync(request, connection, directory, ct));
+
+            router.Register("CHALLENGE_SEND", (request, connection, ct) =>
+                ChallengeMessageHandler.HandleAsync(request, connection, directory, challenges, connections, ct));
+
+            router.Register("CHALLENGE_ACCEPT", (request, connection, ct) =>
+                AcceptChallengeMessageHandler.HandleAsync(request, connection, directory, challenges, connections, ct));
+
+            router.Register("CHALLENGE_REJECT", (request, connection, ct) =>
+                RejectChallengeMessageHandler.HandleAsync(request, connection, directory, challenges, connections, ct));
         }
     }
 }
