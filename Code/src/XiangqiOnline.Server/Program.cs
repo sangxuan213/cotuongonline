@@ -28,7 +28,7 @@ players.PlayerListUpdated += update =>
 GameServerHost host;
 try
 {
-    host = new GameServerHost(options.BindAddress, options.Port, router);
+    host = new GameServerHost(options.BindAddress, options.Port, router, players);
 }
 catch (Exception ex)
 {
