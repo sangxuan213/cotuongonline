@@ -170,13 +170,121 @@ namespace XiangqiOnline.IntegrationTests
             }
         }
 
-        private static GameServerHost CreateServer()
+        [Fact]
+        public async Task RealServer_LoggedInSocketDisconnect_MarksPlayerOfflineAndBroadcastsPlayerList()
         {
+            var directory = new PlayerSessionDirectory();
+            await using var server = CreateServer(directory);
+            await server.StartAsync();
+
+            using var clientA = new TcpClient();
+            await clientA.ConnectAsync("127.0.0.1", server.BoundPort!.Value);
+            var streamA = clientA.GetStream();
+            await LoginAsync(streamA, "Alice", "A");
+
+            using var clientB = new TcpClient();
+            await clientB.ConnectAsync("127.0.0.1", server.BoundPort.Value);
+            var streamB = clientB.GetStream();
+            var tokenB = await LoginAsync(streamB, "Bob", "B");
+
+            Assert.Equal(PlayerStatus.AVAILABLE,
+                directory.GetSnapshot().Single(player => player.DisplayName == "Alice").Status);
+
+            clientA.Close();
+
+            var disconnectUpdate = await FakeTv5Client.ReadOneFrameAsync(streamB)
+                .WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.NotNull(disconnectUpdate);
+            Assert.Equal("PLAYER_LIST_UPDATED", disconnectUpdate.Value.GetProperty("type").GetString());
+            var broadcastPlayers = disconnectUpdate.Value.GetProperty("payload").GetProperty("players")
+                .EnumerateArray().ToArray();
+            Assert.Equal("OFFLINE", broadcastPlayers.Single(player =>
+                player.GetProperty("displayName").GetString() == "Alice").GetProperty("status").GetString());
+            Assert.Equal("AVAILABLE", broadcastPlayers.Single(player =>
+                player.GetProperty("displayName").GetString() == "Bob").GetProperty("status").GetString());
+
+            using var clientC = new TcpClient();
+            await clientC.ConnectAsync("127.0.0.1", server.BoundPort.Value);
+            var streamC = clientC.GetStream();
+            var tokenC = await LoginAsync(streamC, "Charlie", "C");
+            await RequestPlayerListAsync(streamC, tokenC, "C-LIST");
+
+            var listForC = await FakeTv5Client.ReadOneFrameAsync(streamC)
+                .WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.NotNull(listForC);
+            var playersForC = listForC.Value.GetProperty("payload").GetProperty("players")
+                .EnumerateArray().ToArray();
+            Assert.Equal(2, playersForC.Count(player =>
+                player.GetProperty("status").GetString() == "AVAILABLE"));
+            Assert.Equal("OFFLINE", playersForC.Single(player =>
+                player.GetProperty("displayName").GetString() == "Alice").GetProperty("status").GetString());
+
+            await RequestPlayerListAsync(streamB, tokenB, "B-LIST");
+            var listForB = await FakeTv5Client.ReadOneFrameAsync(streamB)
+                .WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.NotNull(listForB);
+            Assert.Equal("OFFLINE", listForB.Value.GetProperty("payload").GetProperty("players")
+                .EnumerateArray().Single(player =>
+                    player.GetProperty("displayName").GetString() == "Alice")
+                .GetProperty("status").GetString());
+        }
+
+        private static GameServerHost CreateServer(PlayerSessionDirectory? directory = null)
+        {
+            directory ??= new PlayerSessionDirectory();
             var router = new MessageRouter();
             router.Register("HELLO", HelloMessageHandler.HandleAsync);
-            LobbyMessageRoutes.Register(router, new PlayerSessionDirectory());
-            return new GameServerHost("127.0.0.1", 0, router);
+            var challenges = new ChallengeManager(directory);
+            var server = new GameServerHost("127.0.0.1", 0, router, directory);
+            LobbyMessageRoutes.Register(router, directory, challenges, server);
+            return server;
         }
+
+        private static async Task<string> LoginAsync(NetworkStream stream, string displayName, string requestSuffix)
+        {
+            await FakeTv5Client.SendAsync(stream, new
+            {
+                protocolVersion = "1.0",
+                type = "HELLO",
+                requestId = $"HELLO-{requestSuffix}",
+                sessionToken = (string?)null,
+                roomId = (string?)null,
+                clientSequence = 1L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { protocolVersion = "1.0", clientName = "UDM18.WPF" }
+            });
+            Assert.Equal("HELLO_ACK", (await FakeTv5Client.ReadOneFrameAsync(stream))!.Value
+                .GetProperty("type").GetString());
+
+            await FakeTv5Client.SendAsync(stream, new
+            {
+                protocolVersion = "1.0",
+                type = "LOGIN_REQUEST",
+                requestId = $"LOGIN-{requestSuffix}",
+                sessionToken = (string?)null,
+                roomId = (string?)null,
+                clientSequence = 2L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { displayName, resumeToken = (string?)null }
+            });
+            var loginResult = await FakeTv5Client.ReadOneFrameAsync(stream);
+            Assert.NotNull(loginResult);
+            Assert.Equal("LOGIN_RESULT", loginResult.Value.GetProperty("type").GetString());
+            return loginResult.Value.GetProperty("payload").GetProperty("token").GetString()!;
+        }
+
+        private static Task RequestPlayerListAsync(NetworkStream stream, string token, string requestId) =>
+            FakeTv5Client.SendAsync(stream, new
+            {
+                protocolVersion = "1.0",
+                type = "PLAYER_LIST_REQUEST",
+                requestId,
+                sessionToken = token,
+                roomId = (string?)null,
+                clientSequence = 3L,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { }
+            });
 
         /// <summary>
         /// Read/write bytes exactly like TV5 TcpProtocolTransport (SendAsync /

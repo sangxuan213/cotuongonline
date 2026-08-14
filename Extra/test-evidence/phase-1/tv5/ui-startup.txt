@@ -1,9 +1,17 @@
-Command:
-Launch UDM18.Client.exe normally and with --demo from the Release net10.0-windows output.
+TV5 Day 6 final WPF runtime evidence
+Date: 2026-08-13 (Asia/Saigon)
+Runtime: local .NET 10.0.302
+Assembly: Code/src/XiangqiOnline.Client/bin/Release/net10.0-windows/UDM18.Client.dll
 
-Result:
-PASS: normal mode remained running and responsive through the startup check.
-PASS: demo mode remained running and responsive through the startup check.
+Normal mode:
+- MainWindow title: UDM18 — Cờ Tướng Trực Tuyến
+- Window handle was created.
+- Process remained running and responsive.
 
-Scope:
-This verifies process startup only. It does not replace the required two-Client integration demo with the authoritative Server.
+Demo/navigation mode:
+- MainWindow remained responsive.
+- UI Automation invoked 01 Kết nối, 02 Sảnh đấu and 03 Phòng đấu.
+- All three views loaded without process exit or unresponsive state.
+- GameRoom board rendering remains covered by the restored TV5 implementation and client smoke suite.
+
+Result: PASS.

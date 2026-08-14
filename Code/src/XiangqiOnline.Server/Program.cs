@@ -2,6 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using XiangqiOnline.Persistence.Configuration;
+using XiangqiOnline.Persistence.Services;
 using XiangqiOnline.Server;
 using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Server.Networking;
@@ -19,7 +22,9 @@ MessageRouter router = new();
 router.Register("HELLO", HelloMessageHandler.HandleAsync);
 
 var players = new PlayerSessionDirectory();
-LobbyMessageRoutes.Register(router, players);
+var challenges = new ChallengeManager(players);
+var persistence = new GamePersistenceService(DatabaseOptions.FromEnvironment(), NullLoggerFactory.Instance);
+persistence.InitializeDatabase();
 players.PlayerListUpdated += update =>
 {
     Console.WriteLine($"[Lobby] Player list changed ({update.Reason}): {update.Players.Count} player(s).");
@@ -28,7 +33,9 @@ players.PlayerListUpdated += update =>
 GameServerHost host;
 try
 {
-    host = new GameServerHost(options.BindAddress, options.Port, router);
+    host = new GameServerHost(options.BindAddress, options.Port, router, players);
+    LobbyMessageRoutes.Register(router, players, challenges, host);
+    MoveMessageRoutes.Register(router, players, challenges, host, persistence);
 }
 catch (Exception ex)
 {

@@ -1,23 +1,19 @@
-# TV5 Phase 1 handover
+# TV5 Phase 1 — final re-validation
 
-## Đã hoàn thành
+TV5 Client was restored on top of `origin/develop` commit `7e3bf7af6e4194c15f1aacd66c87b7cf2ef5ca14`. The restored Client implementation is unchanged from the previously validated TV5 integration commit; no TV2 Server, TV1 protocol, TV3 RuleEngine or TV4 check/attack source file was modified.
 
-- WPF MVVM shell cho Connection, Lobby và GameRoom.
-- TCP JSON framing với header 4 byte big-endian.
-- HELLO, login, player list, challenge và room flow.
-- Bàn cờ 9x10, 32 quân, canonical coordinate và xoay bàn.
-- MOVE_REQUEST chỉ thay đổi bàn sau MOVE_COMMITTED.
-- Pending guard, MOVE_REJECTED, capture, current turn và revision handling.
-- RESYNC_REQUEST khi thiếu revision hoặc không tìm thấy quân.
-- Shared Contracts dùng chung cho DTO và enum.
-- UTF-8 cho toàn bộ nội dung giao diện.
-- 15 smoke tests và clean build .NET 10.
-- Demo mode vượt qua kiểm tra khởi động ứng dụng.
+## Result
 
-## Gate cần phối hợp bên ngoài
+- Clean Release build: PASS, 0 warnings, 0 errors.
+- Full automated result: 341 passed, 0 failed, 0 skipped.
+- WPF normal startup: PASS.
+- WPF Connection/Lobby/GameRoom navigation: PASS.
+- Real production TCP connection: PASS.
+- Real HELLO sent through TV5 `TcpProtocolTransport`: PASS.
+- Production `ConnectionReceiveLoop → MessageRouter → HelloMessageHandler`: PASS.
+- Real HELLO_ACK received and decoded by TV5 `GameClient`: PASS.
+- TV1 framing, UTF-8 JSON, protocol 1.0 and envelope contracts remain unchanged and compatible.
 
-- Chưa ghi nhận demo hai Client thật vì repository hiện chưa có Server Phase 1 chạy hoàn chỉnh để thực hiện kịch bản lobby, challenge và move end-to-end.
-- Cần TV2 review và phê duyệt theo cặp reviewer đã khóa.
-- PR tiếp theo phải đi vào `develop`; PR #3 trước đó đã được merge vào `main`.
+The previous production HELLO/HELLO_ACK 0-byte timeout blocker is resolved.
 
-Không dùng tài liệu này để tự xác nhận Phase 1 PASS khi các gate phối hợp bên ngoài chưa hoàn tất.
+CI evidence: NOT AVAILABLE.
