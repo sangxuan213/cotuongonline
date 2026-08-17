@@ -11,7 +11,11 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+        // WPF tự chọn GPU và tự fallback khi máy không hỗ trợ. Ép SoftwareOnly làm
+        // banner, blur và animation toàn màn hình chạy trên CPU nên gây giật rõ rệt.
+        // Chỉ bật lại chế độ này để chẩn đoán bằng XIANGQI_SOFTWARE_RENDERING=1.
+        if (string.Equals(Environment.GetEnvironmentVariable("XIANGQI_SOFTWARE_RENDERING"), "1", StringComparison.Ordinal))
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         _transport = new TcpProtocolTransport();
         var client = new GameClient(_transport);
         var demoMode = e.Args.Any(arg => arg.Equals("--demo", StringComparison.OrdinalIgnoreCase));

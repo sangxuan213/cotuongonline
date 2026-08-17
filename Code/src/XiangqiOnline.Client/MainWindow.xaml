@@ -1,50 +1,91 @@
 <Window x:Class="UDM18.Client.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="UDM18 — Cờ Tướng Trực Tuyến" Width="1240" Height="820"
-        MinWidth="980" MinHeight="680" WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Canvas}" FontFamily="Segoe UI" TextOptions.TextFormattingMode="Display">
-    <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Border Background="#102A43">
-            <Grid Margin="20,26,20,20">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        Title="UDM18 — Cờ Tướng Trực Tuyến" Width="1280" Height="780"
+        MinWidth="900" MinHeight="620" WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="{StaticResource AppBackground}" FontFamily="Segoe UI Variable Text"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+    <Grid Background="{StaticResource ShellGradient}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{Binding SidebarWidth}"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Background="{StaticResource Sidebar}" BorderBrush="#382E26" BorderThickness="0,0,1,0">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsAuthenticated}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid Margin="24,28,24,22">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
                 <StackPanel>
-                    <Border Width="48" Height="48" CornerRadius="14" Background="#2563EB" HorizontalAlignment="Left">
-                        <TextBlock Text="帥" Foreground="White" FontSize="25" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="54"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Width="48" Height="48" CornerRadius="15" Background="{StaticResource HeroGradient}" Effect="{StaticResource SoftShadow}">
+                            <TextBlock Text="帥" Foreground="#FFF4DE" FontFamily="Microsoft YaHei" FontSize="25" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <TextBlock Text="UDM18" Foreground="#FFF8EE" FontSize="22" FontWeight="Bold"/>
+                            <TextBlock Text="XIANGQI ONLINE" Foreground="#A99787" FontSize="9" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="#3A3028" Margin="0,24,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,30,0,0">
+                    <TextBlock Text="KHÔNG GIAN CHƠI" Foreground="#8D7D6E" FontSize="10" FontWeight="Bold" Margin="14,0,0,10"/>
+                    <Button Style="{StaticResource NavButton}" Content="♟   Sảnh đấu" Command="{Binding ShowLobbyCommand}"/>
+                    <Button Style="{StaticResource NavButton}" Content="◆   Bàn cờ" Command="{Binding ShowGameRoomCommand}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3">
+                    <Border Background="#2A231D" BorderBrush="#44382D" BorderThickness="1" CornerRadius="14" Padding="14">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Width="9" Height="9" CornerRadius="5" Background="#55C98A" VerticalAlignment="Top" Margin="0,4,10,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="SERVER READY" Foreground="#EEE1D2" FontSize="11" FontWeight="Bold"/>
+                                <TextBlock Text="TCP · JSON · v1.0" Foreground="#9D8C7C" FontSize="10" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Grid>
                     </Border>
-                    <TextBlock Text="UDM18" Foreground="White" FontSize="25" FontWeight="Bold" Margin="0,12,0,0"/>
-                    <TextBlock Text="XIANGQI CLIENT" Foreground="#9FB3C8" FontSize="11"/>
+                    <TextBlock Text="Authoritative match server" Foreground="#6F6257" FontSize="10" HorizontalAlignment="Center" Margin="0,12,0,0"/>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Margin="0,34,0,0">
-                    <TextBlock Text="ĐIỀU HƯỚNG" Foreground="#829AB1" FontSize="10" FontWeight="Bold" Margin="12,0,0,8"/>
-                    <Button Style="{StaticResource NavButton}" Content="01   Kết nối" Command="{Binding ShowConnectionCommand}"/>
-                    <Button Style="{StaticResource NavButton}" Content="02   Sảnh đấu" Command="{Binding ShowLobbyCommand}"/>
-                    <Button Style="{StaticResource NavButton}" Content="03   Phòng đấu" Command="{Binding ShowGameRoomCommand}"/>
-                </StackPanel>
-                <Border Grid.Row="3" Background="#173F5F" CornerRadius="11" Padding="12">
-                    <StackPanel>
-                        <TextBlock Text="PROTOCOL" Foreground="#9FB3C8" FontSize="10" FontWeight="Bold"/>
-                        <TextBlock Text="v1.0 · TCP JSON" Foreground="White" FontSize="12" Margin="0,4,0,0"/>
-                        <TextBlock Text="Server authoritative" Foreground="#9FB3C8" FontSize="11"/>
-                    </StackPanel>
-                </Border>
             </Grid>
         </Border>
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-            <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="0,0,0,1" Padding="18,9">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers><DataTrigger Binding="{Binding IsDemoMode}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <TextBlock Text="●  CHẾ ĐỘ DEMO CỤC BỘ — dữ liệu mẫu chỉ để xem giao diện, không dùng làm evidence nghiệm thu." Foreground="#9A3412" FontWeight="SemiBold"/>
-            </Border>
-            <Grid Grid.Row="1" Margin="28,24,28,26">
-                <ContentControl Content="{Binding CurrentPage}"/>
+
+        <Border Grid.Column="1" Margin="12" Background="#F3ECDF" CornerRadius="24" ClipToBounds="True">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Border Background="#FFF1D6" BorderBrush="#E8C886" BorderThickness="0,0,0,1" Padding="20,10">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers><DataTrigger Binding="{Binding IsDemoMode}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="●  CHẾ ĐỘ XEM THỬ — dữ liệu mẫu chỉ dùng để xem giao diện." Foreground="#7A4A00" FontWeight="SemiBold"/>
+                </Border>
+                <ScrollViewer Grid.Row="1" Margin="22,20,22,22"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                              CanContentScroll="False" Focusable="False">
+                    <ContentControl Content="{Binding CurrentPage}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+                </ScrollViewer>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </Window>
