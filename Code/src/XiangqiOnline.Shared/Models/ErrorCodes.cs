@@ -38,4 +38,19 @@ public static class ErrorCodes
     public const string CHALLENGE_NOT_PENDING = "CHALLENGE_NOT_PENDING";
     public const string CHALLENGE_UNAUTHORIZED = "CHALLENGE_UNAUTHORIZED";
     public const string CHALLENGE_EXPIRED = "CHALLENGE_EXPIRED";
+    public const string PROTOCOL_VERSION_UNSUPPORTED = "PROTOCOL_VERSION_UNSUPPORTED";
+    public const string INVALID_MESSAGE_SCHEMA = "INVALID_MESSAGE_SCHEMA";
+    public const string RATE_LIMITED = "RATE_LIMITED";
+    public const string UNAUTHENTICATED = "UNAUTHENTICATED";
+    public const string SESSION_REVOKED = "SESSION_REVOKED";
+    public const string ROOM_NOT_FOUND = "ROOM_NOT_FOUND";
+    public const string NOT_ROOM_MEMBER = "NOT_ROOM_MEMBER";
+    public const string SPECTATOR_ACTION_NOT_ALLOWED = "SPECTATOR_ACTION_NOT_ALLOWED";
+    public const string STALE_REVISION = "STALE_REVISION";
+    public const string DUPLICATE_REQUEST = "DUPLICATE_REQUEST";
+    public const string DRAW_OFFER_ALREADY_PENDING = "DRAW_OFFER_ALREADY_PENDING";
+    public const string DRAW_OFFER_COOLDOWN = "DRAW_OFFER_COOLDOWN";
+    public const string RECONNECT_WINDOW_EXPIRED = "RECONNECT_WINDOW_EXPIRED";
+    public const string GAME_ALREADY_FINISHED = "GAME_ALREADY_FINISHED";
+    public const string PERSISTENCE_FAILED = "PERSISTENCE_FAILED";
 }
