@@ -2,6 +2,12 @@
   <ItemGroup>
     <ProjectReference Include="..\XiangqiOnline.Shared\XiangqiOnline.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Classic\**\*.*" />
+    <Resource Include="Assets\Festival\**\*.*" />
+    <Resource Include="Assets\Emoji\**\*.*" />
+    <Resource Include="Assets\Sea\**\*.*" />
+  </ItemGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
