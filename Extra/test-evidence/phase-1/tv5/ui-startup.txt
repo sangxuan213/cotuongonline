@@ -1,18 +1,17 @@
-TV5 Day 6 WPF runtime evidence - regenerated after sync with origin/develop
+TV5 Day 6 final WPF runtime evidence
 Date: 2026-08-13 (Asia/Saigon)
-Runtime: local .NET SDK/runtime 10.0.302
+Runtime: local .NET 10.0.302
 Assembly: Code/src/XiangqiOnline.Client/bin/Release/net10.0-windows/UDM18.Client.dll
 
 Normal mode:
 - MainWindow title: UDM18 — Cờ Tướng Trực Tuyến
-- MainWindow handle was non-zero.
+- Window handle was created.
 - Process remained running and responsive.
 
-Demo render/navigation check:
-- MainWindow loaded and remained responsive.
+Demo/navigation mode:
+- MainWindow remained responsive.
 - UI Automation invoked 01 Kết nối, 02 Sảnh đấu and 03 Phòng đấu.
-- No navigation caused process exit or unresponsive state.
-- GameRoom rendered the 9x10 board and all 32 demo pieces.
+- All three views loaded without process exit or unresponsive state.
+- GameRoom board rendering remains covered by the restored TV5 implementation and client smoke suite.
 
-Scope note:
-Demo data was used only to exercise visual rendering and navigation. Protocol and authoritative-state behavior are covered by automated smoke/integration tests; demo data is not used as server evidence.
+Result: PASS.

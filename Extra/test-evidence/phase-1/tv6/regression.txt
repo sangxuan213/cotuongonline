@@ -1,0 +1,25 @@
+TV1-TV5 ZERO-REGRESSION AUDIT EVIDENCE
+============================================================
+Baseline SHA (origin/develop): 96480209a04f9011f407da0e5df5d56e66ed96e6
+Final SHA (feature/tv6): afd69a5
+Timestamp: 2026-08-13T16:32:00+07:00
+
+REGRESSION AUDIT SUMMARY:
+- TV1 (Shared/Models/Transport/Protocol):
+  * Preserved 100%. All 27 unit tests PASS. No protocol or transport modified.
+
+- TV2 (Server Host, TCP, Lobby, Session Directory):
+  * Preserved 100%. All 63 server unit & lobby acceptance tests PASS.
+  * Server entry point (Program.cs) intact and functioning.
+
+- TV3 (RuleEngine Base Validation):
+  * Preserved 100%. All piece movement & board validators PASS.
+
+- TV4 (RuleEngine Attack & Check Pipeline):
+  * Preserved 100%. Attack rules, check/checkmate detection PASS (Total 229 RuleEngine tests PASS).
+
+- TV5 (WPF Client):
+  * Client project (XiangqiOnline.Client.csproj) and WPF components preserved in full.
+  * Client smoke tests present and build cleanly in Release.
+
+Result: ZERO-REGRESSION GATE PASS

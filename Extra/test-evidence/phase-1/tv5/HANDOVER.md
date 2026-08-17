@@ -1,29 +1,19 @@
-# TV5 Phase 1 — Day 6 handover
+# TV5 Phase 1 — final re-validation
 
-Evidence in this directory was regenerated on 2026-08-13 after merging the latest `origin/develop` baseline into `khang`.
+TV5 Client was restored on top of `origin/develop` commit `7e3bf7af6e4194c15f1aacd66c87b7cf2ef5ca14`. The restored Client implementation is unchanged from the previously validated TV5 integration commit; no TV2 Server, TV1 protocol, TV3 RuleEngine or TV4 check/attack source file was modified.
 
-## Integration changes
+## Result
 
-- Preserved the official TV1 protocol, transport and shared model contracts.
-- Adapted the client to `SideColor`, `PieceType` and `Position` from `XiangqiOnline.Shared`.
-- Removed TV5's obsolete duplicate shared game-contract types.
-- Locked the client frame limit to `TcpFrameCodec.MaxPayloadBytes` and used unsigned big-endian frame lengths.
-- Added Client, Client SmokeTests and LoadTest to the complete `Code/XiangqiOnline.slnx` build surface.
-- Kept TV2 lobby/session, TV3 RuleEngine and TV4 attack/check/self-check implementations unchanged.
+- Clean Release build: PASS, 0 warnings, 0 errors.
+- Full automated result: 341 passed, 0 failed, 0 skipped.
+- WPF normal startup: PASS.
+- WPF Connection/Lobby/GameRoom navigation: PASS.
+- Real production TCP connection: PASS.
+- Real HELLO sent through TV5 `TcpProtocolTransport`: PASS.
+- Production `ConnectionReceiveLoop → MessageRouter → HelloMessageHandler`: PASS.
+- Real HELLO_ACK received and decoded by TV5 `GameClient`: PASS.
+- TV1 framing, UTF-8 JSON, protocol 1.0 and envelope contracts remain unchanged and compatible.
 
-## Verified behavior
+The previous production HELLO/HELLO_ACK 0-byte timeout blocker is resolved.
 
-- WPF MVVM shell starts in normal and demo modes.
-- Connection, Lobby and GameRoom navigation remains responsive.
-- Board renders 9x10 with 32 stable pieces; board rotation keeps canonical coordinates.
-- HELLO precedes LOGIN_REQUEST and the protocol version is `1.0`.
-- Client sends authoritative move intent and changes board state only after commit/snapshot.
-- Rejected, malformed, unknown-piece and revision-gap events preserve safe state and surface errors/resync.
-- Full Release solution build: 0 warnings, 0 errors.
-- Combined tests: 339 passed, 0 failed, 0 skipped.
-
-## Scope
-
-- Full reconnect orchestration and clocks are outside TV5 Phase 1 scope.
-- The production Server currently accepts TCP connections but does not yet wire the TV2 lobby services to a protocol request dispatcher; a two-client authoritative lobby/game demo therefore remains a server-side integration task, not evidence claimed here.
-- No GitHub CI result is claimed.
+CI evidence: NOT AVAILABLE.

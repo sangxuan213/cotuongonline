@@ -2,8 +2,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using XiangqiOnline.Persistence.Configuration;
+using XiangqiOnline.Persistence.Services;
 using XiangqiOnline.Server;
-using XiangqiOnline.Shared.Transport;
+using XiangqiOnline.Server.Lobby;
+using XiangqiOnline.Server.Networking;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -14,10 +18,24 @@ var options = configuration.GetSection("Server").Get<ServerOptions>() ?? new Ser
 
 Console.WriteLine($"[Server] Đang khởi động, bind {options.BindAddress}:{options.Port} ...");
 
-TcpServerHost host;
+MessageRouter router = new();
+router.Register("HELLO", HelloMessageHandler.HandleAsync);
+
+var players = new PlayerSessionDirectory();
+var challenges = new ChallengeManager(players);
+var persistence = new GamePersistenceService(DatabaseOptions.FromEnvironment(), NullLoggerFactory.Instance);
+persistence.InitializeDatabase();
+players.PlayerListUpdated += update =>
+{
+    Console.WriteLine($"[Lobby] Player list changed ({update.Reason}): {update.Players.Count} player(s).");
+};
+
+GameServerHost host;
 try
 {
-    host = new TcpServerHost(options.BindAddress, options.Port);
+    host = new GameServerHost(options.BindAddress, options.Port, router, players);
+    LobbyMessageRoutes.Register(router, players, challenges, host);
+    MoveMessageRoutes.Register(router, players, challenges, host, persistence);
 }
 catch (Exception ex)
 {
@@ -26,14 +44,13 @@ catch (Exception ex)
     return 1;
 }
 
-host.ClientAccepted += client =>
+host.ConnectionOpened += id =>
 {
-    var remote = client.Client.RemoteEndPoint;
-    Console.WriteLine($"[Server] Client kết nối từ {remote}.");
+    Console.WriteLine($"[Server] Connection #{id} — accept xong, bắt đầu receive loop.");
 };
-host.AcceptLoopFaulted += ex =>
+host.ConnectionClosed += id =>
 {
-    Console.Error.WriteLine($"[Server] Accept loop lỗi: {ex.Message}");
+    Console.WriteLine($"[Server] Connection #{id} đã đóng.");
 };
 
 using var cts = new CancellationTokenSource();

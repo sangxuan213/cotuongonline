@@ -1,0 +1,33 @@
+TV5 Day 6 final production HELLO/HELLO_ACK probe
+Date: 2026-08-13 (Asia/Saigon)
+Server baseline: origin/develop 7e3bf7af6e4194c15f1aacd66c87b7cf2ef5ca14
+Validated code commit: 1ec02e7d26adfdb5a9d6f085b88901ac7533bc96
+
+Real components:
+- Release XiangqiOnline.Server.dll process on 127.0.0.1:5000
+- Real TV5 TcpProtocolTransport
+- Real TV5 GameClient
+- Real TCP socket
+- Production GameServerHost, ConnectionReceiveLoop, MessageRouter and HelloMessageHandler
+
+Observed client result:
+TCP_CONNECTION=PASS
+HELLO_SENT=PASS
+HELLO_ACK_RECEIVED=PASS
+HELLO_ACK_DECODED=PASS
+TRANSPORT_STATE=Connected
+CONNECTION_STATES=Connecting -> Connected
+POST_ACK_SERVER_RESPONSE=Message type 'LOGIN_REQUEST' is not supported.
+
+Observed production Server result:
+- Server started and listened on 0.0.0.0:5000.
+- Connection #1 was accepted and its receive loop started.
+- Connection closed cleanly after the probe.
+- Server stderr was empty.
+
+Interpretation:
+- ConnectAndLoginAsync cannot send LOGIN_REQUEST until GameClient decodes HELLO_ACK.
+- The subsequent production ERROR_RESPONSE naming LOGIN_REQUEST proves the Server received and dispatched the post-ACK request on the same real connection.
+- The previous 0-byte response timeout is resolved.
+
+Result: PASS.

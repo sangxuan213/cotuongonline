@@ -13,7 +13,4 @@
     <Project Path="tests/XiangqiOnline.Server.Tests/XiangqiOnline.Server.Tests.csproj" />
     <Project Path="tests/XiangqiOnline.Shared.Tests/XiangqiOnline.Shared.Tests.csproj" />
   </Folder>
-  <Folder Name="/tools/">
-    <Project Path="tools/XiangqiOnline.LoadTest/XiangqiOnline.LoadTest.csproj" />
-  </Folder>
 </Solution>

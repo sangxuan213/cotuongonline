@@ -19,6 +19,7 @@ var tests = new (string Name, Func<Task> Run)[]
     ("Real TV1 framing completes HELLO and LOGIN handshake", TestRealWireHandshake),
     ("Login waits for HELLO_ACK", TestHandshakeOrder),
     ("Challenge uses STANDARD_PRO contract profile", TestChallengeProfile),
+    ("Rejected challenge clears stale incoming challenge", TestChallengeRejectedClearsIncoming),
     ("Only current-turn pieces can be selected", TestSourceSelection),
     ("Board changes only after MOVE_COMMITTED", TestAuthoritativeMoveFlow),
     ("Committed capture removes only target", TestCommittedCapture),
@@ -169,6 +170,23 @@ static async Task TestChallengeProfile()
     await client.SendChallengeAsync("P2");
     var payload = transport.LastSent!.Value.GetProperty("payload");
     Check(payload.GetProperty("timeProfile").GetString() == "STANDARD_PRO", "Challenge profile does not match the contract.");
+}
+
+static async Task TestChallengeRejectedClearsIncoming()
+{
+    var transport = new FakeTransport();
+    var client = new GameClient(transport);
+    var lobby = new LobbyViewModel(client);
+
+    await transport.EmitAsync(Json("""{"type":"CHALLENGE_RECEIVED","payload":{"challenge":{"challengeId":"C1","fromPlayerId":"P1","fromDisplayName":"Alice"}}}"""));
+    Check(lobby.IncomingChallenge?.ChallengeId == "C1", "Incoming challenge was not created.");
+    Check(lobby.AcceptCommand.CanExecute(null), "Accept must be enabled for an incoming challenge.");
+    Check(lobby.RejectCommand.CanExecute(null), "Reject must be enabled for an incoming challenge.");
+
+    await transport.EmitAsync(Json("""{"type":"CHALLENGE_REJECTED","payload":{"challengeId":"C1","rejectedByPlayerId":"P1","status":"REJECTED"}}"""));
+    Check(lobby.IncomingChallenge is null, "Rejected challenge remained visible.");
+    Check(!lobby.AcceptCommand.CanExecute(null), "Accept remained enabled after rejection.");
+    Check(!lobby.RejectCommand.CanExecute(null), "Reject remained enabled after rejection.");
 }
 
 static async Task TestSourceSelection()
