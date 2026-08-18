@@ -40,6 +40,8 @@ public sealed class DatabaseInitializer
         {
             cmd.CommandText = schema;
             cmd.ExecuteNonQuery();
+            cmd.CommandText = ReadAccountSchema();
+            cmd.ExecuteNonQuery();
         }
 
         _logger.LogInformation("Database initialized. Schema version {Version} applied.", CurrentSchemaVersion(connection));
@@ -53,6 +55,8 @@ public sealed class DatabaseInitializer
         var schema = ReadEmbeddedSchema();
         using var cmd = connection.CreateCommand();
         cmd.CommandText = schema;
+        cmd.ExecuteNonQuery();
+        cmd.CommandText = ReadAccountSchema();
         cmd.ExecuteNonQuery();
     }
 
@@ -107,6 +111,13 @@ public sealed class DatabaseInitializer
     private static string ReadEmbeddedSchema()
     {
         return File.ReadAllText(GetSchemaFilePath());
+    }
+
+    private static string ReadAccountSchema()
+    {
+        var path = Path.Combine(Path.GetDirectoryName(GetSchemaFilePath())!, "AccountSchema.sql");
+        if (!File.Exists(path)) throw new FileNotFoundException("Không tìm thấy AccountSchema.sql", path);
+        return File.ReadAllText(path);
     }
 
     private static string CurrentSchemaVersion(SqliteConnection connection)

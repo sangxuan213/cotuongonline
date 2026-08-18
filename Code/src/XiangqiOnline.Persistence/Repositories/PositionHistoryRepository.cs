@@ -22,6 +22,7 @@ public sealed class PositionHistoryRepository : IPositionHistoryRepository
 
     public PositionHistoryRepository(SqliteConnection connection, ILogger<PositionHistoryRepository> logger)
     {
+        _connectionFactory = null!;
         _externalConnection = connection;
         _logger = logger;
     }

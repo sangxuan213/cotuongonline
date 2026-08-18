@@ -1,0 +1,5 @@
+{
+  "loadA": { "clients": 10, "targetGames": 5, "targetSpectators": 5, "durationSeconds": 60 },
+  "loadB": { "clients": 40, "targetGames": 15, "targetSpectators": 10, "durationSeconds": 120 },
+  "metrics": ["p50Ms", "p95Ms", "p99Ms", "errors", "elapsedSeconds"]
+}
