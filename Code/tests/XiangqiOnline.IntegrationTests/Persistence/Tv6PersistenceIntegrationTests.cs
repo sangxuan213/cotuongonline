@@ -37,6 +37,14 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
 
     public void Dispose() => _db.Dispose();
 
+    [Fact]
+    public void IdGenerator_UsesFullUlidShapeAndDoesNotCollide()
+    {
+        var ids = Enumerable.Range(0, 10_000).Select(_ => IdGenerator.NewUlid()).ToArray();
+        Assert.All(ids, id => Assert.Matches("^[0-7][0-9A-HJKMNP-TV-Z]{25}$", id));
+        Assert.Equal(ids.Length, ids.Distinct(StringComparer.Ordinal).Count());
+    }
+
     // ===== TEST 1 =====
     [Fact]
     public void Legal_move_commits_exactly_one_db_row()

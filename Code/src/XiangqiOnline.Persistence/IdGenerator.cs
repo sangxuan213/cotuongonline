@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace XiangqiOnline.Persistence;
 
 /// <summary>
@@ -6,25 +8,36 @@ namespace XiangqiOnline.Persistence;
 /// </summary>
 public static class IdGenerator
 {
+    private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
     /// <summary>ULID-like string (26 ký tự, base32 Crockford).</summary>
     public static string NewUlid()
     {
+        Span<byte> bytes = stackalloc byte[16];
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var tsPart = Base32Crockford(timestamp, 10);
-        var rndPart = Random.Shared.Next(0, int.MaxValue);
-        var rnd = Base32Crockford(rndPart, 6);
-        return (tsPart + rnd).ToLowerInvariant();
-    }
+        bytes[0] = (byte)(timestamp >> 40);
+        bytes[1] = (byte)(timestamp >> 32);
+        bytes[2] = (byte)(timestamp >> 24);
+        bytes[3] = (byte)(timestamp >> 16);
+        bytes[4] = (byte)(timestamp >> 8);
+        bytes[5] = (byte)timestamp;
+        RandomNumberGenerator.Fill(bytes[6..]);
 
-    private static string Base32Crockford(long value, int length)
-    {
-        const string alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-        var chars = new char[length];
-        for (var i = length - 1; i >= 0; i--)
+        Span<char> output = stackalloc char[26];
+        for (var group = 0; group < output.Length; group++)
         {
-            chars[i] = alphabet[(int)(value & 31)];
-            value >>= 5;
+            var value = 0;
+            for (var bitInGroup = 0; bitInGroup < 5; bitInGroup++)
+            {
+                var logicalBit = group * 5 + bitInGroup - 2;
+                value <<= 1;
+                if (logicalBit < 0) continue;
+                var byteIndex = logicalBit / 8;
+                var bitIndex = 7 - logicalBit % 8;
+                value |= (bytes[byteIndex] >> bitIndex) & 1;
+            }
+            output[group] = Alphabet[value];
         }
-        return new string(chars);
+        return new string(output);
     }
 }

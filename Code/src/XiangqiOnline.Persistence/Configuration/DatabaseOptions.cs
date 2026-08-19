@@ -48,9 +48,19 @@ public sealed record DatabaseOptions
         var dbPath = Environment.GetEnvironmentVariable("SERVER_DB_PATH");
         var connStr = Environment.GetEnvironmentVariable("SERVER_DB_CONNECTION_STRING");
 
+        if (string.IsNullOrWhiteSpace(dbPath))
+        {
+            var current = new DirectoryInfo(AppContext.BaseDirectory);
+            while (current is not null &&
+                   (!Directory.Exists(Path.Combine(current.FullName, "Code")) ||
+                    !File.Exists(Path.Combine(current.FullName, "README.md"))))
+                current = current.Parent;
+            dbPath = Path.Combine(current?.FullName ?? AppContext.BaseDirectory, "Extra", "database", "xiangqi.db");
+        }
+
         return new DatabaseOptions
         {
-            DatabasePath = string.IsNullOrWhiteSpace(dbPath) ? "Extra/database/xiangqi.db" : dbPath,
+            DatabasePath = Path.GetFullPath(dbPath),
             ConnectionString = string.IsNullOrWhiteSpace(connStr) ? null : connStr
         };
     }

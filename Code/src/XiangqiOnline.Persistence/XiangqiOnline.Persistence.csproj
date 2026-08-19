@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <None Include="Database\Schema.sql" CopyToOutputDirectory="Always" />
+    <None Include="Database\AccountSchema.sql" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

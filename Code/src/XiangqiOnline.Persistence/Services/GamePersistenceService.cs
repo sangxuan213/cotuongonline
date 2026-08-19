@@ -53,14 +53,23 @@ public sealed class GamePersistenceService
         string matchId,
         string? redPlayerId = null,
         string? blackPlayerId = null,
-        string? roomId = null)
+        string? roomId = null,
+        string? ruleProfileId = null,
+        string? timeProfile = null)
     {
         var red = string.IsNullOrWhiteSpace(redPlayerId) ? "red-player" : redPlayerId;
         var black = string.IsNullOrWhiteSpace(blackPlayerId) ? "black-player" : blackPlayerId;
         var room = string.IsNullOrWhiteSpace(roomId) ? "room-" + matchId : roomId;
 
         var repo = new MatchRepository(_connectionFactory, _loggerFactory.CreateLogger<MatchRepository>());
-        return repo.Create(matchId, room, red, black);
+        return repo.Create(
+            matchId,
+            room,
+            red,
+            black,
+            ruleProfileId ?? "UDM18_WXF_PRO_2018",
+            "1.1",
+            timeProfile ?? "STANDARD");
     }
 
     /// <summary>Lấy trận đấu.</summary>
@@ -71,9 +80,14 @@ public sealed class GamePersistenceService
     }
 
     /// <summary>Commit nước đi (persist-first + atomic).</summary>
-    public MoveCommitResult CommitMove(MatchRecord match, BoardState board, MoveIntent intent)
+    public MoveCommitResult CommitMove(
+        MatchRecord match,
+        BoardState board,
+        MoveIntent intent,
+        int redRemainingMs = 600000,
+        int blackRemainingMs = 600000)
     {
-        return _moveCommittingService.Commit(match, board, intent);
+        return _moveCommittingService.Commit(match, board, intent, redRemainingMs, blackRemainingMs);
     }
 
     /// <summary>Đếm số nước đi của trận.</summary>
@@ -95,5 +109,42 @@ public sealed class GamePersistenceService
     {
         var repo = new PositionHistoryRepository(_connectionFactory, _loggerFactory.CreateLogger<PositionHistoryRepository>());
         return repo.ListByMatch(matchId);
+    }
+
+    public void CompleteMatch(
+        string matchId,
+        string resultType,
+        string endReason,
+        string? winnerSide,
+        long finalRevision,
+        DateTime endedAtUtc)
+    {
+        var repo = new MatchRepository(_connectionFactory, _loggerFactory.CreateLogger<MatchRepository>());
+        repo.Complete(matchId, resultType, endReason, winnerSide, finalRevision, endedAtUtc);
+    }
+
+    public IReadOnlyList<MatchRecord> ListMatchesByPlayer(string playerId, int limit = 100)
+    {
+        var repo = new MatchRepository(_connectionFactory, _loggerFactory.CreateLogger<MatchRepository>());
+        return repo.ListByPlayer(playerId, limit);
+    }
+
+    public string ResolvePlayerDisplayName(string playerId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId)) return "Kỳ thủ";
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT display_name FROM accounts WHERE account_id = @accountId
+            UNION ALL
+            SELECT display_name FROM players WHERE player_id = @playerId
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@accountId", playerId.StartsWith("ACCOUNT_", StringComparison.OrdinalIgnoreCase)
+            ? playerId["ACCOUNT_".Length..]
+            : playerId);
+        command.Parameters.AddWithValue("@playerId", playerId);
+        return command.ExecuteScalar()?.ToString() ?? (playerId.StartsWith("BOT_", StringComparison.OrdinalIgnoreCase) ? "Máy tính" : "Kỳ thủ");
     }
 }
