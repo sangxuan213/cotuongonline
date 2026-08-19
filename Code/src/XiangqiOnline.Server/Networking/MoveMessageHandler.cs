@@ -95,6 +95,9 @@ public static class MoveMessageHandler
         if (roomRevision != result.Revision)
             throw new InvalidOperationException("Committed persistence and room revisions diverged.");
 
+        if (result.FinalResult is not null && !room.TryFinish(result.FinalResult))
+            throw new InvalidOperationException("Room terminal result was already committed.");
+
         var committed = new ServerEventEnvelope<object>
         {
             Type = "MOVE_COMMITTED",
@@ -114,12 +117,47 @@ public static class MoveMessageHandler
             }
         };
 
+        await BroadcastAsync(room, committed, players, connections, ct).ConfigureAwait(false);
+
+        if (result.FinalResult is not null)
+        {
+            var gameEnded = new ServerEventEnvelope<object>
+            {
+                Type = "GAME_ENDED",
+                EventId = Guid.NewGuid().ToString("N"),
+                CausationRequestId = request.RequestId,
+                RoomId = room.RoomId,
+                Revision = result.Revision,
+                ServerTimeUtc = DateTimeOffset.UtcNow,
+                Payload = new
+                {
+                    finalResult = new
+                    {
+                        resultType = result.FinalResult.ResultType,
+                        endReason = result.FinalResult.EndReasonCode,
+                        winnerSide = result.FinalResult.WinnerSide?.ToString().ToUpperInvariant(),
+                        explanation = result.FinalResult.Explanation,
+                        finalRevision = result.Revision
+                    }
+                }
+            };
+            await BroadcastAsync(room, gameEnded, players, connections, ct).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task BroadcastAsync(
+        GameRoom room,
+        ServerEventEnvelope<object> message,
+        PlayerSessionDirectory players,
+        IConnectionRegistry connections,
+        CancellationToken ct)
+    {
         foreach (var playerId in new[] { room.RedPlayerId, room.BlackPlayerId })
         {
             if (players.TryGetByPlayerId(playerId, out var player) &&
                 connections.TryGetConnection(player.ConnectionId, out var playerConnection))
             {
-                await playerConnection.SendAsync(committed, ct).ConfigureAwait(false);
+                await playerConnection.SendAsync(message, ct).ConfigureAwait(false);
             }
         }
     }

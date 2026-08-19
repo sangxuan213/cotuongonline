@@ -143,6 +143,43 @@ public sealed class MatchRepository : IMatchRepository
         }
     }
 
+    public bool Complete(
+        string matchId,
+        string resultType,
+        string endReason,
+        string? winnerSide,
+        long finalRevision,
+        DateTime endedAtUtc)
+    {
+        var conn = GetConnection();
+        var opened = EnsureOpen(conn);
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE matches
+                SET status = 'FINISHED',
+                    ended_at_utc = @endedAtUtc,
+                    result_type = @resultType,
+                    end_reason = @endReason,
+                    winner_side = @winnerSide,
+                    final_revision = @finalRevision
+                WHERE match_id = @matchId
+                  AND status = 'PLAYING';";
+            cmd.Parameters.AddWithValue("@endedAtUtc", endedAtUtc.ToUniversalTime().ToString("O"));
+            cmd.Parameters.AddWithValue("@resultType", resultType);
+            cmd.Parameters.AddWithValue("@endReason", endReason);
+            cmd.Parameters.AddWithValue("@winnerSide", (object?)winnerSide ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@finalRevision", finalRevision);
+            cmd.Parameters.AddWithValue("@matchId", matchId);
+            return cmd.ExecuteNonQuery() == 1;
+        }
+        finally
+        {
+            if (opened) conn.Dispose();
+        }
+    }
+
     private static MatchRecord MapMatch(SqliteDataReader reader)
     {
         return new MatchRecord(

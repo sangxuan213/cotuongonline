@@ -21,8 +21,11 @@ public class MoveValidationPipeline
 {
     private readonly Dictionary<PieceType, IMoveValidator> _validators;
     private readonly SelfCheckValidator _selfCheckValidator;
+    private readonly CheckDetector _checkDetector;
 
-    public MoveValidationPipeline(SelfCheckValidator? selfCheckValidator = null)
+    public MoveValidationPipeline(
+        SelfCheckValidator? selfCheckValidator = null,
+        CheckDetector? checkDetector = null)
     {
         var validatorList = new IMoveValidator[]
         {
@@ -36,7 +39,9 @@ public class MoveValidationPipeline
         };
 
         _validators = validatorList.ToDictionary(v => v.MatchingPieceType, v => v);
-        _selfCheckValidator = selfCheckValidator ?? CreateDefaultSelfCheckValidator();
+        _checkDetector = checkDetector ?? CreateDefaultCheckDetector();
+        _selfCheckValidator = selfCheckValidator
+            ?? new SelfCheckValidator(_checkDetector, new GeneralsFacingDetector());
     }
 
     /// <summary>
@@ -78,6 +83,12 @@ public class MoveValidationPipeline
             {
                 return MoveValidationResult.Fail(ErrorCodes.ALLY_AT_DESTINATION, "Không thể đi vào ô đang chứa quân cùng phe.");
             }
+            if (targetPiece?.Type == PieceType.General)
+            {
+                return MoveValidationResult.Fail(
+                    ErrorCodes.INVALID_GEOMETRY,
+                    "The General is not captured directly; the game ends at checkmate.");
+            }
 
             // 6. Kiểm tra luật riêng từng loại quân (Hình học & Vật cản)
             if (!_validators.TryGetValue(movingPiece.Type, out var pieceValidator))
@@ -92,7 +103,16 @@ public class MoveValidationPipeline
             }
 
             // 7. Mô phỏng nước đi trên bàn cờ tạm và kiểm tra tự chiếu / tướng đối mặt
-            return _selfCheckValidator.Validate(board, movingPiece, intent.To);
+            var selfCheckResult = _selfCheckValidator.Validate(board, movingPiece, intent.To);
+            if (!selfCheckResult.IsValid)
+            {
+                return selfCheckResult;
+            }
+
+            var temporaryBoard = board.ApplyMove(intent.From, intent.To);
+            var opponent = board.Turn == SideColor.Red ? SideColor.Black : SideColor.Red;
+            var givesCheck = _checkDetector.Evaluate(temporaryBoard, opponent).IsInCheck;
+            return MoveValidationResult.Success(givesCheck);
         }
         catch (OperationCanceledException)
         {
@@ -102,13 +122,13 @@ public class MoveValidationPipeline
         {
             // Bảo vệ Server khỏi crash do lỗi hệ thống không mong muốn
             System.Diagnostics.Trace.TraceError(
-                "Move validation failed unexpectedly for {From}->{To}: {Exception}",
+                "Move validation failed unexpectedly for {0}->{1}: {2}",
                 intent.From, intent.To, ex);
             return MoveValidationResult.Fail(ErrorCodes.INTERNAL_SERVER_ERROR, "Lỗi hệ thống khi kiểm tra nước đi.");
         }
     }
 
-    private static SelfCheckValidator CreateDefaultSelfCheckValidator()
+    private static CheckDetector CreateDefaultCheckDetector()
     {
         var facingDetector = new GeneralsFacingDetector();
         var attackDetector = new AttackDetector(new IAttackRule[]
@@ -121,6 +141,6 @@ public class MoveValidationPipeline
             new CannonAttackRule(),
             new PawnAttackRule()
         });
-        return new SelfCheckValidator(new CheckDetector(attackDetector), facingDetector);
+        return new CheckDetector(attackDetector);
     }
 }
