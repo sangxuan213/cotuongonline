@@ -1,4 +1,5 @@
 using XiangqiOnline.Shared.Enums;
+using XiangqiOnline.RuleEngine.Adjudication;
 using XiangqiOnline.RuleEngine.Models;
 
 namespace XiangqiOnline.Server.Lobby;
@@ -14,6 +15,8 @@ public enum GameRoomStatus
 
 public sealed class GameRoom
 {
+    private readonly object _stateLock = new();
+
     public GameRoom(
         string roomId,
         string redPlayerId,
@@ -55,6 +58,7 @@ public sealed class GameRoom
     public GameRoomStatus Status { get; private set; } = GameRoomStatus.CREATED;
     public SideColor CurrentTurn => Board.Turn;
     public long Revision { get; private set; }
+    public GameResult? FinalResult { get; private set; }
 
     public bool HasPlayer(string playerId) =>
         RedPlayerId == playerId || BlackPlayerId == playerId;
@@ -87,30 +91,55 @@ public sealed class GameRoom
 
     public long CommitRevision(BoardState nextBoard)
     {
-        if (Status != GameRoomStatus.PLAYING)
-            throw new InvalidOperationException("Only playing rooms can commit revisions.");
         if (nextBoard is null)
             throw new ArgumentNullException(nameof(nextBoard));
 
-        Board = nextBoard;
-        Revision++;
-        return Revision;
+        lock (_stateLock)
+        {
+            if (Status != GameRoomStatus.PLAYING)
+                throw new InvalidOperationException("Only playing rooms can commit revisions.");
+
+            Board = nextBoard;
+            Revision++;
+            return Revision;
+        }
+    }
+
+    public bool TryFinish(GameResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        lock (_stateLock)
+        {
+            if (IsTerminal)
+                return false;
+
+            FinalResult = result;
+            Status = GameRoomStatus.FINISHED;
+            return true;
+        }
     }
 
     public void Finish()
     {
-        if (IsTerminal)
-            throw new InvalidOperationException("Terminal rooms cannot transition again.");
+        lock (_stateLock)
+        {
+            if (IsTerminal)
+                throw new InvalidOperationException("Terminal rooms cannot transition again.");
 
-        Status = GameRoomStatus.FINISHED;
+            Status = GameRoomStatus.FINISHED;
+        }
     }
 
     public void AbortSystem()
     {
-        if (IsTerminal)
-            throw new InvalidOperationException("Terminal rooms cannot transition again.");
+        lock (_stateLock)
+        {
+            if (IsTerminal)
+                throw new InvalidOperationException("Terminal rooms cannot transition again.");
 
-        Status = GameRoomStatus.ABORTED_SYSTEM;
+            Status = GameRoomStatus.ABORTED_SYSTEM;
+        }
     }
 
     public bool IsTerminal => Status is GameRoomStatus.FINISHED or GameRoomStatus.ABORTED_SYSTEM;

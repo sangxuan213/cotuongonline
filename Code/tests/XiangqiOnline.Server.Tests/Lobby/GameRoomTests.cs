@@ -1,3 +1,4 @@
+using XiangqiOnline.RuleEngine.Adjudication;
 using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
@@ -61,6 +62,44 @@ public sealed class GameRoomTests
 
         Assert.True(room.IsTerminal);
         Assert.Throws<InvalidOperationException>(() => room.AbortSystem());
+    }
+
+    [Fact]
+    public void TerminalResult_IsAcceptedExactlyOnceAndRemainsImmutable()
+    {
+        var room = NewRoom();
+        room.Start();
+        var first = new GameResult(
+            "RED_WIN",
+            GameEndReason.Checkmate,
+            SideColor.Red,
+            "Black is checkmated.");
+        var competing = new GameResult(
+            "BLACK_WIN",
+            GameEndReason.Timeout,
+            SideColor.Black,
+            "Red ran out of time.");
+
+        Assert.True(room.TryFinish(first));
+        Assert.False(room.TryFinish(competing));
+        Assert.Same(first, room.FinalResult);
+        Assert.Equal(GameRoomStatus.FINISHED, room.Status);
+    }
+
+    [Fact]
+    public void LateMove_AfterTerminalResultIsRejected()
+    {
+        var room = NewRoom();
+        room.Start();
+        room.TryFinish(new GameResult(
+            "RED_WIN",
+            GameEndReason.Resignation,
+            SideColor.Red,
+            "Black resigned."));
+
+        Assert.Throws<InvalidOperationException>(() =>
+            room.CommitRevision(room.Board.ApplyMove(new Position(0, 6), new Position(0, 5))));
+        Assert.Equal(0, room.Revision);
     }
 
     private static GameRoom NewRoom() =>

@@ -4,6 +4,7 @@ using XiangqiOnline.Persistence.Configuration;
 using XiangqiOnline.Persistence.Database;
 using XiangqiOnline.Persistence.Models;
 using XiangqiOnline.Persistence.Repositories;
+using XiangqiOnline.RuleEngine.Adjudication;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Pipeline;
 using XiangqiOnline.Shared.Models;
@@ -95,5 +96,18 @@ public sealed class GamePersistenceService
     {
         var repo = new PositionHistoryRepository(_connectionFactory, _loggerFactory.CreateLogger<PositionHistoryRepository>());
         return repo.ListByMatch(matchId);
+    }
+
+    public bool CompleteMatch(string matchId, GameResult result, long finalRevision)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var repo = new MatchRepository(_connectionFactory, _loggerFactory.CreateLogger<MatchRepository>());
+        return repo.Complete(
+            matchId,
+            result.ResultType,
+            result.EndReasonCode,
+            result.WinnerSide?.ToString().ToUpperInvariant(),
+            finalRevision,
+            DateTime.UtcNow);
     }
 }

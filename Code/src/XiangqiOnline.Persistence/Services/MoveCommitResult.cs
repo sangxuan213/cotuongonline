@@ -1,4 +1,5 @@
 using XiangqiOnline.Persistence.Models;
+using XiangqiOnline.RuleEngine.Adjudication;
 
 namespace XiangqiOnline.Persistence.Services;
 
@@ -18,7 +19,8 @@ public sealed record MoveCommitResult(
     MoveRecord? Move = null,
     long Revision = 0,
     string? ErrorCode = null,
-    string? Message = null)
+    string? Message = null,
+    GameResult? FinalResult = null)
 {
     public bool IsCommitted => Status == MoveCommitStatus.Committed;
     public bool IsDuplicate => Status == MoveCommitStatus.Duplicate;

@@ -1,0 +1,24 @@
+TV4 PHASE 2 VALIDATION
+Date: 2026-08-19
+Baseline: 72c42ebafaf0c9216ffa2d16ecf74a4d37935019
+
+dotnet restore Code/XiangqiOnline.slnx
+PASS
+
+dotnet build Code/XiangqiOnline.slnx -c Release --no-restore
+PASS - 0 errors
+
+dotnet test Code/XiangqiOnline.slnx -c Release
+PASS
+- Shared: 27 passed
+- RuleEngine: 239 passed
+- Server: 65 passed
+- Integration: 51 passed
+- Failed: 0
+- Skipped: 0
+
+dotnet run --project Code/tests/XiangqiOnline.Client.SmokeTests/XiangqiOnline.Client.SmokeTests.csproj -c Release --no-build
+PASS - 42/42
+
+Terminal persistence focus:
+PASS - 3/3

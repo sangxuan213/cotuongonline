@@ -1,8 +1,10 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using XiangqiOnline.Persistence.Configuration;
+using XiangqiOnline.Persistence.Database;
 using XiangqiOnline.Persistence.Models;
 using XiangqiOnline.Persistence.Repositories;
+using XiangqiOnline.RuleEngine.Adjudication;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Pipeline;
 using XiangqiOnline.Shared.Enums;
@@ -23,15 +25,18 @@ public sealed class MoveCommittingService
     private readonly DatabaseOptions _options;
     private readonly MoveValidationPipeline _validationPipeline;
     private readonly ILogger<MoveCommittingService> _logger;
+    private readonly GameResultResolver _gameResultResolver;
 
     public MoveCommittingService(
         DatabaseOptions options,
         MoveValidationPipeline validationPipeline,
-        ILogger<MoveCommittingService> logger)
+        ILogger<MoveCommittingService> logger,
+        GameResultResolver? gameResultResolver = null)
     {
         _options = options;
         _validationPipeline = validationPipeline;
         _logger = logger;
+        _gameResultResolver = gameResultResolver ?? GameResultResolver.CreateDefault();
     }
 
     /// <summary>
@@ -47,6 +52,18 @@ public sealed class MoveCommittingService
     {
         try
         {
+            var authoritativeMatch = new MatchRepository(
+                new DbConnectionFactory(_options),
+                CreateLogger<MatchRepository>()).Get(match.MatchId);
+            if (authoritativeMatch is not null &&
+                !string.Equals(authoritativeMatch.Status, "PLAYING", StringComparison.Ordinal))
+            {
+                return new MoveCommitResult(
+                    MoveCommitStatus.Rejected,
+                    ErrorCode: ErrorCodes.GAME_NOT_ACTIVE,
+                    Message: "The match has already ended.");
+            }
+
             // 0. Kiểm tra nước đi hợp lệ
             var validation = _validationPipeline.Validate(board, intent);
             if (!validation.IsValid)
@@ -59,6 +76,7 @@ public sealed class MoveCommittingService
             // 1. Chuẩn bị dữ liệu trước khi persist
             var boardBefore = board;
             var boardAfter = board.ApplyMove(intent.From, intent.To);
+            var finalResult = _gameResultResolver.ResolveBoard(boardAfter);
             var hashBefore = BoardHasher.Hash(boardBefore);
             var hashAfter = BoardHasher.Hash(boardAfter);
             var nextRevision = (match.FinalRevision ?? 0) + 1;
@@ -71,7 +89,7 @@ public sealed class MoveCommittingService
 
             var isCapture = capturedPiece != null ? 1 : 0;
             var isCheck = validation.IsCheck ? 1 : 0;
-            var isCheckmate = validation.IsCheckmate ? 1 : 0;
+            var isCheckmate = finalResult?.EndReason == GameEndReason.Checkmate ? 1 : 0;
 
             var moveClass = isCheckmate == 1 || isCheck == 1 ? "CHECK" : (isCapture == 1 ? "KILL" : "IDLE");
 
@@ -111,7 +129,7 @@ public sealed class MoveCommittingService
                 CreatedAtUtc: DateTime.UtcNow);
 
             // 2. Persist trong transaction atomic
-            var committed = PersistAtomic(match, move, positionHistory, nextRevision, moveIndex);
+            var committed = PersistAtomic(match, move, positionHistory, nextRevision, moveIndex, finalResult);
             if (!committed)
             {
                 return new MoveCommitResult(MoveCommitStatus.Duplicate, ErrorCode: "DUPLICATE_MOVE", Message: "Nước đi trùng lặp.");
@@ -121,7 +139,11 @@ public sealed class MoveCommittingService
                 "Move committed. matchId={MatchId} clientMoveId={ClientMoveId} moveIndex={MoveIndex} revision={Revision} hash={HashAfter}",
                 match.MatchId, intent.ClientMoveId, moveIndex, nextRevision, hashAfter);
 
-            return new MoveCommitResult(MoveCommitStatus.Committed, move, nextRevision);
+            return new MoveCommitResult(
+                MoveCommitStatus.Committed,
+                move,
+                nextRevision,
+                FinalResult: finalResult);
         }
         catch (Exception ex)
         {
@@ -140,7 +162,8 @@ public sealed class MoveCommittingService
         MoveRecord move,
         PositionHistoryRecord positionHistory,
         long nextRevision,
-        int totalMoves)
+        int totalMoves,
+        GameResult? finalResult)
     {
         using var connection = new SqliteConnection(_options.BuildConnectionString());
         connection.Open();
@@ -165,6 +188,19 @@ public sealed class MoveCommittingService
 
             // Cập nhật match revision/total_moves trong cùng transaction
             matchRepo.UpdateBoardState(match.MatchId, nextRevision, totalMoves);
+
+            if (finalResult is not null)
+            {
+                var completed = matchRepo.Complete(
+                    match.MatchId,
+                    finalResult.ResultType,
+                    finalResult.EndReasonCode,
+                    finalResult.WinnerSide?.ToString().ToUpperInvariant(),
+                    nextRevision,
+                    DateTime.UtcNow);
+                if (!completed)
+                    throw new InvalidOperationException("Match terminal result was already committed.");
+            }
 
             transaction.Commit();
             return true;

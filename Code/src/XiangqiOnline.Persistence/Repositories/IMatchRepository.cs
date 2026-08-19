@@ -25,4 +25,12 @@ public interface IMatchRepository
     /// Cập nhật revision và total_moves của trận trong atomic move commit transaction.
     /// </summary>
     void UpdateBoardState(string matchId, long revision, int totalMoves);
+
+    bool Complete(
+        string matchId,
+        string resultType,
+        string endReason,
+        string? winnerSide,
+        long finalRevision,
+        DateTime endedAtUtc);
 }
