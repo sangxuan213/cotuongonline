@@ -1,5 +1,6 @@
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.RuleEngine.Models;
+using XiangqiOnline.RuleEngine.Adjudication;
 
 namespace XiangqiOnline.Server.Lobby;
 
@@ -14,6 +15,12 @@ public enum GameRoomStatus
 
 public sealed class GameRoom
 {
+    private readonly SemaphoreSlim _mutationGate = new(1, 1);
+    private readonly List<RoomMoveRecord> _moves = new();
+    private readonly List<PositionFact> _positionHistory = new();
+    private readonly HashSet<string> _spectatorConnectionIds = new(StringComparer.Ordinal);
+    private readonly object _stateGate = new();
+    private bool _gameEndedBroadcasted;
     public GameRoom(
         string roomId,
         string redPlayerId,
@@ -43,6 +50,9 @@ public sealed class GameRoom
         TimeProfile = timeProfile;
         CreatedAtUtc = createdAtUtc;
         Board = initialBoard ?? BoardState.CreateInitialBoard(SideColor.Red);
+        Clock = new ServerClock(TimeProfileSpec.Parse(timeProfile), Board.Turn);
+        var previousSide = Board.Turn == SideColor.Red ? SideColor.Black : SideColor.Red;
+        _positionHistory.Add(new PositionFact(0, Board, previousSide, MoveClassification.IDLE));
     }
 
     public string RoomId { get; }
@@ -55,6 +65,15 @@ public sealed class GameRoom
     public GameRoomStatus Status { get; private set; } = GameRoomStatus.CREATED;
     public SideColor CurrentTurn => Board.Turn;
     public long Revision { get; private set; }
+    public ServerClock Clock { get; }
+    public GameResult? Result { get; private set; }
+    public SideColor? MustVarySide { get; private set; }
+    public string? RepetitionCycleSignature { get; private set; }
+    public string? PendingDrawOfferPlayerId { get; private set; }
+    public DateTimeOffset? PendingDrawOfferExpiresAtUtc { get; private set; }
+    public IReadOnlyList<RoomMoveRecord> Moves { get { lock (_stateGate) return _moves.ToArray(); } }
+    public IReadOnlyList<PositionFact> PositionHistory { get { lock (_stateGate) return _positionHistory.ToArray(); } }
+    public IReadOnlyList<string> SpectatorConnectionIds { get { lock (_stateGate) return _spectatorConnectionIds.ToArray(); } }
 
     public bool HasPlayer(string playerId) =>
         RedPlayerId == playerId || BlackPlayerId == playerId;
@@ -97,12 +116,121 @@ public sealed class GameRoom
         return Revision;
     }
 
+    public long CommitMove(
+        BoardState nextBoard,
+        string clientMoveId,
+        string pieceId,
+        XiangqiOnline.Shared.Models.Position from,
+        XiangqiOnline.Shared.Models.Position to,
+        string? capturedPieceId,
+        MoveClassificationFacts classification,
+        ClockSnapshot clocks,
+        DateTimeOffset committedAtUtc)
+    {
+        var movedSide = Board.Turn;
+        var revision = CommitRevision(nextBoard);
+        lock (_stateGate)
+        {
+            _moves.Add(new RoomMoveRecord(
+                revision, clientMoveId, movedSide, pieceId, from, to, capturedPieceId,
+                classification.Classification.ToString(), classification.IsCheck, clocks, committedAtUtc));
+            _positionHistory.Add(new PositionFact(revision, nextBoard, movedSide, classification.Classification));
+        }
+        return revision;
+    }
+
+    public async Task<T> ExecuteSerializedAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        await _mutationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try { return await action().ConfigureAwait(false); }
+        finally { _mutationGate.Release(); }
+    }
+
+    public bool TryFinish(GameResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        lock (_stateGate)
+        {
+            if (IsTerminal) return false;
+            Result = result;
+            Status = GameRoomStatus.FINISHED;
+            Clock.Stop();
+            PendingDrawOfferPlayerId = null;
+            PendingDrawOfferExpiresAtUtc = null;
+            return true;
+        }
+    }
+
+    public bool TryMarkGameEndedBroadcasted()
+    {
+        lock (_stateGate)
+        {
+            if (!IsTerminal || _gameEndedBroadcasted) return false;
+            _gameEndedBroadcasted = true;
+            return true;
+        }
+    }
+
+    public bool TryOfferDraw(string playerId, DateTimeOffset nowUtc, TimeSpan lifetime)
+    {
+        if (lifetime <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(lifetime));
+        lock (_stateGate)
+        {
+            if (PendingDrawOfferExpiresAtUtc is { } deadline && nowUtc >= deadline)
+            {
+                PendingDrawOfferPlayerId = null;
+                PendingDrawOfferExpiresAtUtc = null;
+            }
+            if (IsTerminal || !HasPlayer(playerId) || PendingDrawOfferPlayerId is not null) return false;
+            PendingDrawOfferPlayerId = playerId;
+            PendingDrawOfferExpiresAtUtc = nowUtc.Add(lifetime);
+            return true;
+        }
+    }
+
+    public bool TryRespondToDraw(string playerId, bool accept, DateTimeOffset nowUtc)
+    {
+        lock (_stateGate)
+        {
+            if (PendingDrawOfferExpiresAtUtc is { } deadline && nowUtc >= deadline)
+            {
+                PendingDrawOfferPlayerId = null;
+                PendingDrawOfferExpiresAtUtc = null;
+                return false;
+            }
+            if (PendingDrawOfferPlayerId is null || PendingDrawOfferPlayerId == playerId || !HasPlayer(playerId)) return false;
+            PendingDrawOfferPlayerId = null;
+            PendingDrawOfferExpiresAtUtc = null;
+            return true;
+        }
+    }
+
+    public void SetRepetitionWarning(SideColor? mustVarySide, string? cycleSignature)
+    {
+        lock (_stateGate)
+        {
+            MustVarySide = mustVarySide;
+            RepetitionCycleSignature = cycleSignature;
+        }
+    }
+
+    public bool AddSpectator(string connectionId)
+    {
+        lock (_stateGate) return _spectatorConnectionIds.Add(connectionId);
+    }
+
+    public bool RemoveSpectator(string connectionId)
+    {
+        lock (_stateGate) return _spectatorConnectionIds.Remove(connectionId);
+    }
+
     public void Finish()
     {
         if (IsTerminal)
             throw new InvalidOperationException("Terminal rooms cannot transition again.");
 
         Status = GameRoomStatus.FINISHED;
+        Clock.Stop();
     }
 
     public void AbortSystem()
@@ -111,6 +239,7 @@ public sealed class GameRoom
             throw new InvalidOperationException("Terminal rooms cannot transition again.");
 
         Status = GameRoomStatus.ABORTED_SYSTEM;
+        Clock.Stop();
     }
 
     public bool IsTerminal => Status is GameRoomStatus.FINISHED or GameRoomStatus.ABORTED_SYSTEM;
