@@ -15,7 +15,8 @@ namespace XiangqiOnline.Server.Networking
             IConnectionRegistry connections,
             CancellationToken ct)
         {
-            if (!directory.TryGetByConnectionId(connection.ConnectionId, out var rejecter))
+            if (!directory.TryGetByConnectionId(connection.ConnectionId, out var rejecter) ||
+                !directory.ValidateSessionToken(rejecter, request.SessionToken))
             {
                 await connection.SendErrorAsync(ErrorCodes.INVALID_SESSION, "Rejecter is not logged in.", request.RequestId, ct).ConfigureAwait(false);
                 return;
@@ -58,8 +59,10 @@ namespace XiangqiOnline.Server.Networking
 
             foreach (var player in playersToNotify)
             {
-                if (player is not null && connections.TryGetConnection(player.ConnectionId, out var playerConnection))
-                    await playerConnection.SendAsync(rejectedEvent, ct).ConfigureAwait(false);
+                if (player is null || !connections.TryGetConnection(player.ConnectionId, out var playerConnection))
+                    continue;
+                try { await playerConnection.SendAsync(rejectedEvent, ct).ConfigureAwait(false); }
+                catch { /* Continue notifying the remaining participant. */ }
             }
         }
     }
