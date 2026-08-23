@@ -235,6 +235,108 @@ public sealed class ChallengeManagerTests
         Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
     }
 
+    [Fact]
+    public void AcceptedRematchCreatesNewRoomAndSwapsPlayerColors()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var challenge = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "10+0", Now, TimeSpan.FromSeconds(30));
+        var original = manager.AcceptChallenge(challenge.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(1)).Room!;
+        Assert.True(original.TryFinish(new GameResult("RED_WIN", "CHECKMATE", SideColor.Red, Now.AddMinutes(1), 7, "Mate")));
+        players.LeaveRoom(alice.PlayerId);
+        players.LeaveRoom(bob.PlayerId);
+
+        Assert.True(manager.TryRequestRematch(original.RoomId, alice.PlayerId, Now.AddMinutes(1),
+            TimeSpan.FromSeconds(60), out _, out _));
+        Assert.Equal(PlayerStatus.INVITING, alice.Status);
+        Assert.Equal(PlayerStatus.INVITED, bob.Status);
+
+        Assert.True(manager.TryRespondToRematch(original.RoomId, bob.PlayerId, true, Now.AddMinutes(1).AddSeconds(2),
+            out _, out var rematch, out var error), error);
+        Assert.NotNull(rematch);
+        Assert.NotEqual(original.RoomId, rematch!.RoomId);
+        Assert.Equal(original.BlackPlayerId, rematch.RedPlayerId);
+        Assert.Equal(original.RedPlayerId, rematch.BlackPlayerId);
+        Assert.Equal("10+0", rematch.TimeProfile);
+        Assert.Equal(GameRoomStatus.PLAYING, rematch.Status);
+        Assert.Equal(PlayerStatus.IN_GAME, alice.Status);
+        Assert.Equal(PlayerStatus.IN_GAME, bob.Status);
+    }
+
+    [Fact]
+    public void RematchRequiresOpponentResponseAndRejectReleasesBothPlayers()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var challenge = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "10+0", Now, TimeSpan.FromSeconds(30));
+        var original = manager.AcceptChallenge(challenge.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(1)).Room!;
+        Assert.True(original.TryFinish(new GameResult("DRAW", "DRAW_AGREEMENT", null, Now.AddMinutes(1), 2, "Draw")));
+        players.LeaveRoom(alice.PlayerId);
+        players.LeaveRoom(bob.PlayerId);
+        Assert.True(manager.TryRequestRematch(original.RoomId, alice.PlayerId, Now.AddMinutes(1),
+            TimeSpan.FromSeconds(60), out _, out _));
+
+        Assert.False(manager.TryRespondToRematch(original.RoomId, alice.PlayerId, true, Now.AddMinutes(1).AddSeconds(1),
+            out _, out _, out _));
+        Assert.True(manager.TryRespondToRematch(original.RoomId, bob.PlayerId, false, Now.AddMinutes(1).AddSeconds(2),
+            out _, out var room, out _));
+        Assert.Null(room);
+        Assert.Equal(PlayerStatus.AVAILABLE, alice.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
+    }
+
+    [Fact]
+    public async Task ConcurrentRematchAcceptsCreateExactlyOneNewRoom()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var challenge = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "10+0", Now, TimeSpan.FromSeconds(30));
+        var original = manager.AcceptChallenge(challenge.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(1)).Room!;
+        Assert.True(original.TryFinish(new GameResult("RED_WIN", "CHECKMATE", SideColor.Red, Now.AddMinutes(1), 8, "Mate")));
+        players.LeaveRoom(alice.PlayerId);
+        players.LeaveRoom(bob.PlayerId);
+        Assert.True(manager.TryRequestRematch(original.RoomId, alice.PlayerId, Now.AddMinutes(1),
+            TimeSpan.FromSeconds(60), out _, out _));
+
+        async Task<(bool Success, GameRoom? Room)> AcceptAsync()
+        {
+            await Task.Yield();
+            var success = manager.TryRespondToRematch(original.RoomId, bob.PlayerId, true,
+                Now.AddMinutes(1).AddSeconds(1), out _, out var room, out _);
+            return (success, room);
+        }
+
+        var results = await Task.WhenAll(Task.Run(AcceptAsync), Task.Run(AcceptAsync));
+        Assert.Single(results.Where(result => result.Success));
+        Assert.Single(results.Where(result => result.Room is not null));
+        Assert.Single(manager.GetRoomsSnapshot(activeOnly: true));
+    }
+
+    [Fact]
+    public void RematchRequesterCanCancelAndImmediatelyReleasesBothPlayers()
+    {
+        var (players, manager) = CreateLobby();
+        var alice = Login(players, "Alice", "conn-1");
+        var bob = Login(players, "Bob", "conn-2");
+        var challenge = manager.SendChallenge(alice.PlayerId, bob.PlayerId, "10+0", Now, TimeSpan.FromSeconds(30));
+        var original = manager.AcceptChallenge(challenge.Challenge!.ChallengeId, bob.PlayerId, Now.AddSeconds(1)).Room!;
+        Assert.True(original.TryFinish(new GameResult("BLACK_WIN", "TIMEOUT", SideColor.Black, Now.AddMinutes(1), 3, "Timeout")));
+        players.LeaveRoom(alice.PlayerId);
+        players.LeaveRoom(bob.PlayerId);
+        Assert.True(manager.TryRequestRematch(original.RoomId, alice.PlayerId, Now.AddMinutes(1),
+            TimeSpan.FromSeconds(60), out _, out _));
+
+        Assert.False(manager.TryCancelRematch(original.RoomId, bob.PlayerId, out _, out _));
+        Assert.True(manager.TryCancelRematch(original.RoomId, alice.PlayerId, out _, out _));
+        Assert.Equal(PlayerStatus.AVAILABLE, alice.Status);
+        Assert.Equal(PlayerStatus.AVAILABLE, bob.Status);
+        Assert.Null(alice.ActiveChallengeId);
+        Assert.Null(bob.ActiveChallengeId);
+    }
+
     private static (PlayerSessionDirectory Players, ChallengeManager Manager) CreateLobby()
     {
         var nextPlayerId = 0;

@@ -15,7 +15,8 @@ namespace XiangqiOnline.Server.Networking
             IConnectionRegistry connections,
             CancellationToken ct)
         {
-            if (!directory.TryGetByConnectionId(connection.ConnectionId, out var accepter))
+            if (!directory.TryGetByConnectionId(connection.ConnectionId, out var accepter) ||
+                !directory.ValidateSessionToken(accepter, request.SessionToken))
             {
                 await connection.SendErrorAsync(ErrorCodes.INVALID_SESSION, "Accepter is not logged in.", request.RequestId, ct).ConfigureAwait(false);
                 return;
@@ -38,7 +39,6 @@ namespace XiangqiOnline.Server.Networking
 
             var room = result.Room!;
             var roomCreated = RoomMessages.RoomCreated(room, request.RequestId);
-            var snapshot = RoomMessages.GameStateSnapshot(room, request.RequestId);
             var playersToNotify = new[]
             {
                 directory.TryGetByPlayerId(room.RedPlayerId, out var red) ? red : null,
@@ -50,8 +50,16 @@ namespace XiangqiOnline.Server.Networking
                 if (player is null || !connections.TryGetConnection(player.ConnectionId, out var playerConnection))
                     continue;
 
-                await playerConnection.SendAsync(roomCreated, ct).ConfigureAwait(false);
-                await playerConnection.SendAsync(snapshot, ct).ConfigureAwait(false);
+                try
+                {
+                    await playerConnection.SendAsync(roomCreated, ct).ConfigureAwait(false);
+                    var role = player.PlayerId == room.RedPlayerId ? "PLAYER_RED" : "PLAYER_BLACK";
+                    await playerConnection.SendAsync(RoomMessages.GameStateSnapshot(room, request.RequestId, role), ct).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // One disconnected participant must not block notification of the other.
+                }
             }
         }
     }

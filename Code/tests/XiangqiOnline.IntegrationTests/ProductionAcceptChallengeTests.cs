@@ -22,6 +22,7 @@ namespace XiangqiOnline.IntegrationTests
     /// </summary>
     public class ProductionAcceptChallengeTests
     {
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<NetworkStream, string> Tokens = new();
         [Fact]
         public async Task AcceptChallenge_BothPlayers_ReceiveRoomCreatedAndSnapshot()
         {
@@ -45,7 +46,9 @@ namespace XiangqiOnline.IntegrationTests
             await SendChallengeAsync(streamA, alice.PlayerId, bob.PlayerId);
 
             var invitation = await ReadOneFrameAsync(streamB);
+            var sent = await ReadOneFrameAsync(streamA);
             Assert.NotNull(invitation);
+            Assert.Equal("CHALLENGE_SENT", sent?.GetProperty("type").GetString());
             var challengeId = JsonDocument.Parse(invitation!.Value.GetRawText())
                 .RootElement.GetProperty("payload").GetProperty("challenge").GetProperty("challengeId").GetString()!;
 
@@ -81,6 +84,17 @@ namespace XiangqiOnline.IntegrationTests
             Assert.Equal(snapshotA.Pieces.Count, snapshotB.Pieces.Count);
             Assert.Equal(PlayerStatus.IN_GAME, alice.Status);
             Assert.Equal(PlayerStatus.IN_GAME, bob.Status);
+
+            await SendQuickChatAsync(streamA, roomIdA!, "GOOD_MOVE", 5);
+            var aChat = await ReadOneFrameAsync(streamA);
+            var bChat = await ReadOneFrameAsync(streamB);
+            AssertQuickChat(aChat, roomIdA!, alice.PlayerId, "Nước hay!");
+            AssertQuickChat(bChat, roomIdA!, alice.PlayerId, "Nước hay!");
+
+            await SendQuickChatAsync(streamA, roomIdA!, "SMILE", 6);
+            var rateLimited = await ReadOneFrameAsync(streamA);
+            Assert.Equal("ERROR_RESPONSE", rateLimited?.GetProperty("type").GetString());
+            Assert.Equal(ErrorCodes.RATE_LIMITED, rateLimited?.GetProperty("payload").GetProperty("errorCode").GetString());
         }
 
         [Fact]
@@ -189,6 +203,16 @@ namespace XiangqiOnline.IntegrationTests
             Assert.Equal(0L, snapshot.Revision);
         }
 
+        private static void AssertQuickChat(JsonElement? frame, string roomId, string senderPlayerId, string text)
+        {
+            Assert.NotNull(frame);
+            Assert.Equal("QUICK_CHAT_RECEIVED", frame?.GetProperty("type").GetString());
+            var payload = frame!.Value.GetProperty("payload");
+            Assert.Equal(roomId, payload.GetProperty("roomId").GetString());
+            Assert.Equal(senderPlayerId, payload.GetProperty("senderPlayerId").GetString());
+            Assert.Equal(text, payload.GetProperty("text").GetString());
+        }
+
         private static async Task<string> LoginAsync(NetworkStream stream, string displayName)
         {
             var hello = new
@@ -220,8 +244,9 @@ namespace XiangqiOnline.IntegrationTests
             await SendAsync(stream, login);
             var loginResult = await ReadOneFrameAsync(stream);
             Assert.NotNull(loginResult);
-            return JsonDocument.Parse(loginResult!.Value.GetRawText())
-                .RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
+            using var document = JsonDocument.Parse(loginResult!.Value.GetRawText());
+            Tokens[stream] = document.RootElement.GetProperty("payload").GetProperty("token").GetString()!;
+            return document.RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
         }
 
         private static async Task SendChallengeAsync(NetworkStream stream, string challengerPlayerId, string targetPlayerId)
@@ -231,7 +256,7 @@ namespace XiangqiOnline.IntegrationTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_SEND",
                 requestId = $"01J{challengerPlayerId}CHAL",
-                sessionToken = challengerPlayerId,
+                sessionToken = Tokens[stream],
                 roomId = (string?)null,
                 clientSequence = 3L,
                 sentAtUtc = DateTimeOffset.UtcNow,
@@ -247,7 +272,7 @@ namespace XiangqiOnline.IntegrationTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_ACCEPT",
                 requestId = $"01J{acceptingPlayerId}ACPT",
-                sessionToken = acceptingPlayerId,
+                sessionToken = Tokens[stream],
                 roomId = challengeId,
                 clientSequence = 4L,
                 sentAtUtc = DateTimeOffset.UtcNow,
@@ -255,6 +280,19 @@ namespace XiangqiOnline.IntegrationTests
             };
             await SendAsync(stream, accept);
         }
+
+        private static Task SendQuickChatAsync(NetworkStream stream, string roomId, string code, long sequence) =>
+            SendAsync(stream, new
+            {
+                protocolVersion = "1.0",
+                type = "QUICK_CHAT_SEND",
+                requestId = $"CHAT-{sequence}",
+                sessionToken = Tokens[stream],
+                roomId,
+                clientSequence = sequence,
+                sentAtUtc = DateTimeOffset.UtcNow,
+                payload = new { code }
+            });
 
         private static async Task SendAsync(NetworkStream stream, object envelope)
         {

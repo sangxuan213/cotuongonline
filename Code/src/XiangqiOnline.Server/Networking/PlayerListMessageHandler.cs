@@ -20,6 +20,12 @@ namespace XiangqiOnline.Server.Networking
             PlayerSessionDirectory directory,
             CancellationToken ct)
         {
+            if (!directory.TryGetByConnectionId(connection.ConnectionId, out var requester) ||
+                !directory.ValidateSessionToken(requester, request.SessionToken))
+            {
+                await connection.SendErrorAsync("UNAUTHENTICATED", "Login is required.", request.RequestId, ct).ConfigureAwait(false);
+                return;
+            }
             var snapshot = directory.GetSnapshot();
             var envelope = new ServerEventEnvelope<object>
             {
