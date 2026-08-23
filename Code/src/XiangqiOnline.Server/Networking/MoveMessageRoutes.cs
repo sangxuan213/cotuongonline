@@ -10,9 +10,10 @@ public static class MoveMessageRoutes
         PlayerSessionDirectory players,
         ChallengeManager challenges,
         IConnectionRegistry connections,
-        GamePersistenceService persistence)
+        GamePersistenceService persistence,
+        BotMoveService? bots = null)
     {
         router.Register("MOVE_REQUEST", (request, connection, ct) =>
-            MoveMessageHandler.HandleAsync(request, connection, players, challenges, connections, persistence, ct));
+            MoveMessageHandler.HandleAsync(request, connection, players, challenges, connections, persistence, ct, bots));
     }
 }

@@ -15,7 +15,10 @@ namespace XiangqiOnline.Server.Networking
             Payload = new { roomId = room.RoomId }
         };
 
-        public static ServerEventEnvelope<object> GameStateSnapshot(GameRoom room, string? causationRequestId = null)
+        public static ServerEventEnvelope<object> GameStateSnapshot(
+            GameRoom room,
+            string? causationRequestId = null,
+            string viewerRole = "PLAYER")
         {
             var pieces = room.Board.GetActivePieces()
                 .Select(piece => new
@@ -44,9 +47,62 @@ namespace XiangqiOnline.Server.Networking
                     revision = room.Revision,
                     currentTurn = room.CurrentTurn.ToString().ToUpperInvariant(),
                     status = room.Status.ToString(),
-                    pieces
+                    pieces,
+                    viewerRole,
+                    clocks = room.Clock.Snapshot(),
+                    mustVarySide = room.MustVarySide?.ToString().ToUpperInvariant(),
+                    spectatorCount = room.SpectatorConnectionIds.Count,
+                    recentMoves = room.Moves.TakeLast(50).Select(move => new
+                    {
+                        move.Revision,
+                        side = move.Side.ToString().ToUpperInvariant(),
+                        move.PieceId,
+                        from = new { x = move.From.X, y = move.From.Y },
+                        to = new { x = move.To.X, y = move.To.Y },
+                        move.CapturedPieceId,
+                        move.Classification,
+                        move.IsCheck
+                    }).ToArray(),
+                    result = room.Result
                 }
             };
         }
+
+        public static ServerEventEnvelope<object> GameEnded(GameRoom room, string? causationRequestId = null) => new()
+        {
+            Type = "GAME_ENDED",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = causationRequestId,
+            RoomId = room.RoomId,
+            Revision = room.Revision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new { finalResult = room.Result, finalSnapshot = GameStateSnapshot(room).Payload }
+        };
+
+        public static ServerEventEnvelope<object> ClockSync(GameRoom room, string? causationRequestId = null) => new()
+        {
+            Type = "CLOCK_SYNC",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = causationRequestId,
+            RoomId = room.RoomId,
+            Revision = room.Revision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new { clockState = room.Clock.Snapshot(), serverAnchor = DateTimeOffset.UtcNow }
+        };
+
+        public static ServerEventEnvelope<object> RepetitionWarning(GameRoom room, string? causationRequestId = null) => new()
+        {
+            Type = "REPETITION_WARNING",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = causationRequestId,
+            RoomId = room.RoomId,
+            Revision = room.Revision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new
+            {
+                mustVarySide = room.MustVarySide?.ToString().ToUpperInvariant(),
+                cycleSignature = room.RepetitionCycleSignature
+            }
+        };
     }
 }

@@ -16,7 +16,7 @@ public static class CorrelationContext
         return logger.BeginScope(new Dictionary<string, object>
         {
             ["CorrelationId"] = correlationId
-        });
+        })!;
     }
 
     /// <summary>Sinh correlation id mới.</summary>

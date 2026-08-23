@@ -3,6 +3,7 @@
     <Project Path="src/XiangqiOnline.Client/XiangqiOnline.Client.csproj" />
     <Project Path="src/XiangqiOnline.RuleEngine/XiangqiOnline.RuleEngine.csproj" />
     <Project Path="src/XiangqiOnline.Server/XiangqiOnline.Server.csproj" />
+    <Project Path="src/XiangqiOnline.ServerAdmin/XiangqiOnline.ServerAdmin.csproj" />
     <Project Path="src/XiangqiOnline.Shared/XiangqiOnline.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
@@ -12,5 +13,8 @@
     <Project Path="tests/XiangqiOnline.RuleEngine.Tests/XiangqiOnline.RuleEngine.Tests.csproj" />
     <Project Path="tests/XiangqiOnline.Server.Tests/XiangqiOnline.Server.Tests.csproj" />
     <Project Path="tests/XiangqiOnline.Shared.Tests/XiangqiOnline.Shared.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XiangqiOnline.LoadTest/XiangqiOnline.LoadTest.csproj" />
   </Folder>
 </Solution>

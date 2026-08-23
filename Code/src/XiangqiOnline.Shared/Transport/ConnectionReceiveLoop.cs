@@ -32,6 +32,7 @@ namespace XiangqiOnline.Shared.Transport
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         private readonly Stream _stream;
+        private readonly int? _transportReadTimeoutMs;
 
         /// <summary>Raised once per validated frame: raw payload bytes + the already UTF-8/JSON-checked text.</summary>
         public event Action<byte[], string>? FrameReceived;
@@ -42,9 +43,18 @@ namespace XiangqiOnline.Shared.Transport
         /// <summary>Raised on a clean disconnect (EOF between frames) — not a violation.</summary>
         public event Action? Disconnected;
 
-        public ConnectionReceiveLoop(Stream stream)
+        /// <summary>
+        /// P2-TV1-D1: raised once when no COMPLETE frame arrives within transportReadTimeoutMs —
+        /// tầng transport, độc lập với HeartbeatMonitor (tầng nghiệp vụ). Không phải
+        /// ProtocolViolation (không phải lỗi của dữ liệu gửi tới) và không phải
+        /// Disconnected (không có EOF sạch) — là "im lặng bất thường ở tầng socket".
+        /// </summary>
+        public event Action? TransportTimedOut;
+
+        public ConnectionReceiveLoop(Stream stream, int? transportReadTimeoutMs = null)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
+            _transportReadTimeoutMs = transportReadTimeoutMs;
         }
 
         /// <summary>
@@ -59,11 +69,16 @@ namespace XiangqiOnline.Shared.Transport
                 byte[]? payload;
                 try
                 {
-                    payload = await TcpFrameCodec.ReadFrameAsync(_stream, ct).ConfigureAwait(false);
+                    payload = await ReadFrameWithTransportTimeoutAsync(ct).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
                     throw; // caller asked us to stop — not a protocol violation
+                }
+                catch (TransportTimeoutSignal)
+                {
+                    TransportTimedOut?.Invoke();
+                    return;
                 }
                 catch (FrameDecodeException ex)
                 {
@@ -104,6 +119,35 @@ namespace XiangqiOnline.Shared.Transport
             }
 
             ct.ThrowIfCancellationRequested();
+        }
+
+        /// <summary>
+        /// Đọc 1 frame với timeout tầng transport (nếu được cấu hình). Timeout ở đây là
+        /// COARSE — tính trên cả lần đọc trọn 1 frame (kể cả khi frame đó đang tới rất
+        /// chậm qua nhiều lần đọc nhỏ), không phải per-byte. Đủ để bắt "socket im lặng
+        /// hoàn toàn" (dây mạng đứt, NAT âm thầm drop), là lưới an toàn cuối — phát hiện
+        /// "còn sống về nghiệp vụ hay không" vẫn nên dựa vào HeartbeatMonitor.
+        /// </summary>
+        private async Task<byte[]?> ReadFrameWithTransportTimeoutAsync(CancellationToken ct)
+        {
+            if (_transportReadTimeoutMs is not int timeoutMs)
+                return await TcpFrameCodec.ReadFrameAsync(_stream, ct).ConfigureAwait(false);
+
+            using var timeoutCts = new CancellationTokenSource(timeoutMs);
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+            try
+            {
+                return await TcpFrameCodec.ReadFrameAsync(_stream, linked.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !ct.IsCancellationRequested)
+            {
+                throw new TransportTimeoutSignal();
+            }
+        }
+
+        /// <summary>Tín hiệu nội bộ, không bao giờ lộ ra ngoài RunAsync (đã bắt và chuyển thành event).</summary>
+        private sealed class TransportTimeoutSignal : Exception
+        {
         }
     }
 }

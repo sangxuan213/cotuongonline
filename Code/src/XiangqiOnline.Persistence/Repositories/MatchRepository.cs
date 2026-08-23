@@ -25,6 +25,7 @@ public sealed class MatchRepository : IMatchRepository
 
     public MatchRepository(SqliteConnection connection, ILogger<MatchRepository> logger)
     {
+        _connectionFactory = null!;
         _externalConnection = connection;
         _logger = logger;
     }
@@ -141,6 +142,59 @@ public sealed class MatchRepository : IMatchRepository
         {
             if (opened) conn.Dispose();
         }
+    }
+
+    public void Complete(
+        string matchId,
+        string resultType,
+        string endReason,
+        string? winnerSide,
+        long finalRevision,
+        DateTime endedAtUtc)
+    {
+        var conn = GetConnection();
+        var opened = EnsureOpen(conn);
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE matches
+                SET status = 'FINISHED', ended_at_utc = @ended, result_type = @result,
+                    end_reason = @reason, winner_side = @winner, final_revision = @revision
+                WHERE match_id = @matchId AND status NOT IN ('FINISHED','ABORTED_SYSTEM');";
+            cmd.Parameters.AddWithValue("@ended", endedAtUtc.ToUniversalTime().ToString("O"));
+            cmd.Parameters.AddWithValue("@result", resultType);
+            cmd.Parameters.AddWithValue("@reason", endReason);
+            cmd.Parameters.AddWithValue("@winner", (object?)winnerSide ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@revision", finalRevision);
+            cmd.Parameters.AddWithValue("@matchId", matchId);
+            cmd.ExecuteNonQuery();
+        }
+        finally { if (opened) conn.Dispose(); }
+    }
+
+    public IReadOnlyList<MatchRecord> ListByPlayer(string playerId, int limit = 100)
+    {
+        var conn = GetConnection();
+        var opened = EnsureOpen(conn);
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT match_id, room_id, red_player_id, black_player_id, rule_profile_id,
+                       rule_profile_version, time_profile, config_json, status, started_at_utc,
+                       ended_at_utc, result_type, end_reason, winner_side, final_revision, total_moves
+                FROM matches
+                WHERE red_player_id = @playerId OR black_player_id = @playerId
+                ORDER BY started_at_utc DESC LIMIT @limit;";
+            cmd.Parameters.AddWithValue("@playerId", playerId);
+            cmd.Parameters.AddWithValue("@limit", Math.Clamp(limit, 1, 500));
+            using var reader = cmd.ExecuteReader();
+            var result = new List<MatchRecord>();
+            while (reader.Read()) result.Add(MapMatch(reader));
+            return result;
+        }
+        finally { if (opened) conn.Dispose(); }
     }
 
     private static MatchRecord MapMatch(SqliteDataReader reader)

@@ -11,6 +11,7 @@ namespace XiangqiOnline.IntegrationTests;
 
 public sealed class ProductionMoveCommitTests
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<NetworkStream, string> Tokens = new();
     [Fact]
     public async Task MoveRequest_ValidRedMove_CommitsAndBroadcastsToBothPlayers()
     {
@@ -84,6 +85,26 @@ public sealed class ProductionMoveCommitTests
         Assert.Equal(0, scenario.Database.Service.CountMoves(scenario.Room.RoomId));
     }
 
+    [Fact]
+    public async Task MoveRequest_InvalidSessionToken_IsRejectedWithoutMutationOrPersistence()
+    {
+        await using var scenario = await MoveScenario.CreateAsync();
+        var validToken = Tokens[scenario.AliceStream];
+        Tokens[scenario.AliceStream] = "invalid-token";
+        try
+        {
+            await SendMoveAsync(scenario.AliceStream, scenario.AliceId, scenario.Room.RoomId,
+                "move-invalid-session", 0, new Position(0, 9), new Position(0, 7));
+            AssertRejected(await ReadOneFrameAsync(scenario.AliceStream), ErrorCodes.INVALID_SESSION, 0);
+            Assert.Equal(0, scenario.Room.Revision);
+            Assert.Equal(0, scenario.Database.Service.CountMoves(scenario.Room.RoomId));
+        }
+        finally
+        {
+            Tokens[scenario.AliceStream] = validToken;
+        }
+    }
+
     private static void AssertCommitted(JsonElement frame, string roomId, string clientMoveId)
     {
         Assert.Equal("MOVE_COMMITTED", frame.GetProperty("type").GetString());
@@ -122,7 +143,7 @@ public sealed class ProductionMoveCommitTests
             protocolVersion = "1.0",
             type = "MOVE_REQUEST",
             requestId = $"MOVE-{clientMoveId}",
-            sessionToken = playerId,
+            sessionToken = Tokens[stream],
             roomId,
             clientSequence = 5L,
             sentAtUtc = DateTimeOffset.UtcNow,
@@ -164,6 +185,7 @@ public sealed class ProductionMoveCommitTests
         });
         var login = await ReadOneFrameAsync(stream);
         Assert.Equal("LOGIN_RESULT", login.GetProperty("type").GetString());
+        Tokens[stream] = login.GetProperty("payload").GetProperty("token").GetString()!;
         return login.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
     }
 
@@ -258,7 +280,7 @@ public sealed class ProductionMoveCommitTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_SEND",
                 requestId = "CHALLENGE-SEND",
-                sessionToken = aliceId,
+                sessionToken = Tokens[alice.GetStream()],
                 roomId = (string?)null,
                 clientSequence = 3L,
                 sentAtUtc = DateTimeOffset.UtcNow,
@@ -266,6 +288,8 @@ public sealed class ProductionMoveCommitTests
             });
             var invitation = await ReadOneFrameAsync(bob.GetStream());
             Assert.Equal("CHALLENGE_RECEIVED", invitation.GetProperty("type").GetString());
+            var sent = await ReadOneFrameAsync(alice.GetStream());
+            Assert.Equal("CHALLENGE_SENT", sent.GetProperty("type").GetString());
             var challengeId = invitation.GetProperty("payload").GetProperty("challenge")
                 .GetProperty("challengeId").GetString()!;
 
@@ -274,7 +298,7 @@ public sealed class ProductionMoveCommitTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_ACCEPT",
                 requestId = "CHALLENGE-ACCEPT",
-                sessionToken = bobId,
+                sessionToken = Tokens[bob.GetStream()],
                 roomId = (string?)null,
                 clientSequence = 4L,
                 sentAtUtc = DateTimeOffset.UtcNow,

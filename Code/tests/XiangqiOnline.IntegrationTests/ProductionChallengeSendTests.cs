@@ -22,6 +22,7 @@ namespace XiangqiOnline.IntegrationTests
     /// </summary>
     public class ProductionChallengeSendTests
     {
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<NetworkStream, string> Tokens = new();
         [Fact]
         public async Task ChallengeSend_ReachesTargetConnection_WithInvitationPayload()
         {
@@ -46,7 +47,9 @@ namespace XiangqiOnline.IntegrationTests
             await SendChallengeAsync(streamA, alice.PlayerId, bob.PlayerId);
 
             var invitationJson = await ReadOneFrameAsync(streamB);
+            var sentJson = await ReadOneFrameAsync(streamA);
             Assert.NotNull(invitationJson);
+            Assert.NotNull(sentJson);
             using (var doc = JsonDocument.Parse(invitationJson!.Value.GetRawText()))
             {
                 var root = doc.RootElement;
@@ -59,6 +62,13 @@ namespace XiangqiOnline.IntegrationTests
                 var challengeId = challenge.GetProperty("challengeId").GetString();
                 Assert.False(string.IsNullOrWhiteSpace(challengeId));
                 Assert.True(challenges.TryGetChallenge(challengeId!, out _));
+            }
+            using (var doc = JsonDocument.Parse(sentJson!.Value.GetRawText()))
+            {
+                var root = doc.RootElement;
+                Assert.Equal("CHALLENGE_SENT", root.GetProperty("type").GetString());
+                Assert.Equal("Bob", root.GetProperty("payload").GetProperty("targetDisplayName").GetString());
+                Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("payload").GetProperty("challengeId").GetString()));
             }
 
             Assert.Equal(PlayerStatus.INVITING, alice.Status);
@@ -189,8 +199,9 @@ namespace XiangqiOnline.IntegrationTests
             await SendAsync(stream, login);
             var loginResult = await ReadOneFrameAsync(stream);
             Assert.NotNull(loginResult);
-            return JsonDocument.Parse(loginResult!.Value.GetRawText())
-                .RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
+            using var document = JsonDocument.Parse(loginResult!.Value.GetRawText());
+            Tokens[stream] = document.RootElement.GetProperty("payload").GetProperty("token").GetString()!;
+            return document.RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
         }
 
         private static async Task SendChallengeAsync(NetworkStream stream, string challengerPlayerId, string targetPlayerId)
@@ -200,7 +211,7 @@ namespace XiangqiOnline.IntegrationTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_SEND",
                 requestId = $"01J{challengerPlayerId}CHAL",
-                sessionToken = challengerPlayerId,
+                sessionToken = Tokens[stream],
                 roomId = (string?)null,
                 clientSequence = 3L,
                 sentAtUtc = DateTimeOffset.UtcNow,

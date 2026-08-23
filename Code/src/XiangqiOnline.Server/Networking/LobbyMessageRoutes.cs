@@ -31,6 +31,26 @@ namespace XiangqiOnline.Server.Networking
 
             router.Register("CHALLENGE_REJECT", (request, connection, ct) =>
                 RejectChallengeMessageHandler.HandleAsync(request, connection, directory, challenges, connections, ct));
+
+            router.Register("WAITING_ROOM_CREATE", (request, connection, ct) =>
+                WaitingRoomMessageHandler.CreateAsync(request, connection, directory, challenges, connections, ct));
+            router.Register("WAITING_ROOM_LIST", (request, connection, ct) =>
+                WaitingRoomMessageHandler.ListAsync(request, connection, directory, challenges, ct));
+            router.Register("WAITING_ROOM_JOIN", (request, connection, ct) =>
+                WaitingRoomMessageHandler.JoinAsync(request, connection, directory, challenges, connections, ct));
+            router.Register("WAITING_ROOM_CANCEL", (request, connection, ct) =>
+                WaitingRoomMessageHandler.CancelAsync(request, connection, directory, challenges, connections, ct));
+
+            router.Register("QUICK_CHAT_SEND", (request, connection, ct) =>
+                QuickChatMessageHandler.HandleAsync(request, connection, directory, challenges, connections, ct));
+        }
+
+        public static void RegisterAccounts(MessageRouter router, AccountMessageHandler accounts)
+        {
+            router.Register("ACCOUNT_REGISTER_REQUEST", accounts.RegisterAsync);
+            router.Register("ACCOUNT_LOGIN_REQUEST", accounts.LoginAsync);
+            router.Register("PASSWORD_RESET_REQUEST", accounts.RequestResetAsync);
+            router.Register("PASSWORD_RESET_CONFIRM", accounts.ConfirmResetAsync);
         }
     }
 }

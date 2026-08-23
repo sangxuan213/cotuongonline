@@ -5,6 +5,23 @@ namespace XiangqiOnline.Server.Tests.Lobby;
 
 public sealed class PlayerSessionDirectoryTests
 {
+    [Fact]
+    public void Authenticated_account_keeps_stable_player_id_across_sessions()
+    {
+        var directory = new PlayerSessionDirectory(playerIdFactory: () => "guest-generated");
+        var first = directory.Login("Account User", "conn-account-1", Now, "ACCOUNT_abc123");
+        Assert.True(first.IsSuccess);
+        Assert.Equal("ACCOUNT_abc123", first.Session!.PlayerId);
+
+        directory.MarkOfflineByConnectionId("conn-account-1", Now.AddSeconds(1));
+        var second = directory.Login("Account User", "conn-account-2", Now.AddSeconds(2), "ACCOUNT_abc123");
+
+        Assert.True(second.IsSuccess);
+        Assert.Equal("ACCOUNT_abc123", second.Session!.PlayerId);
+        Assert.True(directory.TryGetByConnectionId("conn-account-2", out var current));
+        Assert.Same(second.Session, current);
+    }
+
     private static readonly DateTimeOffset Now = new(2026, 8, 10, 9, 0, 0, TimeSpan.Zero);
 
     [Fact]

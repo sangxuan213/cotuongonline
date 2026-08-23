@@ -1,0 +1,20 @@
+TV5 Day 6 production Server HELLO probe
+Date: 2026-08-13 (Asia/Saigon)
+Build: Release net10.0
+Server endpoint from appsettings.json: 127.0.0.1:5000
+
+Procedure:
+1. Start XiangqiOnline.Server.dll with local .NET 10.0.302 runtime.
+2. Connect a real TCP client to port 5000.
+3. Send a valid protocol 1.0 HELLO request using the locked 4-byte unsigned big-endian framing and UTF-8 JSON envelope.
+4. Wait two seconds for a response header.
+
+Observed:
+- Server started and listened on 0.0.0.0:5000.
+- Server logged the accepted client connection.
+- HELLO payload bytes sent: 231.
+- Response header bytes received: 0.
+- Result: NO_RESPONSE_TIMEOUT.
+
+Conclusion:
+The production Server accepts TCP connections but Program.cs does not attach a frame receive loop/request dispatcher and therefore does not emit HELLO_ACK. The TV5 client-to-TV1 codec compatibility tests pass, but the current integrated production Server cannot complete the Phase 1 handshake. This blocker is outside TV5 Client scope.

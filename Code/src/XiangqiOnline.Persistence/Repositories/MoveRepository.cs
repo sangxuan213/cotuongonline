@@ -24,6 +24,7 @@ public sealed class MoveRepository : IMoveRepository
 
     public MoveRepository(SqliteConnection connection, ILogger<MoveRepository> logger)
     {
+        _connectionFactory = null!;
         _externalConnection = connection;
         _logger = logger;
     }

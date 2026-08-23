@@ -23,6 +23,7 @@ namespace XiangqiOnline.IntegrationTests
     /// </summary>
     public class ProductionRejectChallengeTests
     {
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<NetworkStream, string> Tokens = new();
         [Fact]
         public async Task RejectChallenge_BothPlayers_ReceiveRejectedEventAndReturnToAvailable()
         {
@@ -45,7 +46,9 @@ namespace XiangqiOnline.IntegrationTests
 
             await SendChallengeAsync(streamA, alice.PlayerId, bob.PlayerId);
             var invitation = await ReadOneFrameAsync(streamB);
+            var sent = await ReadOneFrameAsync(streamA);
             Assert.NotNull(invitation);
+            Assert.Equal("CHALLENGE_SENT", sent?.GetProperty("type").GetString());
             var challengeId = invitation!.Value.GetProperty("payload").GetProperty("challenge")
                 .GetProperty("challengeId").GetString()!;
 
@@ -207,8 +210,9 @@ namespace XiangqiOnline.IntegrationTests
             await SendAsync(stream, login);
             var loginResult = await ReadOneFrameAsync(stream);
             Assert.NotNull(loginResult);
-            return JsonDocument.Parse(loginResult!.Value.GetRawText())
-                .RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
+            using var document = JsonDocument.Parse(loginResult!.Value.GetRawText());
+            Tokens[stream] = document.RootElement.GetProperty("payload").GetProperty("token").GetString()!;
+            return document.RootElement.GetProperty("payload").GetProperty("player").GetProperty("playerId").GetString()!;
         }
 
         private static string SeedPendingChallenge(ChallengeManager challenges, string challengerPlayerId, string targetPlayerId)
@@ -230,7 +234,7 @@ namespace XiangqiOnline.IntegrationTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_SEND",
                 requestId = $"01J{challengerPlayerId}CHAL",
-                sessionToken = challengerPlayerId,
+                sessionToken = Tokens[stream],
                 roomId = (string?)null,
                 clientSequence = 3L,
                 sentAtUtc = DateTimeOffset.UtcNow,
@@ -245,7 +249,7 @@ namespace XiangqiOnline.IntegrationTests
                 protocolVersion = "1.0",
                 type = "CHALLENGE_REJECT",
                 requestId = $"01J{rejectingPlayerId}REJT",
-                sessionToken = rejectingPlayerId,
+                sessionToken = Tokens[stream],
                 roomId = challengeId,
                 clientSequence = 4L,
                 sentAtUtc = DateTimeOffset.UtcNow,
