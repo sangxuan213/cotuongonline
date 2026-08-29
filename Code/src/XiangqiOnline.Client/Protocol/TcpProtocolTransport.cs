@@ -1,6 +1,9 @@
 using System.Buffers.Binary;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using XiangqiOnline.Shared.Protocol;
 
@@ -13,7 +16,7 @@ public sealed class TcpProtocolTransport : IProtocolTransport
     private readonly SemaphoreSlim _sendGate = new(1, 1);
     private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
     private TcpClient? _client;
-    private NetworkStream? _stream;
+    private Stream? _stream;
     private CancellationTokenSource? _receiveCts;
     private Task? _receiveTask;
 
@@ -31,7 +34,22 @@ public sealed class TcpProtocolTransport : IProtocolTransport
             SetState(ConnectionState.Connecting);
             _client = new TcpClient { NoDelay = true };
             await _client.ConnectAsync(host, port, cancellationToken);
-            _stream = _client.GetStream();
+            var networkStream = _client.GetStream();
+            if (UseTls(port))
+            {
+                var sslStream = new SslStream(networkStream, leaveInnerStreamOpen: false);
+                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                {
+                    TargetHost = host,
+                    EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
+                    CertificateRevocationCheckMode = X509RevocationMode.Online
+                }, cancellationToken);
+                _stream = sslStream;
+            }
+            else
+            {
+                _stream = networkStream;
+            }
             _receiveCts = new CancellationTokenSource();
             _receiveTask = ReceiveLoopAsync(_receiveCts.Token);
             SetState(ConnectionState.Connected);
@@ -147,6 +165,16 @@ public sealed class TcpProtocolTransport : IProtocolTransport
     {
         State = state;
         StateChanged?.Invoke(state, error);
+    }
+
+    private static bool UseTls(int port)
+    {
+        var configured = Environment.GetEnvironmentVariable("XIANGQI_SERVER_TLS")?.Trim();
+        return configured is null
+            ? port == 443
+            : configured.Equals("1", StringComparison.OrdinalIgnoreCase)
+              || configured.Equals("true", StringComparison.OrdinalIgnoreCase)
+              || configured.Equals("yes", StringComparison.OrdinalIgnoreCase);
     }
 
     public async ValueTask DisposeAsync()
