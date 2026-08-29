@@ -14,6 +14,15 @@ namespace XiangqiOnline.Server.Networking
     /// </summary>
     public static class LoginMessageHandler
     {
+        public static Task SendLoginResultAsync(
+            string displayName,
+            string causationRequestId,
+            ClientConnectionHandler connection,
+            PlayerSessionDirectory directory,
+            CancellationToken ct,
+            string? stablePlayerId = null)
+            => LoginCoreAsync(displayName, causationRequestId, connection, directory, ct, stablePlayerId);
+
         public static async Task HandleAsync(
             RequestEnvelope<JsonElement> request,
             ClientConnectionHandler connection,
@@ -27,14 +36,28 @@ namespace XiangqiOnline.Server.Networking
                 displayName = nameNode.GetString();
             }
 
-            var result = directory.Login(displayName ?? string.Empty, connection.ConnectionId, DateTimeOffset.UtcNow);
+            await LoginCoreAsync(displayName ?? string.Empty, request.RequestId, connection, directory, ct, null).ConfigureAwait(false);
+        }
+
+        private static async Task LoginCoreAsync(
+            string displayName,
+            string causationRequestId,
+            ClientConnectionHandler connection,
+            PlayerSessionDirectory directory,
+            CancellationToken ct,
+            string? stablePlayerId)
+        {
+            var result = directory.Login(displayName, connection.ConnectionId, DateTimeOffset.UtcNow, stablePlayerId);
             if (!result.IsSuccess)
             {
-                await connection.SendErrorAsync(
-                    result.ErrorCode ?? "LOGIN_REJECTED",
-                    result.Message,
-                    request.RequestId,
-                    ct).ConfigureAwait(false);
+                await connection.SendAsync(new ServerEventEnvelope<object>
+                {
+                    Type = "LOGIN_RESULT",
+                    EventId = Guid.NewGuid().ToString("N"),
+                    CausationRequestId = causationRequestId,
+                    ServerTimeUtc = DateTimeOffset.UtcNow,
+                    Payload = new { status = "REJECTED", errorCode = result.ErrorCode ?? "LOGIN_REJECTED", message = result.Message }
+                }, ct).ConfigureAwait(false);
                 return;
             }
 
@@ -43,12 +66,12 @@ namespace XiangqiOnline.Server.Networking
             {
                 Type = "LOGIN_RESULT",
                 EventId = Guid.NewGuid().ToString("N"),
-                CausationRequestId = request.RequestId,
+                CausationRequestId = causationRequestId,
                 ServerTimeUtc = DateTimeOffset.UtcNow,
                 Payload = new
                 {
                     status = "ACCEPTED",
-                    token = session.PlayerId,
+                    token = result.SessionToken,
                     player = new { playerId = session.PlayerId, displayName = session.DisplayName }
                 }
             };

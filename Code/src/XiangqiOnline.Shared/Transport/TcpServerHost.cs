@@ -55,7 +55,9 @@ namespace XiangqiOnline.Shared.Transport
             try
             {
                 _listener = new TcpListener(_bindAddress, _port);
-                _listener.Start();
+                // A larger pending-connection queue prevents short connection bursts
+                // (for example a classroom opening the client together) from being dropped.
+                _listener.Start(512);
             }
             catch (SocketException ex)
             {

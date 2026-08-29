@@ -165,7 +165,7 @@ namespace XiangqiOnline.IntegrationTests
                 Assert.Equal("PLAYER_LIST_UPDATED", root.GetProperty("type").GetString());
                 var players = root.GetProperty("payload").GetProperty("players").EnumerateArray().ToArray();
                 var tester = players.SingleOrDefault(p => p.GetProperty("displayName").GetString() == "Tester");
-                Assert.NotNull(tester);
+                Assert.NotEqual(JsonValueKind.Undefined, tester.ValueKind);
                 Assert.Equal("AVAILABLE", tester.GetProperty("status").GetString());
             }
         }

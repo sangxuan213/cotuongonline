@@ -5,14 +5,22 @@ namespace XiangqiOnline.Server.Lobby;
 public sealed class PlayerSessionDirectory
 {
     private readonly Func<string> _playerIdFactory;
+    private readonly SessionTokenService _tokens;
+    private readonly TimeSpan _reconnectWindow;
     private readonly Dictionary<string, PlayerSession> _sessionsByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerSession> _sessionsByConnectionId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerSession> _activeSessionsByDisplayName = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
 
-    public PlayerSessionDirectory(Func<string>? playerIdFactory = null)
+    public PlayerSessionDirectory(
+        Func<string>? playerIdFactory = null,
+        SessionTokenService? tokens = null,
+        TimeSpan? reconnectWindow = null)
     {
         _playerIdFactory = playerIdFactory ?? (() => Guid.NewGuid().ToString("N"));
+        _tokens = tokens ?? new SessionTokenService();
+        _reconnectWindow = reconnectWindow ?? TimeSpan.FromSeconds(60);
+        if (_reconnectWindow <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(reconnectWindow));
     }
 
     public event Action<PlayerListUpdated>? PlayerListUpdated;
@@ -28,7 +36,7 @@ public sealed class PlayerSessionDirectory
         }
     }
 
-    public LoginResult Login(string displayName, string connectionId, DateTimeOffset nowUtc)
+    public LoginResult Login(string displayName, string connectionId, DateTimeOffset nowUtc, string? stablePlayerId = null)
     {
         string normalizedName;
         try
@@ -42,6 +50,8 @@ public sealed class PlayerSessionDirectory
 
         if (string.IsNullOrWhiteSpace(connectionId))
             return LoginResult.Fail(ErrorCodes.INVALID_SESSION, "Connection id is required.");
+        if (stablePlayerId is not null && string.IsNullOrWhiteSpace(stablePlayerId))
+            return LoginResult.Fail(ErrorCodes.INVALID_SESSION, "Stable player id is invalid.");
 
         PlayerListUpdated? update = null;
         LoginResult result;
@@ -59,13 +69,24 @@ public sealed class PlayerSessionDirectory
                 return LoginResult.Fail(ErrorCodes.DISPLAY_NAME_TAKEN, "Display name is already in use.");
             }
 
-            var session = new PlayerSession(_playerIdFactory(), normalizedName, connectionId, nowUtc);
+            if (stablePlayerId is not null && _sessionsByPlayerId.TryGetValue(stablePlayerId, out var existingAccountSession))
+            {
+                if (existingAccountSession.ConnectionState != PlayerSessionConnectionState.DISCONNECTED)
+                    return LoginResult.Fail(ErrorCodes.DUPLICATE_SESSION, "Account already has an active session.");
+                _sessionsByConnectionId.Remove(existingAccountSession.ConnectionId);
+                _activeSessionsByDisplayName.Remove(existingAccountSession.DisplayName);
+                _sessionsByPlayerId.Remove(existingAccountSession.PlayerId);
+            }
+
+            var session = new PlayerSession(stablePlayerId ?? _playerIdFactory(), normalizedName, connectionId, nowUtc);
+            var issuedToken = _tokens.Issue();
+            session.SetResumeTokenHash(issuedToken.Hash);
             _sessionsByPlayerId.Add(session.PlayerId, session);
             _sessionsByConnectionId[session.ConnectionId] = session;
             _activeSessionsByDisplayName[session.DisplayName] = session;
 
             update = CreatePlayerListUpdated(session.PlayerId, "LOGIN_ACCEPTED");
-            result = LoginResult.Success(session);
+            result = LoginResult.Success(session, issuedToken.PlainText);
         }
 
         Publish(update);
@@ -127,6 +148,45 @@ public sealed class PlayerSessionDirectory
         return result;
     }
 
+    public bool ValidateSessionToken(PlayerSession session, string? token) =>
+        session.ResumeTokenHash is not null && token is not null && _tokens.Verify(token, session.ResumeTokenHash);
+
+    public ReconnectResult ResumeByToken(string token, string newConnectionId, DateTimeOffset nowUtc)
+    {
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newConnectionId))
+            return ReconnectResult.Fail(ErrorCodes.INVALID_SESSION, "Resume token and connection id are required.");
+
+        PlayerListUpdated? update = null;
+        ReconnectResult result;
+        lock (_gate)
+        {
+            var session = _sessionsByPlayerId.Values.FirstOrDefault(candidate =>
+                candidate.ResumeTokenHash is not null && _tokens.Verify(token, candidate.ResumeTokenHash));
+            if (session is null)
+                return ReconnectResult.Fail(ErrorCodes.INVALID_SESSION, "Resume token is invalid.");
+            if (session.ConnectionState != PlayerSessionConnectionState.RECONNECTING)
+                return ReconnectResult.Fail(ErrorCodes.DUPLICATE_SESSION, "Session is not waiting for reconnect.");
+            if (session.ReconnectDeadlineUtc is { } deadline && nowUtc > deadline)
+            {
+                session.MarkOffline(nowUtc);
+                _activeSessionsByDisplayName.Remove(session.DisplayName);
+                return ReconnectResult.Fail(ErrorCodes.RECONNECT_WINDOW_EXPIRED, "Reconnect window expired.");
+            }
+            if (_sessionsByConnectionId.TryGetValue(newConnectionId, out var occupied) && !ReferenceEquals(occupied, session))
+                return ReconnectResult.Fail(ErrorCodes.DUPLICATE_SESSION, "Connection already belongs to another session.");
+
+            _sessionsByConnectionId.Remove(session.ConnectionId);
+            session.Reconnect(newConnectionId, nowUtc);
+            _sessionsByConnectionId[newConnectionId] = session;
+            _activeSessionsByDisplayName[session.DisplayName] = session;
+            update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_RECONNECTED");
+            result = ReconnectResult.Success(session);
+        }
+
+        Publish(update);
+        return result;
+    }
+
     public void MarkOfflineByConnectionId(string connectionId, DateTimeOffset nowUtc)
     {
         PlayerListUpdated? update = null;
@@ -135,12 +195,59 @@ public sealed class PlayerSessionDirectory
             if (!_sessionsByConnectionId.TryGetValue(connectionId, out var session))
                 return;
 
-            session.MarkOffline(nowUtc);
-            _activeSessionsByDisplayName.Remove(session.DisplayName);
-            update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_OFFLINE");
+            if (session.RoomId is not null)
+            {
+                session.MarkReconnecting(nowUtc, _reconnectWindow);
+                update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_RECONNECTING");
+            }
+            else
+            {
+                session.MarkOffline(nowUtc);
+                _activeSessionsByDisplayName.Remove(session.DisplayName);
+                update = CreatePlayerListUpdated(session.PlayerId, "PLAYER_OFFLINE");
+            }
         }
 
         Publish(update);
+    }
+
+    public IReadOnlyList<string> ExpireReconnectWindows(DateTimeOffset nowUtc)
+    {
+        var expiredPlayerIds = new List<string>();
+        var updates = new List<PlayerListUpdated>();
+        lock (_gate)
+        {
+            foreach (var session in _sessionsByPlayerId.Values.Where(session =>
+                         session.ConnectionState == PlayerSessionConnectionState.RECONNECTING &&
+                         session.ReconnectDeadlineUtc is { } deadline && nowUtc >= deadline).ToArray())
+            {
+                _sessionsByConnectionId.Remove(session.ConnectionId);
+                session.MarkOffline(nowUtc);
+                _activeSessionsByDisplayName.Remove(session.DisplayName);
+                expiredPlayerIds.Add(session.PlayerId);
+                updates.Add(CreatePlayerListUpdated(session.PlayerId, "RECONNECT_WINDOW_EXPIRED"));
+            }
+        }
+
+        foreach (var update in updates) Publish(update);
+        return expiredPlayerIds;
+    }
+
+    public int PruneDisconnectedSessions(DateTimeOffset nowUtc, TimeSpan retention)
+    {
+        lock (_gate)
+        {
+            var stale = _sessionsByPlayerId.Values.Where(session =>
+                session.ConnectionState == PlayerSessionConnectionState.DISCONNECTED &&
+                session.RoomId is null && nowUtc - session.LastSeenAtUtc >= retention).ToArray();
+            foreach (var session in stale)
+            {
+                _sessionsByPlayerId.Remove(session.PlayerId);
+                _sessionsByConnectionId.Remove(session.ConnectionId);
+                _activeSessionsByDisplayName.Remove(session.DisplayName);
+            }
+            return stale.Length;
+        }
     }
 
     public IReadOnlyList<PlayerDirectoryEntry> GetSnapshot()
