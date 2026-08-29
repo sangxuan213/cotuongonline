@@ -21,6 +21,9 @@ namespace XiangqiOnline.Server.Networking
         private readonly TcpServerHost _tcpHost;
         private readonly MessageRouter _router;
         private readonly PlayerSessionDirectory? _players;
+        private readonly ChallengeManager? _challenges;
+        private readonly int _requestsPerSecond;
+        private readonly TimeSpan _heartbeatTimeout;
         private readonly ConcurrentDictionary<long, ClientConnectionHandler> _connections = new();
         private long _nextConnectionId;
         private CancellationTokenSource? _cts;
@@ -53,9 +56,34 @@ namespace XiangqiOnline.Server.Networking
             int port,
             MessageRouter router,
             PlayerSessionDirectory? players)
+            : this(bindAddress, port, router, players, null)
+        {
+        }
+
+        public GameServerHost(
+            string bindAddress,
+            int port,
+            MessageRouter router,
+            PlayerSessionDirectory? players,
+            ChallengeManager? challenges)
+            : this(bindAddress, port, router, players, challenges, 40, TimeSpan.FromSeconds(30))
+        {
+        }
+
+        public GameServerHost(
+            string bindAddress,
+            int port,
+            MessageRouter router,
+            PlayerSessionDirectory? players,
+            ChallengeManager? challenges,
+            int requestsPerSecond,
+            TimeSpan heartbeatTimeout)
         {
             _router = router ?? throw new ArgumentNullException(nameof(router));
             _players = players;
+            _challenges = challenges;
+            _requestsPerSecond = requestsPerSecond;
+            _heartbeatTimeout = heartbeatTimeout;
             _tcpHost = new TcpServerHost(bindAddress, port);
         }
 
@@ -71,7 +99,7 @@ namespace XiangqiOnline.Server.Networking
         private void OnClientAccepted(TcpClient client)
         {
             long id = Interlocked.Increment(ref _nextConnectionId);
-            var connection = new ClientConnectionHandler(client, _router, id.ToString());
+            var connection = new ClientConnectionHandler(client, _router, id.ToString(), _requestsPerSecond, _heartbeatTimeout);
             _connections[id] = connection;
             ConnectionOpened?.Invoke(id.ToString());
 
@@ -85,6 +113,7 @@ namespace XiangqiOnline.Server.Networking
                 {
                     _connections.TryRemove(id, out _);
                     await connection.DisposeAsync().ConfigureAwait(false);
+                    _challenges?.RemoveConnectionFromSpectators(connection.ConnectionId);
                     await MarkPlayerOfflineAndBroadcastAsync(connection.ConnectionId).ConfigureAwait(false);
                     ConnectionClosed?.Invoke(id);
                 }
@@ -93,9 +122,10 @@ namespace XiangqiOnline.Server.Networking
 
         private async Task MarkPlayerOfflineAndBroadcastAsync(string connectionId)
         {
-            if (_players is null || !_players.TryGetByConnectionId(connectionId, out _))
+            if (_players is null || !_players.TryGetByConnectionId(connectionId, out var disconnectedPlayer))
                 return;
 
+            _challenges?.RemoveWaitingRoomForPlayer(disconnectedPlayer.PlayerId);
             _players.MarkOfflineByConnectionId(connectionId, DateTimeOffset.UtcNow);
 
             var envelope = new ServerEventEnvelope<object>
@@ -114,11 +144,31 @@ namespace XiangqiOnline.Server.Networking
                 }
             };
 
+            var waitingRoomsEnvelope = _challenges is null ? null : new ServerEventEnvelope<object>
+            {
+                Type = "WAITING_ROOMS_UPDATED",
+                EventId = Guid.NewGuid().ToString("N"),
+                ServerTimeUtc = DateTimeOffset.UtcNow,
+                Payload = new
+                {
+                    rooms = _challenges.GetWaitingRoomsSnapshot().Select(room => new
+                    {
+                        roomId = room.RoomId,
+                        ownerPlayerId = room.OwnerPlayerId,
+                        ownerDisplayName = room.OwnerDisplayName,
+                        timeProfile = room.TimeProfile,
+                        createdAtUtc = room.CreatedAtUtc
+                    }).ToArray()
+                }
+            };
+
             foreach (var remainingConnection in _connections.Values)
             {
                 try
                 {
                     await remainingConnection.SendAsync(envelope).ConfigureAwait(false);
+                    if (waitingRoomsEnvelope is not null)
+                        await remainingConnection.SendAsync(waitingRoomsEnvelope).ConfigureAwait(false);
                 }
                 catch
                 {

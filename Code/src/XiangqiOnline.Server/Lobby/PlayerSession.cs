@@ -41,6 +41,11 @@ public sealed class PlayerSession
     public PlayerSessionConnectionState ConnectionState { get; private set; } = PlayerSessionConnectionState.CONNECTED;
     public string? ActiveChallengeId { get; private set; }
     public string? RoomId { get; private set; }
+    public string? ResumeTokenHash { get; private set; }
+    public DateTimeOffset? ReconnectDeadlineUtc { get; private set; }
+
+    public void SetResumeTokenHash(string tokenHash) =>
+        ResumeTokenHash = RequireId(tokenHash, nameof(tokenHash));
 
     public void MarkInviting(string challengeId)
     {
@@ -79,10 +84,11 @@ public sealed class PlayerSession
             : PlayerStatus.OFFLINE;
     }
 
-    public void MarkReconnecting(DateTimeOffset lastSeenAtUtc)
+    public void MarkReconnecting(DateTimeOffset lastSeenAtUtc, TimeSpan? window = null)
     {
         LastSeenAtUtc = lastSeenAtUtc;
         ConnectionState = PlayerSessionConnectionState.RECONNECTING;
+        ReconnectDeadlineUtc = lastSeenAtUtc.Add(window ?? TimeSpan.FromSeconds(60));
     }
 
     internal void Reconnect(string connectionId, DateTimeOffset reconnectedAtUtc)
@@ -90,8 +96,10 @@ public sealed class PlayerSession
         ConnectionId = RequireId(connectionId, nameof(connectionId));
         LastSeenAtUtc = reconnectedAtUtc;
         ConnectionState = PlayerSessionConnectionState.CONNECTED;
+        ReconnectDeadlineUtc = null;
         Status = RoomId is not null ? PlayerStatus.IN_GAME : PlayerStatus.AVAILABLE;
         ActiveChallengeId = null;
+        ReconnectDeadlineUtc = null;
     }
 
     public void MarkOffline(DateTimeOffset lastSeenAtUtc)
