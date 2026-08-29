@@ -56,12 +56,14 @@ namespace XiangqiOnline.Shared.Tests.Transport
         [Fact]
         public async Task Client_CancelConnect_SetsDisconnectedNotFailed()
         {
-            // Connect to a non-routable address so the attempt hangs long enough to cancel.
+            // A pre-cancelled token is deterministic on offline/restricted CI agents.
+            // Using a "non-routable" public address is flaky: some Windows policies
+            // reject it immediately with AccessDenied before cancellation can win.
             await using var client = new TcpClientService();
             using var cts = new CancellationTokenSource();
+            cts.Cancel();
 
-            var connectTask = client.ConnectAsync("10.255.255.1", 65000, cts.Token);
-            cts.CancelAfter(100);
+            var connectTask = client.ConnectAsync("127.0.0.1", GetClosedPort(), cts.Token);
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => connectTask);
             Assert.Equal(ConnectionState.Disconnected, client.State);

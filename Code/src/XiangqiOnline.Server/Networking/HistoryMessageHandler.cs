@@ -16,7 +16,7 @@ public static class HistoryMessageHandler
         CancellationToken ct)
     {
         if (!players.TryGetByConnectionId(connection.ConnectionId, out var player) ||
-            !string.Equals(player.PlayerId, request.SessionToken, StringComparison.Ordinal))
+            !players.ValidateSessionToken(player, request.SessionToken))
         {
             await connection.SendErrorAsync(ErrorCodes.UNAUTHENTICATED, "Login is required.", request.RequestId, ct).ConfigureAwait(false);
             return;
@@ -47,7 +47,7 @@ public static class HistoryMessageHandler
         CancellationToken ct)
     {
         if (!players.TryGetByConnectionId(connection.ConnectionId, out var player) ||
-            !string.Equals(player.PlayerId, request.SessionToken, StringComparison.Ordinal))
+            !players.ValidateSessionToken(player, request.SessionToken))
         {
             await connection.SendErrorAsync(ErrorCodes.UNAUTHENTICATED, "Login is required.", request.RequestId, ct).ConfigureAwait(false);
             return;
