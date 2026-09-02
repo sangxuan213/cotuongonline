@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.IO;
+using System.Text.Json;
 using UDM18.Client.Models;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
@@ -212,13 +212,13 @@ public sealed class GameClient
                 case "HISTORY_DETAIL_RESULT": ParseHistoryDetail(payload); break;
                 case "QUICK_CHAT_RECEIVED": ParseQuickChat(payload); break;
                 case "ERROR_RESPONSE":
-                {
-                    var message = ReadString(payload, "message") ?? "Server báo lỗi.";
-                    ErrorReceived?.Invoke(message);
-                    _loginResult?.TrySetException(new InvalidOperationException(message));
-                    _accountActionResult?.TrySetException(new InvalidOperationException(message));
-                    break;
-                }
+                    {
+                        var message = ReadString(payload, "message") ?? "Server báo lỗi.";
+                        ErrorReceived?.Invoke(message);
+                        _loginResult?.TrySetException(new InvalidOperationException(message));
+                        _accountActionResult?.TrySetException(new InvalidOperationException(message));
+                        break;
+                    }
             }
         }
         catch (Exception ex)

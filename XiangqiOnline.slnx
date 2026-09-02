@@ -1,2 +1,21 @@
 <Solution>
+  <Folder Name="/Code/src/">
+    <Project Path="Code/src/XiangqiOnline.Client/XiangqiOnline.Client.csproj" />
+    <Project Path="Code/src/XiangqiOnline.Persistence/XiangqiOnline.Persistence.csproj" />
+    <Project Path="Code/src/XiangqiOnline.RuleEngine/XiangqiOnline.RuleEngine.csproj" />
+    <Project Path="Code/src/XiangqiOnline.Server/XiangqiOnline.Server.csproj" />
+    <Project Path="Code/src/XiangqiOnline.ServerAdmin/XiangqiOnline.ServerAdmin.csproj" />
+    <Project Path="Code/src/XiangqiOnline.Shared/XiangqiOnline.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Code/tests/">
+    <Project Path="Code/tests/XiangqiOnline.Client.SmokeTests/XiangqiOnline.Client.SmokeTests.csproj" />
+    <Project Path="Code/tests/XiangqiOnline.IntegrationTests/XiangqiOnline.IntegrationTests.csproj" />
+    <Project Path="Code/tests/XiangqiOnline.Protocol.Tests/XiangqiOnline.Protocol.Tests.csproj" />
+    <Project Path="Code/tests/XiangqiOnline.RuleEngine.Tests/XiangqiOnline.RuleEngine.Tests.csproj" />
+    <Project Path="Code/tests/XiangqiOnline.Server.Tests/XiangqiOnline.Server.Tests.csproj" />
+    <Project Path="Code/tests/XiangqiOnline.Shared.Tests/XiangqiOnline.Shared.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Code/tools/">
+    <Project Path="Code/tools/XiangqiOnline.LoadTest/XiangqiOnline.LoadTest.csproj" />
+  </Folder>
 </Solution>

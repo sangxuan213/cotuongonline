@@ -13,9 +13,9 @@ public record MoveValidationResult(
     bool IsCheckmate = false
 )
 {
-    public static MoveValidationResult Success(bool isCheck = false, bool isCheckmate = false) 
+    public static MoveValidationResult Success(bool isCheck = false, bool isCheckmate = false)
         => new(true, ErrorCodes.OK, "Nước đi hợp lệ.", isCheck, isCheckmate);
 
-    public static MoveValidationResult Fail(string errorCode, string message) 
+    public static MoveValidationResult Fail(string errorCode, string message)
         => new(false, errorCode, message);
 }

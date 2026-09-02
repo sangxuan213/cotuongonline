@@ -103,7 +103,8 @@ public sealed class BotMoveService
                 ServerTimeUtc = DateTimeOffset.UtcNow,
                 Payload = new
                 {
-                    side = "BLACK", pieceId = moving.Id,
+                    side = "BLACK",
+                    pieceId = moving.Id,
                     from = new { x = choice.From.X, y = choice.From.Y },
                     to = new { x = choice.To.X, y = choice.To.Y },
                     capturedPieceId = captured?.Id,
@@ -171,14 +172,14 @@ public sealed class BotMoveService
     {
         var pipeline = new MoveValidationPipeline();
         foreach (var piece in board.GetActivePieces(board.Turn))
-        for (var y = 0; y <= 9; y++)
-        for (var x = 0; x <= 8; x++)
-        {
-            var target = new Position(x, y);
-            if (target == piece.Position) continue;
-            var move = new MoveIntent($"BOT-{Guid.NewGuid():N}", piece.Position, target, revision);
-            if (pipeline.Validate(board, move).IsValid) yield return move;
-        }
+            for (var y = 0; y <= 9; y++)
+                for (var x = 0; x <= 8; x++)
+                {
+                    var target = new Position(x, y);
+                    if (target == piece.Position) continue;
+                    var move = new MoveIntent($"BOT-{Guid.NewGuid():N}", piece.Position, target, revision);
+                    if (pipeline.Validate(board, move).IsValid) yield return move;
+                }
     }
 
     private static int ScoreMove(BoardState board, MoveIntent move, bool lookAhead)

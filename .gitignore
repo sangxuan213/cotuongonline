@@ -3,3 +3,18 @@
 .vs/
 *.user
 *.suo
+**/TestResults/
+**/artifacts/
+**/publish/
+work/
+
+# Local runtime data and secrets
+*.local.json
+*.db
+*.db-shm
+*.db-wal
+*.pfx
+*.p12
+*.log
+.env
+.env.*

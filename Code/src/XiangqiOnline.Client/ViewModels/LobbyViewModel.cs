@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 using UDM18.Client.Models;
 using UDM18.Client.Protocol;
-using System.Windows.Threading;
 
 namespace UDM18.Client.ViewModels;
 
@@ -231,7 +231,10 @@ public sealed class LobbyViewModel : ObservableObject
             await _client.RequestActiveMatchesAsync();
             await _client.RequestWaitingRoomsAsync();
         }
-        catch { /* Kết nối sẽ tự báo trạng thái; bộ làm mới không làm gián đoạn UI. */ }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Không thể làm mới danh sách sảnh: {exception.Message}");
+        }
         finally { _liveRefreshRunning = false; }
     }
 

@@ -34,7 +34,8 @@ public sealed class AccountMessageHandler
         {
             await SendAsync(connection, "LOGIN_RESULT", request.RequestId, new
             {
-                status = "REJECTED", errorCode = "LOGIN_RATE_LIMITED",
+                status = "REJECTED",
+                errorCode = "LOGIN_RATE_LIMITED",
                 message = "Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau.",
                 retryAfterSeconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds))
             }, ct);

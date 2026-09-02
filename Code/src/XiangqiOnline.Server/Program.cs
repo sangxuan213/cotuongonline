@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using XiangqiOnline.Persistence.Configuration;
 using XiangqiOnline.Persistence.Services;
 using XiangqiOnline.Server;
+using XiangqiOnline.Server.Accounts;
 using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Server.Networking;
-using XiangqiOnline.Server.Accounts;
 
 var configurationBuilder = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)

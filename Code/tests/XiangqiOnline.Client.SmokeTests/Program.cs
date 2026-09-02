@@ -4,16 +4,17 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Xml.Linq;
+using UDM18.Client.Behaviors;
 using UDM18.Client.Models;
+using UDM18.Client.Protocol;
+using UDM18.Client.ViewModels;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
 using XiangqiOnline.Shared.Protocol;
-using UDM18.Client.Protocol;
-using UDM18.Client.ViewModels;
-using UDM18.Client.Behaviors;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Text.RegularExpressions;
 
 var tests = new (string Name, Func<Task> Run)[]
 {
@@ -115,12 +116,16 @@ static Task TestResponsiveViewport()
 
 static Task TestBoardLayoutRatio()
 {
-    var xaml = File.ReadAllText(Path.Combine(FindClientSourceRoot(), "Views", "GameRoomView.xaml"));
-    Check(xaml.Contains("<ColumnDefinition Width=\"7*\"/>", StringComparison.Ordinal),
-        "The board column is not configured as 70 percent.");
-    Check(xaml.Contains("<ColumnDefinition Width=\"3*\"", StringComparison.Ordinal),
-        "The controls column is not configured as 30 percent.");
-    Check(xaml.Contains("<controls:BoardControl Width=\"720\" Height=\"800\"", StringComparison.Ordinal),
+    var document = XDocument.Load(Path.Combine(FindClientSourceRoot(), "Views", "GameRoomView.xaml"));
+    var columnWidths = document.Descendants()
+        .Where(element => element.Name.LocalName == "ColumnDefinition")
+        .Select(element => element.Attribute("Width")?.Value)
+        .ToArray();
+    Check(columnWidths.Contains("7*", StringComparer.Ordinal), "The board column is not configured as 70 percent.");
+    Check(columnWidths.Contains("3*", StringComparer.Ordinal), "The controls column is not configured as 30 percent.");
+
+    var board = document.Descendants().Single(element => element.Name.LocalName == "BoardControl");
+    Check(board.Attribute("Width")?.Value == "720" && board.Attribute("Height")?.Value == "800",
         "The enlarged board keeps the canonical 9:10 aspect ratio.");
     return Task.CompletedTask;
 }
@@ -701,12 +706,20 @@ static async Task TestNumericClockSnapshot()
         type = "GAME_STATE_SNAPSHOT",
         payload = new
         {
-            roomId = "ROOM-BOT-NUMERIC", revision = 0, currentTurn = "RED", status = "PLAYING",
-            viewerRole = "PLAYER_RED", pieces,
+            roomId = "ROOM-BOT-NUMERIC",
+            revision = 0,
+            currentTurn = "RED",
+            status = "PLAYING",
+            viewerRole = "PLAYER_RED",
+            pieces,
             clocks = new
             {
-                redRemainingMs = 600_000, blackRemainingMs = 600_000, activeSide = 0,
-                incrementMs = 5_000, serverAnchorUtc = DateTimeOffset.UtcNow, isExpired = false
+                redRemainingMs = 600_000,
+                blackRemainingMs = 600_000,
+                activeSide = 0,
+                incrementMs = 5_000,
+                serverAnchorUtc = DateTimeOffset.UtcNow,
+                isExpired = false
             }
         }
     }));
@@ -789,7 +802,9 @@ static async Task TestRematchExpiry()
         type = "REMATCH_OFFERED",
         payload = new
         {
-            originalRoomId = "ROOM-EXPIRE", requestedBy = "P-OTHER", targetPlayerId = "P-ME",
+            originalRoomId = "ROOM-EXPIRE",
+            requestedBy = "P-OTHER",
+            targetPlayerId = "P-ME",
             expiresAtUtc = DateTimeOffset.UtcNow.AddMilliseconds(60)
         }
     }));

@@ -234,8 +234,12 @@ public static class GameControlMessageHandler
         }
         await RoomEventBroadcaster.BroadcastAsync(room, players, connections, new ServerEventEnvelope<object>
         {
-            Type = "DRAW_OFFERED", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-            RoomId = room.RoomId, Revision = room.Revision, ServerTimeUtc = DateTimeOffset.UtcNow,
+            Type = "DRAW_OFFERED",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = request.RequestId,
+            RoomId = room.RoomId,
+            Revision = room.Revision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
             Payload = new { offeredBy = session.PlayerId, expiresAt = nowUtc.Add(drawLifetime) }
         }, ct).ConfigureAwait(false);
     }
@@ -271,8 +275,12 @@ public static class GameControlMessageHandler
             {
                 await RoomEventBroadcaster.BroadcastAsync(room, players, connections, new ServerEventEnvelope<object>
                 {
-                    Type = "DRAW_DECLINED", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-                    RoomId = room.RoomId, Revision = room.Revision, ServerTimeUtc = DateTimeOffset.UtcNow,
+                    Type = "DRAW_DECLINED",
+                    EventId = Guid.NewGuid().ToString("N"),
+                    CausationRequestId = request.RequestId,
+                    RoomId = room.RoomId,
+                    Revision = room.Revision,
+                    ServerTimeUtc = DateTimeOffset.UtcNow,
                     Payload = new { declinedBy = session.PlayerId }
                 }, ct).ConfigureAwait(false);
                 return true;
@@ -362,8 +370,10 @@ public static class GameControlMessageHandler
             if (challenges.TryGetRoom(originalRoomId, out var oldRoom))
                 await SendToPlayersAsync(oldRoom, players, connections, new ServerEventEnvelope<object>
                 {
-                    Type = "REMATCH_DECLINED", EventId = Guid.NewGuid().ToString("N"),
-                    CausationRequestId = request.RequestId, RoomId = originalRoomId,
+                    Type = "REMATCH_DECLINED",
+                    EventId = Guid.NewGuid().ToString("N"),
+                    CausationRequestId = request.RequestId,
+                    RoomId = originalRoomId,
                     ServerTimeUtc = DateTimeOffset.UtcNow,
                     Payload = new { originalRoomId, declinedBy = session.PlayerId }
                 }, ct).ConfigureAwait(false);
@@ -387,7 +397,10 @@ public static class GameControlMessageHandler
                 var role = playerId == newRoom.RedPlayerId ? "PLAYER_RED" : "PLAYER_BLACK";
                 await target.SendAsync(RoomMessages.GameStateSnapshot(newRoom, request.RequestId, role), ct).ConfigureAwait(false);
             }
-            catch { /* Một máy mất kết nối không chặn máy còn lại vào ván mới. */ }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("ĐẤU LẠI", $"Không thể gửi ván mới tới {playerId}: {exception.Message}");
+            }
         }
     }
 
@@ -441,7 +454,10 @@ public static class GameControlMessageHandler
             if (!players.TryGetByPlayerId(playerId, out var player) ||
                 !connections.TryGetConnection(player.ConnectionId, out var target)) continue;
             try { await target.SendAsync(message, ct).ConfigureAwait(false); }
-            catch { /* Best effort for both participants. */ }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("ĐẤU LẠI", $"Không thể gửi thông báo tới {playerId}: {exception.Message}");
+            }
         }
     }
 
@@ -521,9 +537,9 @@ public static class GameControlMessageHandler
             persistence.CompleteMatch(room.RoomId, result.ResultType, result.EndReason,
                 result.WinnerSide?.ToString().ToUpperInvariant(), result.FinalRevision, result.EndedAtUtc.UtcDateTime);
         }
-        catch
+        catch (Exception exception)
         {
-            // Room termination and player release remain authoritative if storage is unavailable.
+            ServerConsoleLog.Warning("LƯU TRẬN", $"Không thể lưu kết quả phòng {room.RoomId}: {exception.Message}");
         }
     }
 }

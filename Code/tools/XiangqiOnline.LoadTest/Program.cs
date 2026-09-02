@@ -44,16 +44,20 @@ try
             roomIds.Add(roomId);
             await red.SendAsync("MOVE_REQUEST", new
             {
-                clientMoveId = Guid.NewGuid().ToString("N"), expectedRevision = 0,
-                from = new { x = 0, y = 6 }, to = new { x = 0, y = 5 }
+                clientMoveId = Guid.NewGuid().ToString("N"),
+                expectedRevision = 0,
+                from = new { x = 0, y = 6 },
+                to = new { x = 0, y = 5 }
             }, roomId);
             await red.ReadExpectedAsync("MOVE_COMMITTED");
             await black.ReadExpectedAsync("MOVE_COMMITTED");
             moveCommits++;
             await black.SendAsync("MOVE_REQUEST", new
             {
-                clientMoveId = Guid.NewGuid().ToString("N"), expectedRevision = 1,
-                from = new { x = 0, y = 3 }, to = new { x = 0, y = 4 }
+                clientMoveId = Guid.NewGuid().ToString("N"),
+                expectedRevision = 1,
+                from = new { x = 0, y = 3 },
+                to = new { x = 0, y = 4 }
             }, roomId);
             await red.ReadExpectedAsync("MOVE_COMMITTED");
             await black.ReadExpectedAsync("MOVE_COMMITTED");
@@ -186,9 +190,14 @@ internal sealed class VirtualClient : IAsyncDisposable
     {
         var bytes = JsonSerializer.SerializeToUtf8Bytes(new
         {
-            protocolVersion = "1.0", type, requestId = Guid.NewGuid().ToString("N"),
-            sessionToken = authenticated ? Token : null, roomId,
-            clientSequence = Interlocked.Increment(ref _sequence), sentAtUtc = DateTimeOffset.UtcNow, payload
+            protocolVersion = "1.0",
+            type,
+            requestId = Guid.NewGuid().ToString("N"),
+            sessionToken = authenticated ? Token : null,
+            roomId,
+            clientSequence = Interlocked.Increment(ref _sequence),
+            sentAtUtc = DateTimeOffset.UtcNow,
+            payload
         });
         await _sendGate.WaitAsync(cancellationToken);
         try { await TcpFrameCodec.WriteFrameAsync(_stream, bytes, cancellationToken); }

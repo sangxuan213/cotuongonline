@@ -240,8 +240,14 @@ public sealed class BusinessCriticalFlowTests
 
     private static object Envelope(string type, string requestId, string? token, string? roomId, long sequence, object payload) => new
     {
-        protocolVersion = "1.0", type, requestId, sessionToken = token, roomId,
-        clientSequence = sequence, sentAtUtc = DateTimeOffset.UtcNow, payload
+        protocolVersion = "1.0",
+        type,
+        requestId,
+        sessionToken = token,
+        roomId,
+        clientSequence = sequence,
+        sentAtUtc = DateTimeOffset.UtcNow,
+        payload
     };
 
     private static async Task<JsonElement> ReadUntilAsync(NetworkStream stream, string expectedType)

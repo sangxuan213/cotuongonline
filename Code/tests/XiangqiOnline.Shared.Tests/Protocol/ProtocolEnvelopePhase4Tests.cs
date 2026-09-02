@@ -14,8 +14,13 @@ public sealed class ProtocolEnvelopePhase4Tests
     {
         var request = new RequestEnvelope<object>
         {
-            Type = "PING", RequestId = "request-1", SessionToken = "secret", RoomId = "room-1",
-            ClientSequence = 9, SentAtUtc = DateTimeOffset.UnixEpoch, Payload = new { nonce = "n" }
+            Type = "PING",
+            RequestId = "request-1",
+            SessionToken = "secret",
+            RoomId = "room-1",
+            ClientSequence = 9,
+            SentAtUtc = DateTimeOffset.UnixEpoch,
+            Payload = new { nonce = "n" }
         };
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(request));
 
@@ -28,8 +33,13 @@ public sealed class ProtocolEnvelopePhase4Tests
     {
         var message = new ServerEventEnvelope<object>
         {
-            Type = "MOVE_COMMITTED", EventId = "event-1", CausationRequestId = "request-1",
-            RoomId = "room-1", Revision = 2, ServerSequence = 3, ServerTimeUtc = DateTimeOffset.UnixEpoch,
+            Type = "MOVE_COMMITTED",
+            EventId = "event-1",
+            CausationRequestId = "request-1",
+            RoomId = "room-1",
+            Revision = 2,
+            ServerSequence = 3,
+            ServerTimeUtc = DateTimeOffset.UnixEpoch,
             Payload = new { }
         };
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(message));

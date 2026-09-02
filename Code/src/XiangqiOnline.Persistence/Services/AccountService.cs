@@ -177,7 +177,17 @@ public sealed class AccountService
     private SqliteConnection Open() { var connection = new SqliteConnection(_connectionString); connection.Open(); return connection; }
     private byte[] HashResetCode(string accountId, string code) => HMACSHA256.HashData(_resetPepper, Encoding.UTF8.GetBytes(accountId + ":" + code));
     private static byte[] HashPassword(string password, byte[] salt, int iterations) => Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, 32);
-    private static string NormalizeEmail(string? email) { try { return new MailAddress((email ?? string.Empty).Trim()).Address.ToLowerInvariant(); } catch { return string.Empty; } }
+    private static string NormalizeEmail(string? email)
+    {
+        try
+        {
+            return new MailAddress((email ?? string.Empty).Trim()).Address.ToLowerInvariant();
+        }
+        catch (FormatException)
+        {
+            return string.Empty;
+        }
+    }
     private static AccountOperation? Validate(string email, string name, string password)
     {
         if (string.IsNullOrEmpty(email) || email.Length > 254) return new(false, "EMAIL_INVALID", "Email không hợp lệ.");

@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -74,8 +74,11 @@ internal sealed partial class ServerDashboard : Form
 
         var header = new GradientPanel
         {
-            Dock = DockStyle.Fill, CornerRadius = 22, Margin = new Padding(0, 0, 0, 8),
-            StartColor = DeepWine, EndColor = Color.FromArgb(176, 35, 40)
+            Dock = DockStyle.Fill,
+            CornerRadius = 22,
+            Margin = new Padding(0, 0, 0, 8),
+            StartColor = DeepWine,
+            EndColor = Color.FromArgb(176, 35, 40)
         };
         var mark = new RoundedPanel { BackColor = Color.FromArgb(246, 194, 83), CornerRadius = 18, Size = new Size(60, 60), Location = new Point(18, 8) };
         mark.Controls.Add(new Label { Text = "帥", ForeColor = DeepWine, Font = new Font("Microsoft YaHei", 24F, FontStyle.Bold), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Transparent });
@@ -536,8 +539,11 @@ internal sealed partial class ServerDashboard : Form
     {
         var card = new GradientPanel
         {
-            Dock = DockStyle.Fill, Margin = new Padding(0, 0, 14, 0), CornerRadius = 18,
-            StartColor = tint, EndColor = Color.White
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 14, 0),
+            CornerRadius = 18,
+            StartColor = tint,
+            EndColor = Color.White
         };
         card.Controls.Add(new Panel { Dock = DockStyle.Left, Width = 5, BackColor = accent });
         var icon = new RoundedPanel { BackColor = accent, CornerRadius = 17, Size = new Size(34, 34), Location = new Point(18, 17) };
@@ -551,7 +557,17 @@ internal sealed partial class ServerDashboard : Form
 
     private static Button MakeButton(string text, Color back, Color fore, int width) => new()
     {
-        Text = text, BackColor = back, ForeColor = fore, FlatStyle = FlatStyle.Flat, FlatAppearance = { BorderSize = 0 }, Width = width, Height = 40, Cursor = Cursors.Hand, Font = new Font("Segoe UI Semibold", 9.5F), UseVisualStyleBackColor = false, Margin = new Padding(7, 0, 0, 0)
+        Text = text,
+        BackColor = back,
+        ForeColor = fore,
+        FlatStyle = FlatStyle.Flat,
+        FlatAppearance = { BorderSize = 0 },
+        Width = width,
+        Height = 40,
+        Cursor = Cursors.Hand,
+        Font = new Font("Segoe UI Semibold", 9.5F),
+        UseVisualStyleBackColor = false,
+        Margin = new Padding(7, 0, 0, 0)
     };
 }
 

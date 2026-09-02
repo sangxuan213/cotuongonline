@@ -1,6 +1,6 @@
-using XiangqiOnline.Shared.Enums;
-using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Adjudication;
+using XiangqiOnline.RuleEngine.Models;
+using XiangqiOnline.Shared.Enums;
 
 namespace XiangqiOnline.Server.Lobby;
 

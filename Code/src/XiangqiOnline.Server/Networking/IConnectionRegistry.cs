@@ -1,7 +1,6 @@
-namespace XiangqiOnline.Server.Networking
+namespace XiangqiOnline.Server.Networking;
+
+public interface IConnectionRegistry
 {
-    public interface IConnectionRegistry
-    {
-        bool TryGetConnection(string connectionId, out ClientConnectionHandler connection);
-    }
+    bool TryGetConnection(string connectionId, out ClientConnectionHandler connection);
 }

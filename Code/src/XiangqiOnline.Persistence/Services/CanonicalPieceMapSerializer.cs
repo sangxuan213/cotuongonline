@@ -23,24 +23,24 @@ public static class CanonicalPieceMapSerializer
             .ThenBy(p => p.Id)
             .Select(p => new
             {
-                id   = p.Id,
+                id = p.Id,
                 type = p.Type.ToString().ToUpperInvariant(),
                 side = p.Side == SideColor.Red ? "RED" : "BLACK",
-                x    = p.Position.X,
-                y    = p.Position.Y
+                x = p.Position.X,
+                y = p.Position.Y
             });
 
         var doc = new
         {
-            turn   = board.Turn == SideColor.Red ? "RED" : "BLACK",
+            turn = board.Turn == SideColor.Red ? "RED" : "BLACK",
             pieces = pieces
         };
 
         return JsonSerializer.Serialize(doc, new JsonSerializerOptions
         {
-            PropertyNamingPolicy         = JsonNamingPolicy.CamelCase,
-            WriteIndented                = false,
-            DefaultIgnoreCondition       = System.Text.Json.Serialization.JsonIgnoreCondition.Never
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
         });
     }
 }

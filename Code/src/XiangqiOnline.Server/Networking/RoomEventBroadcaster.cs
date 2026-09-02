@@ -26,7 +26,11 @@ public static class RoomEventBroadcaster
         {
             if (!connections.TryGetConnection(id, out var target)) continue;
             try { await target.SendAsync(envelope, cancellationToken).ConfigureAwait(false); }
-            catch { room.RemoveSpectator(id); }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("KHÁN GIẢ", $"Ngắt khán giả {id} khỏi phòng {room.RoomId}: {exception.Message}");
+                room.RemoveSpectator(id);
+            }
         }
     }
 }

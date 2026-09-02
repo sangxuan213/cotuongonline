@@ -152,7 +152,11 @@ public sealed class TcpProtocolTransport : IProtocolTransport
         _client?.Close();
         if (_receiveTask is not null)
         {
-            try { await _receiveTask; } catch { }
+            try { await _receiveTask; }
+            catch (Exception exception)
+            {
+                System.Diagnostics.Debug.WriteLine($"Receive task đã kết thúc với lỗi: {exception.Message}");
+            }
         }
         _receiveCts?.Dispose();
         _receiveCts = null;

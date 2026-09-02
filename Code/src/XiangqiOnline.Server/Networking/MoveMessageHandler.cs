@@ -131,16 +131,25 @@ public static class MoveMessageHandler
 
             var committed = new ServerEventEnvelope<object>
             {
-                Type = "MOVE_COMMITTED", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-                RoomId = room.RoomId, Revision = revision, ServerTimeUtc = DateTimeOffset.UtcNow,
+                Type = "MOVE_COMMITTED",
+                EventId = Guid.NewGuid().ToString("N"),
+                CausationRequestId = request.RequestId,
+                RoomId = room.RoomId,
+                Revision = revision,
+                ServerTimeUtc = DateTimeOffset.UtcNow,
                 Payload = new
                 {
-                    side = requesterSide.ToString().ToUpperInvariant(), pieceId = movingPiece.Id,
-                    from = new { x = intent.From.X, y = intent.From.Y }, to = new { x = intent.To.X, y = intent.To.Y },
-                    capturedPieceId = capturedPiece?.Id, currentTurn = room.CurrentTurn.ToString().ToUpperInvariant(),
-                    moveClass = classification.Classification.ToString(), isCheck = classification.IsCheck,
+                    side = requesterSide.ToString().ToUpperInvariant(),
+                    pieceId = movingPiece.Id,
+                    from = new { x = intent.From.X, y = intent.From.Y },
+                    to = new { x = intent.To.X, y = intent.To.Y },
+                    capturedPieceId = capturedPiece?.Id,
+                    currentTurn = room.CurrentTurn.ToString().ToUpperInvariant(),
+                    moveClass = classification.Classification.ToString(),
+                    isCheck = classification.IsCheck,
                     isCheckmate = termination.IsTerminal && termination.IsCheck,
-                    clocks, status = room.Status.ToString()
+                    clocks,
+                    status = room.Status.ToString()
                 }
             };
             await RoomEventBroadcaster.BroadcastAsync(room, players, connections, committed, ct).ConfigureAwait(false);
@@ -239,8 +248,12 @@ public static class MoveMessageHandler
         string errorCode, string message, long revision, CancellationToken ct) =>
         connection.SendAsync(new ServerEventEnvelope<object>
         {
-            Type = "MOVE_REJECTED", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-            RoomId = request.RoomId, Revision = revision, ServerTimeUtc = DateTimeOffset.UtcNow,
+            Type = "MOVE_REJECTED",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = request.RequestId,
+            RoomId = request.RoomId,
+            Revision = revision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
             Payload = new { errorCode, message, revision }
         }, ct);
 }

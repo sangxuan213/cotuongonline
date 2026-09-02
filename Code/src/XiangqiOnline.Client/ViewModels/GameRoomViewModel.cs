@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 using UDM18.Client.Models;
 using UDM18.Client.Protocol;
+using UDM18.Client.Services;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
-using System.Windows.Threading;
-using UDM18.Client.Services;
 
 namespace UDM18.Client.ViewModels;
 

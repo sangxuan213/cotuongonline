@@ -172,7 +172,10 @@ public sealed class MoveCommittingService
         catch
         {
             try { transaction.Rollback(); }
-            catch { /* best effort */ }
+            catch (Exception rollbackException)
+            {
+                _logger.LogWarning(rollbackException, "Rollback failed after move commit error. matchId={MatchId}", match.MatchId);
+            }
             throw;
         }
     }

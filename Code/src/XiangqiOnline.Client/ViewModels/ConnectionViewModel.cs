@@ -140,7 +140,17 @@ public sealed class ConnectionViewModel : ObservableObject
         catch (IOException) { return (null, null); }
         catch (UnauthorizedAccessException) { return (null, null); }
     }
-    private bool ValidEmail() { try { return new MailAddress(Email.Trim()).Address.Equals(Email.Trim(), StringComparison.OrdinalIgnoreCase); } catch { return false; } }
+    private bool ValidEmail()
+    {
+        try
+        {
+            return new MailAddress(Email.Trim()).Address.Equals(Email.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
     private static bool Strong(string value) => value.Length is >= 8 and <= 128 && value.Any(character => !char.IsWhiteSpace(character));
 
     private void OnConnectionChanged(ConnectionState state, string? error) => Ui(() =>

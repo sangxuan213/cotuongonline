@@ -1,0 +1,39 @@
+name: .NET 10 CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore XiangqiOnline.slnx
+
+      - name: Build Release
+        run: dotnet build XiangqiOnline.slnx -c Release --no-restore --nologo -warnaserror
+
+      - name: Verify formatting
+        run: dotnet format XiangqiOnline.slnx --verify-no-changes --no-restore --verbosity minimal
+
+      - name: Test Release
+        run: dotnet test XiangqiOnline.slnx -c Release --no-build --nologo --verbosity minimal -m:1 /nodeReuse:false
+
+      - name: Check vulnerable dependencies
+        run: dotnet list XiangqiOnline.slnx package --vulnerable --include-transitive

@@ -1,82 +1,67 @@
-<UserControl x:Class="UDM18.Client.Views.LobbyView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<UserControl x:Class="UDM18.Client.Views.LobbyView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
         <ControlTemplate x:Key="FestivalLantern" TargetType="ContentControl">
             <Grid Width="54" Height="92">
-                <Rectangle Width="2" Height="19" Fill="#D8A13A" VerticalAlignment="Top"/>
-                <Border Width="26" Height="7" CornerRadius="3" Background="#E8B94F"
-                        BorderBrush="#FFF0A0" BorderThickness="1" VerticalAlignment="Top" Margin="0,15,0,0"/>
-                <Ellipse Width="49" Height="54" VerticalAlignment="Top" Margin="0,20,0,0"
-                         Stroke="#F6C85C" StrokeThickness="2">
+                <Rectangle Width="2" Height="19" Fill="#D8A13A" VerticalAlignment="Top" />
+                <Border Width="26" Height="7" CornerRadius="3" Background="#E8B94F" BorderBrush="#FFF0A0" BorderThickness="1" VerticalAlignment="Top" Margin="0,15,0,0" />
+                <Ellipse Width="49" Height="54" VerticalAlignment="Top" Margin="0,20,0,0" Stroke="#F6C85C" StrokeThickness="2">
                     <Ellipse.Fill>
                         <RadialGradientBrush Center="0.5,0.42" GradientOrigin="0.5,0.42" RadiusX="0.7" RadiusY="0.7">
-                            <GradientStop Color="#FFFFB348" Offset="0"/>
-                            <GradientStop Color="#FFE54B28" Offset="0.48"/>
-                            <GradientStop Color="#FF8B1115" Offset="1"/>
+                            <GradientStop Color="#FFFFB348" Offset="0" />
+                            <GradientStop Color="#FFE54B28" Offset="0.48" />
+                            <GradientStop Color="#FF8B1115" Offset="1" />
                         </RadialGradientBrush>
                     </Ellipse.Fill>
                     <Ellipse.Effect>
-                        <DropShadowEffect Color="#FFFFA530" BlurRadius="18" ShadowDepth="0" Opacity="0.85"/>
+                        <DropShadowEffect Color="#FFFFA530" BlurRadius="18" ShadowDepth="0" Opacity="0.85" />
                     </Ellipse.Effect>
                 </Ellipse>
                 <Grid Width="46" Height="50" VerticalAlignment="Top" Margin="0,22,0,0" ClipToBounds="True">
-                    <Rectangle Width="1" Fill="#70FFD471" HorizontalAlignment="Center"/>
-                    <Rectangle Width="1" Fill="#55FFD471" HorizontalAlignment="Left" Margin="10,0,0,0"/>
-                    <Rectangle Width="1" Fill="#55FFD471" HorizontalAlignment="Right" Margin="0,0,10,0"/>
-                    <TextBlock Text="福" Foreground="#FFF2A1" FontFamily="Microsoft YaHei" FontSize="18"
-                               FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Rectangle Width="1" Fill="#70FFD471" HorizontalAlignment="Center" />
+                    <Rectangle Width="1" Fill="#55FFD471" HorizontalAlignment="Left" Margin="10,0,0,0" />
+                    <Rectangle Width="1" Fill="#55FFD471" HorizontalAlignment="Right" Margin="0,0,10,0" />
+                    <TextBlock Text="福" Foreground="#FFF2A1" FontFamily="Microsoft YaHei" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Grid>
-                <Border Width="25" Height="6" CornerRadius="3" Background="#DDA53D"
-                        BorderBrush="#FFE58B" BorderThickness="1" VerticalAlignment="Top" Margin="0,70,0,0"/>
-                <Rectangle Width="2" Height="13" Fill="#E3AA3C" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
-                <TextBlock Text="╲│╱" Foreground="#E7B14A" FontSize="11" FontWeight="Bold"
-                           HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-4"/>
+                <Border Width="25" Height="6" CornerRadius="3" Background="#DDA53D" BorderBrush="#FFE58B" BorderThickness="1" VerticalAlignment="Top" Margin="0,70,0,0" />
+                <Rectangle Width="2" Height="13" Fill="#E3AA3C" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                <TextBlock Text="╲│╱" Foreground="#E7B14A" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-4" />
             </Grid>
         </ControlTemplate>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
         <DockPanel Margin="0,0,0,18">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="↻  Làm mới sảnh" Command="{Binding RefreshCommand}"
-                        Style="{StaticResource SecondaryButton}" Margin="0,0,9,0"/>
-                <Button Content="⇥  Đăng xuất" Command="{Binding LogoutCommand}"
-                        Style="{StaticResource DangerButton}"/>
+                <Button Content="↻  Làm mới sảnh" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,9,0" />
+                <Button Content="⇥  Đăng xuất" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <StackPanel>
-                <TextBlock Text="KỲ ĐÀI UDM18" Style="{StaticResource Eyebrow}"/>
-                <TextBlock Text="Sảnh thi đấu" Style="{StaticResource PageTitle}" Margin="0,3,0,0"/>
-                <TextBlock Text="Mở bàn cờ, tìm đối thủ hoặc theo dõi những trận đang diễn ra."
-                           Foreground="{StaticResource Muted}" FontSize="13" Margin="0,4,0,0"/>
+                <TextBlock Text="KỲ ĐÀI UDM18" Style="{StaticResource Eyebrow}" />
+                <TextBlock Text="Sảnh thi đấu" Style="{StaticResource PageTitle}" Margin="0,3,0,0" />
+                <TextBlock Text="Mở bàn cờ, tìm đối thủ hoặc theo dõi những trận đang diễn ra." Foreground="{StaticResource Muted}" FontSize="13" Margin="0,4,0,0" />
             </StackPanel>
         </DockPanel>
-
-        <Border Grid.Row="1" Background="#3B080A" CornerRadius="24" Padding="26,20" Height="235"
-                Effect="{StaticResource CardShadow}" Margin="0,0,0,18" ClipToBounds="True">
+        <Border Grid.Row="1" Background="#3B080A" CornerRadius="24" Padding="26,20" Height="235" Effect="{StaticResource CardShadow}" Margin="0,0,0,18" ClipToBounds="True">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="26"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Image Grid.ColumnSpan="4" Source="/Assets/Festival/mid-autumn-xiangqi-banner-v2.png"
-                       Stretch="UniformToFill" Opacity="0.82" IsHitTestVisible="False"
-                       RenderOptions.BitmapScalingMode="HighQuality" Margin="-26,-20"/>
+                <Image Grid.ColumnSpan="4" Source="/Assets/Festival/mid-autumn-xiangqi-banner-v2.png" Stretch="UniformToFill" Opacity="0.82" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality" Margin="-26,-20" />
                 <Border Grid.ColumnSpan="4" Margin="-26,-20" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                            <GradientStop Color="#E8300608" Offset="0"/>
-                            <GradientStop Color="#A84B0A0C" Offset="0.42"/>
-                            <GradientStop Color="#22000000" Offset="0.72"/>
-                            <GradientStop Color="#601E0304" Offset="1"/>
+                            <GradientStop Color="#E8300608" Offset="0" />
+                            <GradientStop Color="#A84B0A0C" Offset="0.42" />
+                            <GradientStop Color="#22000000" Offset="0.72" />
+                            <GradientStop Color="#601E0304" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -85,144 +70,125 @@
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.12" To="0.5"
-                                                     Duration="0:0:1.6" AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.12" To="0.5" Duration="0:0:1.6" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </Border.Triggers>
                     <Border.Background>
                         <RadialGradientBrush Center="0.82,0.34" GradientOrigin="0.82,0.34" RadiusX="0.34" RadiusY="0.9">
-                            <GradientStop Color="#BFFFF0A0" Offset="0"/>
-                            <GradientStop Color="#20FFD063" Offset="0.48"/>
-                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                            <GradientStop Color="#BFFFF0A0" Offset="0" />
+                            <GradientStop Color="#20FFD063" Offset="0.48" />
+                            <GradientStop Color="#00FFFFFF" Offset="1" />
                         </RadialGradientBrush>
                     </Border.Background>
                 </Border>
-                <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Text="✦" Foreground="#FFF3A6" FontSize="24" CacheMode="BitmapCache"
-                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-4,-6,0,0" IsHitTestVisible="False">
+                <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Text="✦" Foreground="#FFF3A6" FontSize="24" CacheMode="BitmapCache" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-4,-6,0,0" IsHitTestVisible="False">
                     <TextBlock.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.15" To="1"
-                                                     Duration="0:0:0.72" AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.15" To="1" Duration="0:0:0.72" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </TextBlock.Triggers>
                 </TextBlock>
-                <TextBlock Grid.Column="3" Text="✧" Foreground="#FFE07C" FontSize="18" CacheMode="BitmapCache"
-                           HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,74,-3" IsHitTestVisible="False">
+                <TextBlock Grid.Column="3" Text="✧" Foreground="#FFE07C" FontSize="18" CacheMode="BitmapCache" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,74,-3" IsHitTestVisible="False">
                     <TextBlock.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.18"
-                                                     Duration="0:0:1.05" AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.18" Duration="0:0:1.05" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </TextBlock.Triggers>
                 </TextBlock>
-                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache"
-                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="-250,5,0,0"
-                                Opacity="0.82" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
-                    <ContentControl.RenderTransform><TranslateTransform Y="0"/></ContentControl.RenderTransform>
+                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="-250,5,0,0" Opacity="0.82" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
+                    <ContentControl.RenderTransform>
+                        <TranslateTransform Y="0" />
+                    </ContentControl.RenderTransform>
                     <ContentControl.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.42" To="1"
-                                                     Duration="0:0:0.92" AutoReverse="True" RepeatBehavior="Forever"/>
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                                                     From="-4" To="5" Duration="0:0:1.7"
-                                                     AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.42" To="1" Duration="0:0:0.92" AutoReverse="True" RepeatBehavior="Forever" />
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="-4" To="5" Duration="0:0:1.7" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </ContentControl.Triggers>
                 </ContentControl>
-                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache"
-                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,24,0,0"
-                                Opacity="0.9" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
-                    <ContentControl.LayoutTransform><ScaleTransform ScaleX="0.78" ScaleY="0.78"/></ContentControl.LayoutTransform>
-                    <ContentControl.RenderTransform><TranslateTransform Y="0"/></ContentControl.RenderTransform>
+                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,24,0,0" Opacity="0.9" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
+                    <ContentControl.LayoutTransform>
+                        <ScaleTransform ScaleX="0.78" ScaleY="0.78" />
+                    </ContentControl.LayoutTransform>
+                    <ContentControl.RenderTransform>
+                        <TranslateTransform Y="0" />
+                    </ContentControl.RenderTransform>
                     <ContentControl.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.38"
-                                                     BeginTime="0:0:0.3" Duration="0:0:1.18" AutoReverse="True" RepeatBehavior="Forever"/>
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                                                     From="4" To="-5" Duration="0:0:2.05"
-                                                     AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.38" BeginTime="0:0:0.3" Duration="0:0:1.18" AutoReverse="True" RepeatBehavior="Forever" />
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="4" To="-5" Duration="0:0:2.05" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </ContentControl.Triggers>
                 </ContentControl>
-                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache"
-                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="275,2,0,0"
-                                Opacity="0.76" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
-                    <ContentControl.LayoutTransform><ScaleTransform ScaleX="0.9" ScaleY="0.9"/></ContentControl.LayoutTransform>
-                    <ContentControl.RenderTransform><TranslateTransform Y="0"/></ContentControl.RenderTransform>
+                <ContentControl Grid.ColumnSpan="4" Template="{StaticResource FestivalLantern}" CacheMode="BitmapCache" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="275,2,0,0" Opacity="0.76" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.05">
+                    <ContentControl.LayoutTransform>
+                        <ScaleTransform ScaleX="0.9" ScaleY="0.9" />
+                    </ContentControl.LayoutTransform>
+                    <ContentControl.RenderTransform>
+                        <TranslateTransform Y="0" />
+                    </ContentControl.RenderTransform>
                     <ContentControl.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.32" To="0.96"
-                                                     BeginTime="0:0:0.65" Duration="0:0:0.8" AutoReverse="True" RepeatBehavior="Forever"/>
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                                                     From="-2" To="7" Duration="0:0:1.45"
-                                                     AutoReverse="True" RepeatBehavior="Forever"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.32" To="0.96" BeginTime="0:0:0.65" Duration="0:0:0.8" AutoReverse="True" RepeatBehavior="Forever" />
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="-2" To="7" Duration="0:0:1.45" AutoReverse="True" RepeatBehavior="Forever" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </ContentControl.Triggers>
                 </ContentControl>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="LẬP TRÌNH MẠNG NHÓM-6" Foreground="#FFF2B2" FontSize="29"
-                               FontWeight="Bold" Effect="{StaticResource SoftShadow}"/>
-                    <Border Background="#28FFD77A" BorderBrush="#8BF1C15D" BorderThickness="1" CacheMode="BitmapCache"
-                            CornerRadius="10" Padding="13,7" Margin="0,12,0,0" HorizontalAlignment="Left">
+                    <TextBlock Text="LẬP TRÌNH MẠNG NHÓM-6" Foreground="#FFF2B2" FontSize="29" FontWeight="Bold" Effect="{StaticResource SoftShadow}" />
+                    <Border Background="#28FFD77A" BorderBrush="#8BF1C15D" BorderThickness="1" CacheMode="BitmapCache" CornerRadius="10" Padding="13,7" Margin="0,12,0,0" HorizontalAlignment="Left">
                         <Border.Triggers>
                             <EventTrigger RoutedEvent="Loaded">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.58" To="1"
-                                                         Duration="0:0:0.85" AutoReverse="True" RepeatBehavior="Forever"/>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.58" To="1" Duration="0:0:0.85" AutoReverse="True" RepeatBehavior="Forever" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                         </Border.Triggers>
-                        <TextBlock Text="🏮  TRĂNG SÁNG SOI BÀN CỜ  ·  KHAI CUỘC ĐÓN TRI KỶ  🏮"
-                                   Foreground="#FFE5A0" FontSize="10" FontWeight="Bold"/>
+                        <TextBlock Text="🏮  TRĂNG SÁNG SOI BÀN CỜ  ·  KHAI CUỘC ĐÓN TRI KỶ  🏮" Foreground="#FFE5A0" FontSize="10" FontWeight="Bold" />
                     </Border>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Width="235" VerticalAlignment="Center">
-                    <TextBlock Text="MẬT KHẨU PHÒNG (TÙY CHỌN)" Foreground="#FFE5A0" FontSize="9" FontWeight="Bold" Margin="2,0,0,5"/>
-                    <TextBox Text="{Binding RoomPassword, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" Height="34" Padding="9,6" ToolTip="Để trống nếu muốn tạo phòng công khai"/>
-                    <Button Content="＋  Tạo phòng mới" Command="{Binding CreateRoomCommand}"
-                            Background="#F6E4C6" Foreground="#681010" Padding="18,10" Margin="0,7,0,0"/>
+                    <TextBlock Text="MẬT KHẨU PHÒNG (TÙY CHỌN)" Foreground="#FFE5A0" FontSize="9" FontWeight="Bold" Margin="2,0,0,5" />
+                    <TextBox Text="{Binding RoomPassword, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" Height="34" Padding="9,6" ToolTip="Để trống nếu muốn tạo phòng công khai" />
+                    <Button Content="＋  Tạo phòng mới" Command="{Binding CreateRoomCommand}" Background="#F6E4C6" Foreground="#681010" Padding="18,10" Margin="0,7,0,0" />
                 </StackPanel>
-                <Border Grid.Column="3" Width="94" Height="94" CornerRadius="47" Background="#24FFD66B"
-                        BorderBrush="#65FFE09A" BorderThickness="1">
+                <Border Grid.Column="3" Width="94" Height="94" CornerRadius="47" Background="#24FFD66B" BorderBrush="#65FFE09A" BorderThickness="1">
                     <Grid>
-                        <TextBlock Text="☾" Foreground="#FFF0A8" FontSize="65" FontFamily="Segoe UI Symbol"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-8,0,0"/>
-                        <TextBlock Text="帥" FontFamily="Microsoft YaHei" Foreground="#D9FFFFFF" FontSize="27"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,5,0,0"/>
-                        <TextBlock Text="🏮" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" CacheMode="BitmapCache"
-                                   Margin="0,0,-8,-5">
-                            <TextBlock.RenderTransform><TranslateTransform Y="0"/></TextBlock.RenderTransform>
+                        <TextBlock Text="☾" Foreground="#FFF0A8" FontSize="65" FontFamily="Segoe UI Symbol" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-8,0,0" />
+                        <TextBlock Text="帥" FontFamily="Microsoft YaHei" Foreground="#D9FFFFFF" FontSize="27" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,5,0,0" />
+                        <TextBlock Text="🏮" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" CacheMode="BitmapCache" Margin="0,0,-8,-5">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform Y="0" />
+                            </TextBlock.RenderTransform>
                             <TextBlock.Triggers>
                                 <EventTrigger RoutedEvent="Loaded">
                                     <BeginStoryboard>
                                         <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                                                             From="-3" To="3" Duration="0:0:1.1"
-                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="-3" To="3" Duration="0:0:1.1" AutoReverse="True" RepeatBehavior="Forever" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </EventTrigger>
@@ -232,62 +198,87 @@
                 </Border>
             </Grid>
         </Border>
-
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.35*" MinWidth="470"/>
-                <ColumnDefinition Width="18"/>
-                <ColumnDefinition Width="*" MinWidth="350"/>
+                <ColumnDefinition Width="1.35*" MinWidth="470" />
+                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="*" MinWidth="350" />
             </Grid.ColumnDefinitions>
-
             <Border Style="{StaticResource Card}" Padding="18">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <DockPanel Margin="3,0,3,12">
                         <Border DockPanel.Dock="Right" Background="#E3F1E9" CornerRadius="11" Padding="10,5">
                             <TextBlock Foreground="#237052" FontSize="10" FontWeight="Bold">
-                                <Run Text="●  "/><Run Text="{Binding WaitingRooms.Count, Mode=OneWay}"/><Run Text=" PHÒNG MỞ"/>
+                                <Run Text="●  " />
+                                <Run Text="{Binding WaitingRooms.Count, Mode=OneWay}" />
+                                <Run Text=" PHÒNG MỞ" />
                             </TextBlock>
                         </Border>
                         <StackPanel>
-                            <TextBlock Text="KHU VỰC THI ĐẤU" Style="{StaticResource Eyebrow}"/>
-                            <TextBlock Text="Chọn một bàn cờ" Foreground="{StaticResource Ink}" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                            <TextBlock Text="KHU VỰC THI ĐẤU" Style="{StaticResource Eyebrow}" />
+                            <TextBlock Text="Chọn một bàn cờ" Foreground="{StaticResource Ink}" FontSize="20" FontWeight="SemiBold" Margin="0,3,0,0" />
                         </StackPanel>
                     </DockPanel>
-
                     <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Padding="3,4">
                         <TabItem Header="🌕  Phòng đang chờ">
                             <Grid Margin="0,11,0,0">
-                                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
                                 <ListBox ItemsSource="{Binding WaitingRooms}" SelectedItem="{Binding SelectedWaitingRoom}">
                                     <ListBox.ItemsPanel>
-                                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
                                     </ListBox.ItemsPanel>
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource ModernListItem}">
-                                            <Setter Property="Width" Value="282"/>
-                                            <Setter Property="Margin" Value="0,0,10,10"/>
+                                            <Setter Property="Width" Value="282" />
+                                            <Setter Property="Margin" Value="0,0,10,10" />
                                         </Style>
                                     </ListBox.ItemContainerStyle>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <Grid MinHeight="86">
-                                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="48" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
                                                 <Border Width="40" Height="40" CornerRadius="20" Background="#A61B1B" VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding OwnerInitial}" Foreground="#FFF4DF" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding OwnerInitial}" Foreground="#FFF4DF" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                 </Border>
                                                 <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding OwnerDisplayName}" Foreground="{StaticResource Ink}" FontSize="14" FontWeight="SemiBold"/>
-                                                    <TextBlock Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0"><Run Text="Mã bàn  "/><Run Text="{Binding ShortRoomId, Mode=OneWay}" FontWeight="Bold"/></TextBlock>
+                                                    <TextBlock Text="{Binding OwnerDisplayName}" Foreground="{StaticResource Ink}" FontSize="14" FontWeight="SemiBold" />
+                                                    <TextBlock Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0">
+                                                        <Run Text="Mã bàn  " />
+                                                        <Run Text="{Binding ShortRoomId, Mode=OneWay}" FontWeight="Bold" />
+                                                    </TextBlock>
                                                 </StackPanel>
                                                 <Border Grid.Column="2" Background="#E3F1E9" CornerRadius="9" Padding="8,4" VerticalAlignment="Top">
-                                                    <StackPanel><TextBlock Text="ĐANG CHỜ" Foreground="#237052" FontSize="8" FontWeight="Bold"/><TextBlock Text="{Binding AccessLabel}" Foreground="#7A4C14" FontSize="8" FontWeight="Bold" Margin="0,3,0,0"/></StackPanel>
+                                                    <StackPanel>
+                                                        <TextBlock Text="ĐANG CHỜ" Foreground="#237052" FontSize="8" FontWeight="Bold" />
+                                                        <TextBlock Text="{Binding AccessLabel}" Foreground="#7A4C14" FontSize="8" FontWeight="Bold" Margin="0,3,0,0" />
+                                                    </StackPanel>
                                                 </Border>
                                                 <Border Grid.Row="2" Grid.ColumnSpan="3" Background="#F4EBDD" CornerRadius="9" Padding="9,6" Margin="0,11,0,0">
                                                     <DockPanel>
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding DisplayTime}" Foreground="{StaticResource Muted}" FontSize="10"/>
-                                                        <TextBlock Foreground="{StaticResource Primary}" FontSize="10" FontWeight="Bold"><Run Text="⏱  "/><Run Text="{Binding TimeProfile}"/><Run Text="  ·  Bên Đen còn trống"/></TextBlock>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding DisplayTime}" Foreground="{StaticResource Muted}" FontSize="10" />
+                                                        <TextBlock Foreground="{StaticResource Primary}" FontSize="10" FontWeight="Bold">
+                                                            <Run Text="⏱  " />
+                                                            <Run Text="{Binding TimeProfile}" />
+                                                            <Run Text="  ·  Bên Đen còn trống" />
+                                                        </TextBlock>
                                                     </DockPanel>
                                                 </Border>
                                             </Grid>
@@ -295,137 +286,225 @@
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                                 <Grid Grid.Row="1" Margin="0,8,0,0">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="190"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Chọn phòng; bạn sẽ vào bên Đen." Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Text="{Binding JoinRoomPassword, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" Height="36" Margin="8,0" Padding="9,6" ToolTip="Nhập mật khẩu nếu phòng có khóa"/>
-                                    <Button Grid.Column="2" Content="Vào phòng  →" Command="{Binding JoinRoomCommand}"/>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="190" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Chọn phòng; bạn sẽ vào bên Đen." Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding JoinRoomPassword, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" Height="36" Margin="8,0" Padding="9,6" ToolTip="Nhập mật khẩu nếu phòng có khóa" />
+                                    <Button Grid.Column="2" Content="Vào phòng  →" Command="{Binding JoinRoomCommand}" />
                                 </Grid>
                             </Grid>
                         </TabItem>
-
                         <TabItem Header="🏮  Trận đang đấu">
                             <Grid Margin="0,11,0,0">
-                                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
                                 <ListBox ItemsSource="{Binding ActiveMatches}" SelectedItem="{Binding SelectedMatch}" ItemContainerStyle="{StaticResource ModernListItem}">
-                                    <ListBox.ItemTemplate><DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="46"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                            <Border Width="36" Height="36" CornerRadius="18" Background="#28221D"><TextBlock Text="棋" FontFamily="Microsoft YaHei" Foreground="#F5DCA7" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                                            <StackPanel Grid.Column="1"><TextBlock Foreground="{StaticResource Ink}" FontWeight="SemiBold"><Run Text="Bàn "/><Run Text="{Binding ShortRoomId, Mode=OneWay}"/></TextBlock><TextBlock Text="{Binding PlayersLabel}" Foreground="{StaticResource Primary}" FontSize="10" FontWeight="SemiBold" Margin="0,3,0,0"/><TextBlock Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0"><Run Text="Lượt "/><Run Text="{Binding CurrentTurn}"/><Run Text="  ·  "/><Run Text="{Binding TimeProfile}"/></TextBlock></StackPanel>
-                                            <Border Grid.Column="2" Background="#F3E4D6" CornerRadius="9" Padding="9,5" VerticalAlignment="Center"><TextBlock Foreground="{StaticResource Primary}" FontSize="9" FontWeight="Bold"><Run Text="◉ "/><Run Text="{Binding SpectatorCount}"/></TextBlock></Border>
-                                            <Button Grid.Column="3" Content="Xem ngay →" Tag="{Binding}" Click="WatchMatchButton_OnClick" Style="{StaticResource SecondaryButton}" Padding="12,7" Margin="9,0,0,0"/>
-                                        </Grid>
-                                    </DataTemplate></ListBox.ItemTemplate>
-                                </ListBox>
-                                <Button Grid.Row="1" Content="Vào khán đài xem trận" Command="{Binding JoinSpectatorCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Margin="0,10,0,0"/>
-                            </Grid>
-                        </TabItem>
-
-                        <TabItem Header="📜  Lịch sử">
-                            <Grid Margin="0,11,0,0">
-                                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                <Grid>
-                                    <ListBox ItemsSource="{Binding MatchHistory}" SelectedItem="{Binding SelectedHistory}" ItemContainerStyle="{StaticResource ModernListItem}">
-                                        <ListBox.ItemTemplate><DataTemplate>
-                                            <Grid Margin="0,2">
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="46"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <Border Width="36" Height="36" CornerRadius="18" Background="#DDF2F5">
-                                                    <TextBlock Text="棋" FontFamily="Microsoft YaHei" Foreground="#075E75" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="46" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Width="36" Height="36" CornerRadius="18" Background="#28221D">
+                                                    <TextBlock Text="棋" FontFamily="Microsoft YaHei" Foreground="#F5DCA7" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                 </Border>
                                                 <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{StaticResource Ink}"/>
-                                                    <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{StaticResource Muted}" Margin="0,3,0,0"/>
-                                                    <TextBlock Text="{Binding OpponentLabel}" FontSize="10" Foreground="{StaticResource Primary}" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                                                    <TextBlock Text="{Binding RoomLabel}" FontSize="9" Foreground="#8B7765" Margin="0,2,0,0"/>
+                                                    <TextBlock Foreground="{StaticResource Ink}" FontWeight="SemiBold">
+                                                        <Run Text="Bàn " />
+                                                        <Run Text="{Binding ShortRoomId, Mode=OneWay}" />
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding PlayersLabel}" Foreground="{StaticResource Primary}" FontSize="10" FontWeight="SemiBold" Margin="0,3,0,0" />
+                                                    <TextBlock Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0">
+                                                        <Run Text="Lượt " />
+                                                        <Run Text="{Binding CurrentTurn}" />
+                                                        <Run Text="  ·  " />
+                                                        <Run Text="{Binding TimeProfile}" />
+                                                    </TextBlock>
                                                 </StackPanel>
-                                                <Border Grid.Column="2" Background="#F4E6D7" CornerRadius="9" Padding="9,5" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding ResultLabel}" Foreground="{Binding ResultColor}" FontSize="9" FontWeight="Bold"/>
+                                                <Border Grid.Column="2" Background="#F3E4D6" CornerRadius="9" Padding="9,5" VerticalAlignment="Center">
+                                                    <TextBlock Foreground="{StaticResource Primary}" FontSize="9" FontWeight="Bold">
+                                                        <Run Text="◉ " />
+                                                        <Run Text="{Binding SpectatorCount}" />
+                                                    </TextBlock>
                                                 </Border>
+                                                <Button Grid.Column="3" Content="Xem ngay →" Tag="{Binding}" Click="WatchMatchButton_OnClick" Style="{StaticResource SecondaryButton}" Padding="12,7" Margin="9,0,0,0" />
                                             </Grid>
-                                        </DataTemplate></ListBox.ItemTemplate>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <Button Grid.Row="1" Content="Vào khán đài xem trận" Command="{Binding JoinSpectatorCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Margin="0,10,0,0" />
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="📜  Lịch sử">
+                            <Grid Margin="0,11,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <ListBox ItemsSource="{Binding MatchHistory}" SelectedItem="{Binding SelectedHistory}" ItemContainerStyle="{StaticResource ModernListItem}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="46" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Width="36" Height="36" CornerRadius="18" Background="#DDF2F5">
+                                                        <TextBlock Text="棋" FontFamily="Microsoft YaHei" Foreground="#075E75" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{StaticResource Ink}" />
+                                                        <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{StaticResource Muted}" Margin="0,3,0,0" />
+                                                        <TextBlock Text="{Binding OpponentLabel}" FontSize="10" Foreground="{StaticResource Primary}" FontWeight="SemiBold" Margin="0,2,0,0" />
+                                                        <TextBlock Text="{Binding RoomLabel}" FontSize="9" Foreground="#8B7765" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="2" Background="#F4E6D7" CornerRadius="9" Padding="9,5" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ResultLabel}" Foreground="{Binding ResultColor}" FontSize="9" FontWeight="Bold" />
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
                                     </ListBox>
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                                        <StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding MatchHistory.Count}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
-                                        <TextBlock Text="♜" FontSize="36" Foreground="#C9B8A7" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Chưa có ván đấu đã hoàn tất" Foreground="{StaticResource Muted}" FontWeight="SemiBold" Margin="0,7,0,0"/>
-                                        <TextBlock Text="Các trận kết thúc sẽ xuất hiện tại đây." Foreground="#9A8B7D" FontSize="10" Margin="0,3,0,0"/>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding MatchHistory.Count}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text="♜" FontSize="36" Foreground="#C9B8A7" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Chưa có ván đấu đã hoàn tất" Foreground="{StaticResource Muted}" FontWeight="SemiBold" Margin="0,7,0,0" />
+                                        <TextBlock Text="Các trận kết thúc sẽ xuất hiện tại đây." Foreground="#9A8B7D" FontSize="10" Margin="0,3,0,0" />
                                     </StackPanel>
                                 </Grid>
                                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                                    <Button Content="↻  Làm mới" Command="{Binding RefreshHistoryCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
-                                    <Button Content="▶  Xem lại từng nước" Command="{Binding ReplayCommand}" Style="{StaticResource SecondaryButton}"/>
+                                    <Button Content="↻  Làm mới" Command="{Binding RefreshHistoryCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
+                                    <Button Content="▶  Xem lại từng nước" Command="{Binding ReplayCommand}" Style="{StaticResource SecondaryButton}" />
                                 </StackPanel>
                             </Grid>
                         </TabItem>
                     </TabControl>
                 </Grid>
             </Border>
-
             <Grid Grid.Column="2">
-                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="14"/><RowDefinition Height="Auto"/><RowDefinition Height="14"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Border Style="{StaticResource Card}" Padding="18">
                     <Grid>
-                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <DockPanel Margin="0,0,0,12">
-                            <Border DockPanel.Dock="Right" Background="#E3F1E9" CornerRadius="10" Padding="9,5"><TextBlock Text="●  ONLINE" Foreground="#237052" FontSize="9" FontWeight="Bold"/></Border>
-                            <StackPanel><TextBlock Text="KỲ THỦ TRỰC TUYẾN" Style="{StaticResource Eyebrow}"/><TextBlock Text="Mời đấu nhanh" Foreground="{StaticResource Ink}" FontSize="18" FontWeight="SemiBold"/></StackPanel>
+                            <Border DockPanel.Dock="Right" Background="#E3F1E9" CornerRadius="10" Padding="9,5">
+                                <TextBlock Text="●  ONLINE" Foreground="#237052" FontSize="9" FontWeight="Bold" />
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="KỲ THỦ TRỰC TUYẾN" Style="{StaticResource Eyebrow}" />
+                                <TextBlock Text="Mời đấu nhanh" Foreground="{StaticResource Ink}" FontSize="18" FontWeight="SemiBold" />
+                            </StackPanel>
                         </DockPanel>
                         <ListBox Grid.Row="1" ItemsSource="{Binding Players}" SelectedItem="{Binding SelectedPlayer}" ItemContainerStyle="{StaticResource ModernListItem}">
-                            <ListBox.ItemTemplate><DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="46"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <Border Width="36" Height="36" CornerRadius="18" Background="#F0DDD2"><TextBlock Text="{Binding Initial}" Foreground="{StaticResource Primary}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                                    <StackPanel Grid.Column="1"><TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource Ink}" FontWeight="SemiBold"/><TextBlock Text="Sẵn sàng thi đấu" Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0"/></StackPanel>
-                                    <Border Grid.Column="2" Background="#E3F1E9" CornerRadius="9" Padding="8,4" VerticalAlignment="Center"><TextBlock Text="{Binding Status}" Foreground="#237052" FontSize="8" FontWeight="Bold"/></Border>
-                                </Grid>
-                            </DataTemplate></ListBox.ItemTemplate>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="46" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="36" Height="36" CornerRadius="18" Background="#F0DDD2">
+                                            <TextBlock Text="{Binding Initial}" Foreground="{StaticResource Primary}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource Ink}" FontWeight="SemiBold" />
+                                            <TextBlock Text="Sẵn sàng thi đấu" Foreground="{StaticResource Muted}" FontSize="10" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#E3F1E9" CornerRadius="9" Padding="8,4" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Status}" Foreground="#237052" FontSize="8" FontWeight="Bold" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
                         </ListBox>
-                        <Button Grid.Row="2" Content="Gửi lời thách đấu  →" Command="{Binding ChallengeCommand}" Margin="0,9,0,0"/>
+                        <Button Grid.Row="2" Content="Gửi lời thách đấu  →" Command="{Binding ChallengeCommand}" Margin="0,9,0,0" />
                     </Grid>
                 </Border>
-
                 <Border Grid.Row="2" Background="{StaticResource HeroGradient}" CornerRadius="18" Padding="18">
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="LỜI MỜI ĐẾN" Foreground="#F2C8BE" FontSize="9" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding IncomingChallenge.FromDisplayName, TargetNullValue=Chưa có lời mời mới}" Foreground="#FFF8EE" FontSize="16" FontWeight="SemiBold" Margin="0,5,0,9"/>
-                            <StackPanel Orientation="Horizontal"><Button Content="Chấp nhận" Command="{Binding AcceptCommand}" Background="#F4E3C6" Foreground="#5E1515" Padding="13,8" Margin="0,0,7,0"/><Button Content="Từ chối" Command="{Binding RejectCommand}" Background="#4B1010" Padding="13,8"/></StackPanel>
+                            <TextBlock Text="LỜI MỜI ĐẾN" Foreground="#F2C8BE" FontSize="9" FontWeight="Bold" />
+                            <TextBlock Text="{Binding IncomingChallenge.FromDisplayName, TargetNullValue=Chưa có lời mời mới}" Foreground="#FFF8EE" FontSize="16" FontWeight="SemiBold" Margin="0,5,0,9" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Chấp nhận" Command="{Binding AcceptCommand}" Background="#F4E3C6" Foreground="#5E1515" Padding="13,8" Margin="0,0,7,0" />
+                                <Button Content="Từ chối" Command="{Binding RejectCommand}" Background="#4B1010" Padding="13,8" />
+                            </StackPanel>
                             <Border CornerRadius="10" Padding="10,8" Margin="0,10,0,0">
                                 <Border.Style>
                                     <Style TargetType="Border">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Setter Property="Background" Value="#26FFFFFF"/>
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Setter Property="Background" Value="#26FFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasOutgoingChallenge}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                            <DataTrigger Binding="{Binding HasOutgoingChallenge}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="Hủy lời mời" Command="{Binding CancelChallengeCommand}" Background="#4B1010" Padding="11,6" Margin="10,0,0,0"/>
-                                    <TextBlock Text="{Binding OutgoingChallengeText}" Foreground="#FFF8EE" FontSize="10" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    <Button DockPanel.Dock="Right" Content="Hủy lời mời" Command="{Binding CancelChallengeCommand}" Background="#4B1010" Padding="11,6" Margin="10,0,0,0" />
+                                    <TextBlock Text="{Binding OutgoingChallengeText}" Foreground="#FFF8EE" FontSize="10" VerticalAlignment="Center" TextWrapping="Wrap" />
                                 </DockPanel>
                             </Border>
                         </StackPanel>
-                        <TextBlock Grid.Column="1" Text="將" FontFamily="Microsoft YaHei" Foreground="#22FFFFFF" FontSize="58" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBlock Grid.Column="1" Text="將" FontFamily="Microsoft YaHei" Foreground="#22FFFFFF" FontSize="58" VerticalAlignment="Center" Margin="10,0,0,0" />
                     </Grid>
                 </Border>
-
                 <Border Grid.Row="4" Style="{StaticResource InsetCard}" Padding="15">
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="ĐẤU VỚI MÁY" Style="{StaticResource Eyebrow}"/><ComboBox ItemsSource="{Binding BotDifficulties}" SelectedItem="{Binding SelectedBotDifficulty}" DisplayMemberPath="Name" Margin="0,5,0,0"/><TextBlock Text="{Binding SelectedBotDifficulty.Description}" Foreground="{StaticResource Muted}" FontSize="9" Margin="2,4,0,0" TextWrapping="Wrap"/></StackPanel>
-                        <Button Grid.Column="2" Content="Bắt đầu" Command="{Binding StartBotCommand}" VerticalAlignment="Bottom"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ĐẤU VỚI MÁY" Style="{StaticResource Eyebrow}" />
+                            <ComboBox ItemsSource="{Binding BotDifficulties}" SelectedItem="{Binding SelectedBotDifficulty}" DisplayMemberPath="Name" Margin="0,5,0,0" />
+                            <TextBlock Text="{Binding SelectedBotDifficulty.Description}" Foreground="{StaticResource Muted}" FontSize="9" Margin="2,4,0,0" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="Bắt đầu" Command="{Binding StartBotCommand}" VerticalAlignment="Bottom" />
                     </Grid>
                 </Border>
             </Grid>
         </Grid>
-
         <Border Grid.Row="3" Style="{StaticResource InsetCard}" Padding="13,9" Margin="0,15,0,0">
             <DockPanel>
-                <Border DockPanel.Dock="Left" Width="8" Height="8" CornerRadius="4" Background="{StaticResource Gold}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock Text="{Binding Status}" Foreground="#66594E" TextWrapping="Wrap"/>
+                <Border DockPanel.Dock="Left" Width="8" Height="8" CornerRadius="4" Background="{StaticResource Gold}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock Text="{Binding Status}" Foreground="#66594E" TextWrapping="Wrap" />
             </DockPanel>
         </Border>
     </Grid>

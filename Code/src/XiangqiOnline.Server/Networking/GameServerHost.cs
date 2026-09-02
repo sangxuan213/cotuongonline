@@ -7,187 +7,186 @@ using XiangqiOnline.Server.Lobby;
 using XiangqiOnline.Shared.Protocol;
 using XiangqiOnline.Shared.Transport;
 
-namespace XiangqiOnline.Server.Networking
+namespace XiangqiOnline.Server.Networking;
+
+/// <summary>
+/// Wiring layer that connects the existing TcpServerHost accept loop to the
+/// production per-connection pipeline (ClientConnectionHandler -> MessageRouter).
+/// Program.cs and the real TCP integration tests share this exact class so the
+/// tested path is the shipped path. Builds on the TV1 networking stack; it does
+/// not open its own sockets or reinvent framing.
+/// </summary>
+public sealed class GameServerHost : IAsyncDisposable, IConnectionRegistry
 {
-    /// <summary>
-    /// Wiring layer that connects the existing TcpServerHost accept loop to the
-    /// production per-connection pipeline (ClientConnectionHandler -> MessageRouter).
-    /// Program.cs and the real TCP integration tests share this exact class so the
-    /// tested path is the shipped path. Builds on the TV1 networking stack; it does
-    /// not open its own sockets or reinvent framing.
-    /// </summary>
-    public sealed class GameServerHost : IAsyncDisposable, IConnectionRegistry
+    private readonly TcpServerHost _tcpHost;
+    private readonly MessageRouter _router;
+    private readonly PlayerSessionDirectory? _players;
+    private readonly ChallengeManager? _challenges;
+    private readonly int _requestsPerSecond;
+    private readonly TimeSpan _heartbeatTimeout;
+    private readonly ConcurrentDictionary<long, ClientConnectionHandler> _connections = new();
+    private long _nextConnectionId;
+    private CancellationTokenSource? _cts;
+    private bool _started;
+
+    /// <summary>Raised for every accepted connection (informational).</summary>
+    public event Action<string>? ConnectionOpened;
+
+    /// <summary>Raised when a connection closes for whatever reason.</summary>
+    public event Action<long>? ConnectionClosed;
+
+    /// <summary>Actual bound port — useful in tests where Port is 0 (OS-assigned).</summary>
+    public int? BoundPort => _tcpHost.BoundPort;
+
+    public int ActiveConnectionCount => _connections.Count;
+
+    public bool TryGetConnection(string connectionId, out ClientConnectionHandler connection)
     {
-        private readonly TcpServerHost _tcpHost;
-        private readonly MessageRouter _router;
-        private readonly PlayerSessionDirectory? _players;
-        private readonly ChallengeManager? _challenges;
-        private readonly int _requestsPerSecond;
-        private readonly TimeSpan _heartbeatTimeout;
-        private readonly ConcurrentDictionary<long, ClientConnectionHandler> _connections = new();
-        private long _nextConnectionId;
-        private CancellationTokenSource? _cts;
-        private bool _started;
+        connection = null!;
+        return long.TryParse(connectionId, out var id) && _connections.TryGetValue(id, out connection!);
+    }
 
-        /// <summary>Raised for every accepted connection (informational).</summary>
-        public event Action<string>? ConnectionOpened;
+    public GameServerHost(string bindAddress, int port, MessageRouter router)
+        : this(bindAddress, port, router, null)
+    {
+    }
 
-        /// <summary>Raised when a connection closes for whatever reason.</summary>
-        public event Action<long>? ConnectionClosed;
+    public GameServerHost(
+        string bindAddress,
+        int port,
+        MessageRouter router,
+        PlayerSessionDirectory? players)
+        : this(bindAddress, port, router, players, null)
+    {
+    }
 
-        /// <summary>Actual bound port — useful in tests where Port is 0 (OS-assigned).</summary>
-        public int? BoundPort => _tcpHost.BoundPort;
+    public GameServerHost(
+        string bindAddress,
+        int port,
+        MessageRouter router,
+        PlayerSessionDirectory? players,
+        ChallengeManager? challenges)
+        : this(bindAddress, port, router, players, challenges, 40, TimeSpan.FromSeconds(30))
+    {
+    }
 
-        public int ActiveConnectionCount => _connections.Count;
+    public GameServerHost(
+        string bindAddress,
+        int port,
+        MessageRouter router,
+        PlayerSessionDirectory? players,
+        ChallengeManager? challenges,
+        int requestsPerSecond,
+        TimeSpan heartbeatTimeout)
+    {
+        _router = router ?? throw new ArgumentNullException(nameof(router));
+        _players = players;
+        _challenges = challenges;
+        _requestsPerSecond = requestsPerSecond;
+        _heartbeatTimeout = heartbeatTimeout;
+        _tcpHost = new TcpServerHost(bindAddress, port);
+    }
 
-        public bool TryGetConnection(string connectionId, out ClientConnectionHandler connection)
+    public async Task StartAsync(CancellationToken ct = default)
+    {
+        if (_started) throw new InvalidOperationException("Server đã đang chạy.");
+        _started = true;
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        _tcpHost.ClientAccepted += OnClientAccepted;
+        await _tcpHost.StartAsync(_cts.Token).ConfigureAwait(false);
+    }
+
+    private void OnClientAccepted(TcpClient client)
+    {
+        long id = Interlocked.Increment(ref _nextConnectionId);
+        var connection = new ClientConnectionHandler(client, _router, id.ToString(), _requestsPerSecond, _heartbeatTimeout);
+        _connections[id] = connection;
+        ConnectionOpened?.Invoke(id.ToString());
+
+        _ = Task.Run(async () =>
         {
-            connection = null!;
-            return long.TryParse(connectionId, out var id) && _connections.TryGetValue(id, out connection!);
-        }
-
-        public GameServerHost(string bindAddress, int port, MessageRouter router)
-            : this(bindAddress, port, router, null)
-        {
-        }
-
-        public GameServerHost(
-            string bindAddress,
-            int port,
-            MessageRouter router,
-            PlayerSessionDirectory? players)
-            : this(bindAddress, port, router, players, null)
-        {
-        }
-
-        public GameServerHost(
-            string bindAddress,
-            int port,
-            MessageRouter router,
-            PlayerSessionDirectory? players,
-            ChallengeManager? challenges)
-            : this(bindAddress, port, router, players, challenges, 40, TimeSpan.FromSeconds(30))
-        {
-        }
-
-        public GameServerHost(
-            string bindAddress,
-            int port,
-            MessageRouter router,
-            PlayerSessionDirectory? players,
-            ChallengeManager? challenges,
-            int requestsPerSecond,
-            TimeSpan heartbeatTimeout)
-        {
-            _router = router ?? throw new ArgumentNullException(nameof(router));
-            _players = players;
-            _challenges = challenges;
-            _requestsPerSecond = requestsPerSecond;
-            _heartbeatTimeout = heartbeatTimeout;
-            _tcpHost = new TcpServerHost(bindAddress, port);
-        }
-
-        public async Task StartAsync(CancellationToken ct = default)
-        {
-            if (_started) throw new InvalidOperationException("Server đã đang chạy.");
-            _started = true;
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            _tcpHost.ClientAccepted += OnClientAccepted;
-            await _tcpHost.StartAsync(_cts.Token).ConfigureAwait(false);
-        }
-
-        private void OnClientAccepted(TcpClient client)
-        {
-            long id = Interlocked.Increment(ref _nextConnectionId);
-            var connection = new ClientConnectionHandler(client, _router, id.ToString(), _requestsPerSecond, _heartbeatTimeout);
-            _connections[id] = connection;
-            ConnectionOpened?.Invoke(id.ToString());
-
-            _ = Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await connection.RunAsync(_cts?.Token ?? default).ConfigureAwait(false);
-                }
-                finally
-                {
-                    _connections.TryRemove(id, out _);
-                    await connection.DisposeAsync().ConfigureAwait(false);
-                    _challenges?.RemoveConnectionFromSpectators(connection.ConnectionId);
-                    await MarkPlayerOfflineAndBroadcastAsync(connection.ConnectionId).ConfigureAwait(false);
-                    ConnectionClosed?.Invoke(id);
-                }
-            });
-        }
+                await connection.RunAsync(_cts?.Token ?? default).ConfigureAwait(false);
+            }
+            finally
+            {
+                _connections.TryRemove(id, out _);
+                await connection.DisposeAsync().ConfigureAwait(false);
+                _challenges?.RemoveConnectionFromSpectators(connection.ConnectionId);
+                await MarkPlayerOfflineAndBroadcastAsync(connection.ConnectionId).ConfigureAwait(false);
+                ConnectionClosed?.Invoke(id);
+            }
+        });
+    }
 
-        private async Task MarkPlayerOfflineAndBroadcastAsync(string connectionId)
+    private async Task MarkPlayerOfflineAndBroadcastAsync(string connectionId)
+    {
+        if (_players is null || !_players.TryGetByConnectionId(connectionId, out var disconnectedPlayer))
+            return;
+
+        _challenges?.RemoveWaitingRoomForPlayer(disconnectedPlayer.PlayerId);
+        _players.MarkOfflineByConnectionId(connectionId, DateTimeOffset.UtcNow);
+
+        var envelope = new ServerEventEnvelope<object>
         {
-            if (_players is null || !_players.TryGetByConnectionId(connectionId, out var disconnectedPlayer))
-                return;
-
-            _challenges?.RemoveWaitingRoomForPlayer(disconnectedPlayer.PlayerId);
-            _players.MarkOfflineByConnectionId(connectionId, DateTimeOffset.UtcNow);
-
-            var envelope = new ServerEventEnvelope<object>
+            Type = "PLAYER_LIST_UPDATED",
+            EventId = Guid.NewGuid().ToString("N"),
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new
             {
-                Type = "PLAYER_LIST_UPDATED",
-                EventId = Guid.NewGuid().ToString("N"),
-                ServerTimeUtc = DateTimeOffset.UtcNow,
-                Payload = new
+                players = _players.GetSnapshot().Select(player => new
                 {
-                    players = _players.GetSnapshot().Select(player => new
-                    {
-                        playerId = player.PlayerId,
-                        displayName = player.DisplayName,
-                        status = player.Status.ToString()
-                    }).ToArray()
-                }
-            };
+                    playerId = player.PlayerId,
+                    displayName = player.DisplayName,
+                    status = player.Status.ToString()
+                }).ToArray()
+            }
+        };
 
-            var waitingRoomsEnvelope = _challenges is null ? null : new ServerEventEnvelope<object>
+        var waitingRoomsEnvelope = _challenges is null ? null : new ServerEventEnvelope<object>
+        {
+            Type = "WAITING_ROOMS_UPDATED",
+            EventId = Guid.NewGuid().ToString("N"),
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new
             {
-                Type = "WAITING_ROOMS_UPDATED",
-                EventId = Guid.NewGuid().ToString("N"),
-                ServerTimeUtc = DateTimeOffset.UtcNow,
-                Payload = new
+                rooms = _challenges.GetWaitingRoomsSnapshot().Select(room => new
                 {
-                    rooms = _challenges.GetWaitingRoomsSnapshot().Select(room => new
-                    {
-                        roomId = room.RoomId,
-                        ownerPlayerId = room.OwnerPlayerId,
-                        ownerDisplayName = room.OwnerDisplayName,
-                        timeProfile = room.TimeProfile,
-                        createdAtUtc = room.CreatedAtUtc
-                    }).ToArray()
-                }
-            };
+                    roomId = room.RoomId,
+                    ownerPlayerId = room.OwnerPlayerId,
+                    ownerDisplayName = room.OwnerDisplayName,
+                    timeProfile = room.TimeProfile,
+                    createdAtUtc = room.CreatedAtUtc
+                }).ToArray()
+            }
+        };
 
-            foreach (var remainingConnection in _connections.Values)
+        foreach (var remainingConnection in _connections.Values)
+        {
+            try
             {
-                try
-                {
-                    await remainingConnection.SendAsync(envelope).ConfigureAwait(false);
-                    if (waitingRoomsEnvelope is not null)
-                        await remainingConnection.SendAsync(waitingRoomsEnvelope).ConfigureAwait(false);
-                }
-                catch
-                {
-                    // A concurrently closing peer will be handled by its own lifecycle.
-                }
+                await remainingConnection.SendAsync(envelope).ConfigureAwait(false);
+                if (waitingRoomsEnvelope is not null)
+                    await remainingConnection.SendAsync(waitingRoomsEnvelope).ConfigureAwait(false);
+            }
+            catch
+            {
+                // A concurrently closing peer will be handled by its own lifecycle.
             }
         }
+    }
 
-        public Task StopAsync() => _tcpHost.StopAsync();
+    public Task StopAsync() => _tcpHost.StopAsync();
 
-        public async ValueTask DisposeAsync()
-        {
-            _cts?.Cancel();
-            await StopAsync().ConfigureAwait(false);
-            foreach (var connection in _connections.Values)
-                await connection.DisposeAsync().ConfigureAwait(false);
-            _connections.Clear();
-            _cts?.Dispose();
-            _cts = null;
-        }
+    public async ValueTask DisposeAsync()
+    {
+        _cts?.Cancel();
+        await StopAsync().ConfigureAwait(false);
+        foreach (var connection in _connections.Values)
+            await connection.DisposeAsync().ConfigureAwait(false);
+        _connections.Clear();
+        _cts?.Dispose();
+        _cts = null;
     }
 }
