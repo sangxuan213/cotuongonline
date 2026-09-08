@@ -57,6 +57,10 @@ public sealed class GameAudioService
             }
             player.Play();
         }
-        catch { fallback.Play(); }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Không thể phát âm thanh {fileName}: {exception.Message}");
+            fallback.Play();
+        }
     }
 }

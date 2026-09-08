@@ -75,6 +75,14 @@ public sealed class MoveCommittingService
 
             var moveClass = isCheckmate == 1 || isCheck == 1 ? "CHECK" : (isCapture == 1 ? "KILL" : "IDLE");
 
+            var factsJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                isCheck = isCheck == 1,
+                isCheckmate = isCheckmate == 1,
+                isCapture = isCapture == 1,
+                classification = moveClass
+            });
+
             var move = new MoveRecord(
                 MoveId: IdGenerator.NewUlid(),
                 ClientMoveId: intent.ClientMoveId,
@@ -88,7 +96,7 @@ public sealed class MoveCommittingService
                 To: intent.To,
                 CapturedPieceId: capturedPiece?.Id,
                 MoveClass: moveClass,
-                ClassificationFactsJson: "{}",
+                ClassificationFactsJson: factsJson,
                 IsCapture: isCapture,
                 IsCheck: isCheck,
                 IsCheckmate: isCheckmate,
@@ -172,7 +180,10 @@ public sealed class MoveCommittingService
         catch
         {
             try { transaction.Rollback(); }
-            catch { /* best effort */ }
+            catch (Exception rollbackException)
+            {
+                _logger.LogWarning(rollbackException, "Rollback failed after move commit error. matchId={MatchId}", match.MatchId);
+            }
             throw;
         }
     }

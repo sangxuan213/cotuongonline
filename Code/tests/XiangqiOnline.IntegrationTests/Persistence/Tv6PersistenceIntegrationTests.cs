@@ -72,7 +72,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         var intent1 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
         var intent2 = new MoveIntent(clientMoveId, new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
-        var first  = _db.Service.CommitMove(match, board, intent1);
+        var first = _db.Service.CommitMove(match, board, intent1);
         var second = _db.Service.CommitMove(match, board, intent2);
 
         Assert.True(first.IsCommitted);
@@ -128,8 +128,8 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Rejected_move_creates_zero_new_rows()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
         // Illegal: Horse at (1,9) cannot jump to (0,0)
         var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(1, 9), new Position(0, 0), (match.FinalRevision ?? 0));
 
@@ -145,20 +145,20 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     {
         // A match record that does NOT exist in the DB — will cause FK violation on insert
         var fakeMatch = new MatchRecord(
-            MatchId:          "does-not-exist-in-db",
-            RoomId:           "room-fake",
-            RedPlayerId:      "red",
-            BlackPlayerId:    "black",
-            RuleProfileId:    "UDM18_WXF_PRO_2018",
+            MatchId: "does-not-exist-in-db",
+            RoomId: "room-fake",
+            RedPlayerId: "red",
+            BlackPlayerId: "black",
+            RuleProfileId: "UDM18_WXF_PRO_2018",
             RuleProfileVersion: "1.1",
-            TimeProfile:      "STANDARD",
-            ConfigJson:       "{}",
-            Status:           "PLAYING",
-            StartedAtUtc:     DateTime.UtcNow,
-            FinalRevision:    0,
-            TotalMoves:       0);
+            TimeProfile: "STANDARD",
+            ConfigJson: "{}",
+            Status: "PLAYING",
+            StartedAtUtc: DateTime.UtcNow,
+            FinalRevision: 0,
+            TotalMoves: 0);
 
-        var board  = BoardState.CreateInitialBoard();
+        var board = BoardState.CreateInitialBoard();
         var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), 0);
 
         var result = _db.Service.CommitMove(fakeMatch, board, intent);
@@ -177,7 +177,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     {
         // Create a real match
         var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
+        var board = BoardState.CreateInitialBoard();
 
         // Force a failure: commit a legal move first (revision 1 committed)
         var intent1 = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), 0);
@@ -186,7 +186,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
 
         // Now directly insert a row with revision 2 to occupy that slot
         var factory = new DbConnectionFactory(_db.Options);
-        var repo    = new MoveRepository(factory, NullLogger<MoveRepository>.Instance);
+        var repo = new MoveRepository(factory, NullLogger<MoveRepository>.Instance);
         var blocker = MakeMove("mv-blocker", "cm-blocker", match.MatchId, moveIndex: 2, revision: 2);
         Assert.True(repo.TryInsert(blocker));
 
@@ -216,8 +216,8 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Duplicate_retry_does_not_change_revision_or_state()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
         var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         // First commit succeeds
@@ -241,23 +241,23 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Committed_move_read_back_is_consistent()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
-        var from   = new Position(0, 9);
-        var to     = new Position(0, 7);
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
+        var from = new Position(0, 9);
+        var to = new Position(0, 7);
         var intent = new MoveIntent(IdGenerator.NewUlid(), from, to, (match.FinalRevision ?? 0));
 
         var result = _db.Service.CommitMove(match, board, intent);
         Assert.True(result.IsCommitted);
 
         var stored = _db.Service.ListMoves(match.MatchId);
-        var move   = Assert.Single(stored);
+        var move = Assert.Single(stored);
 
         Assert.Equal(intent.ClientMoveId, move.ClientMoveId);
-        Assert.Equal(from,                move.From);
-        Assert.Equal(to,                  move.To);
-        Assert.Equal(1,                   move.MoveIndex);
-        Assert.Equal(1L,                  move.Revision);
+        Assert.Equal(from, move.From);
+        Assert.Equal(to, move.To);
+        Assert.Equal(1, move.MoveIndex);
+        Assert.Equal(1L, move.Revision);
         Assert.False(string.IsNullOrWhiteSpace(move.BoardHashBefore));
         Assert.False(string.IsNullOrWhiteSpace(move.BoardHashAfter));
         Assert.NotEqual(move.BoardHashBefore, move.BoardHashAfter);
@@ -267,15 +267,15 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Board_hash_before_and_after_are_different_for_legal_move()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
-        var from   = new Position(0, 9);
-        var to     = new Position(0, 7);
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
+        var from = new Position(0, 9);
+        var to = new Position(0, 7);
         var intent = new MoveIntent(IdGenerator.NewUlid(), from, to, (match.FinalRevision ?? 0));
 
         // Compute expected hashes independently
         var expectedBefore = BoardHasher.Hash(board);
-        var expectedAfter  = BoardHasher.Hash(board.ApplyMove(from, to));
+        var expectedAfter = BoardHasher.Hash(board.ApplyMove(from, to));
 
         var result = _db.Service.CommitMove(match, board, intent);
         Assert.True(result.IsCommitted);
@@ -285,7 +285,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // board_hash_before = SHA-256 of pre-move board
         Assert.Equal(expectedBefore, stored.BoardHashBefore);
         // board_hash_after  = SHA-256 of post-move board
-        Assert.Equal(expectedAfter,  stored.BoardHashAfter);
+        Assert.Equal(expectedAfter, stored.BoardHashAfter);
         // They must differ for a state-changing move
         Assert.NotEqual(stored.BoardHashBefore, stored.BoardHashAfter);
         // Both must be 64-char hex (SHA-256)
@@ -297,15 +297,15 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Canonical_piece_map_json_is_valid_json_not_a_hash()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
         var intent = new MoveIntent(IdGenerator.NewUlid(), new Position(0, 9), new Position(0, 7), (match.FinalRevision ?? 0));
 
         var result = _db.Service.CommitMove(match, board, intent);
         Assert.True(result.IsCommitted);
 
         var history = _db.Service.ListPositionHistory(match.MatchId);
-        var entry   = Assert.Single(history);
+        var entry = Assert.Single(history);
 
         var json = entry.CanonicalPieceMapJson;
 
@@ -333,11 +333,11 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         // Each piece must have id, type, side, x, y
         foreach (var piece in piecesEl.EnumerateArray())
         {
-            Assert.True(piece.TryGetProperty("id",   out _), "piece must have 'id'");
+            Assert.True(piece.TryGetProperty("id", out _), "piece must have 'id'");
             Assert.True(piece.TryGetProperty("type", out _), "piece must have 'type'");
             Assert.True(piece.TryGetProperty("side", out _), "piece must have 'side'");
-            Assert.True(piece.TryGetProperty("x",    out _), "piece must have 'x'");
-            Assert.True(piece.TryGetProperty("y",    out _), "piece must have 'y'");
+            Assert.True(piece.TryGetProperty("x", out _), "piece must have 'x'");
+            Assert.True(piece.TryGetProperty("y", out _), "piece must have 'y'");
         }
     }
 
@@ -345,10 +345,10 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
     [Fact]
     public void Canonical_piece_map_json_semantically_matches_post_move_board()
     {
-        var match  = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
-        var board  = BoardState.CreateInitialBoard();
-        var from   = new Position(0, 9);
-        var to     = new Position(0, 7);
+        var match = _db.Service.CreateMatch(IdGenerator.NewUlid(), "red", "black");
+        var board = BoardState.CreateInitialBoard();
+        var from = new Position(0, 9);
+        var to = new Position(0, 7);
         var intent = new MoveIntent(IdGenerator.NewUlid(), from, to, (match.FinalRevision ?? 0));
 
         var result = _db.Service.CommitMove(match, board, intent);
@@ -358,7 +358,7 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         var expectedJson = CanonicalPieceMapSerializer.Serialize(boardAfter);
 
         var history = _db.Service.ListPositionHistory(match.MatchId);
-        var entry   = Assert.Single(history);
+        var entry = Assert.Single(history);
 
         Assert.Equal(expectedJson, entry.CanonicalPieceMapJson);
     }
@@ -376,27 +376,27 @@ public sealed class Tv6PersistenceIntegrationTests : IDisposable
         int moveIndex, long revision)
     {
         return new MoveRecord(
-            MoveId:                moveId,
-            ClientMoveId:          clientMoveId,
-            MatchId:               matchId,
-            MoveIndex:             moveIndex,
-            Revision:              revision,
-            Side:                  "RED",
-            PieceId:               "RED_CHARIOT_1",
-            PieceType:             "CHARIOT",
-            From:                  new Position(0, 9),
-            To:                    new Position(0, 7),
-            CapturedPieceId:       null,
-            MoveClass:             "IDLE",
+            MoveId: moveId,
+            ClientMoveId: clientMoveId,
+            MatchId: matchId,
+            MoveIndex: moveIndex,
+            Revision: revision,
+            Side: "RED",
+            PieceId: "RED_CHARIOT_1",
+            PieceType: "CHARIOT",
+            From: new Position(0, 9),
+            To: new Position(0, 7),
+            CapturedPieceId: null,
+            MoveClass: "IDLE",
             ClassificationFactsJson: "{}",
-            IsCapture:             0,
-            IsCheck:               0,
-            IsCheckmate:           0,
-            RedRemainingMs:        600000,
-            BlackRemainingMs:      600000,
-            BoardHashBefore:       "boardhash-before-placeholder",
-            BoardHashAfter:        "boardhash-after-placeholder",
-            CreatedAtUtc:          DateTime.UtcNow);
+            IsCapture: 0,
+            IsCheck: 0,
+            IsCheckmate: 0,
+            RedRemainingMs: 600000,
+            BlackRemainingMs: 600000,
+            BoardHashBefore: "boardhash-before-placeholder",
+            BoardHashAfter: "boardhash-after-placeholder",
+            CreatedAtUtc: DateTime.UtcNow);
     }
 
     private static int CountPieces(BoardState board) => board.GetActivePieces().Count();

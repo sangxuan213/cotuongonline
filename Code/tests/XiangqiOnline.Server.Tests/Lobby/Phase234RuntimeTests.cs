@@ -1,7 +1,7 @@
-using XiangqiOnline.Server.Lobby;
-using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Pipeline;
+using XiangqiOnline.Server.Lobby;
+using XiangqiOnline.Shared.Enums;
 
 namespace XiangqiOnline.Server.Tests.Lobby;
 

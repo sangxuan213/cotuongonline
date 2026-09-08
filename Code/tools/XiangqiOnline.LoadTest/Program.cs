@@ -44,16 +44,20 @@ try
             roomIds.Add(roomId);
             await red.SendAsync("MOVE_REQUEST", new
             {
-                clientMoveId = Guid.NewGuid().ToString("N"), expectedRevision = 0,
-                from = new { x = 0, y = 6 }, to = new { x = 0, y = 5 }
+                clientMoveId = Guid.NewGuid().ToString("N"),
+                expectedRevision = 0,
+                from = new { x = 0, y = 6 },
+                to = new { x = 0, y = 5 }
             }, roomId);
             await red.ReadExpectedAsync("MOVE_COMMITTED");
             await black.ReadExpectedAsync("MOVE_COMMITTED");
             moveCommits++;
             await black.SendAsync("MOVE_REQUEST", new
             {
-                clientMoveId = Guid.NewGuid().ToString("N"), expectedRevision = 1,
-                from = new { x = 0, y = 3 }, to = new { x = 0, y = 4 }
+                clientMoveId = Guid.NewGuid().ToString("N"),
+                expectedRevision = 1,
+                from = new { x = 0, y = 3 },
+                to = new { x = 0, y = 4 }
             }, roomId);
             await red.ReadExpectedAsync("MOVE_COMMITTED");
             await black.ReadExpectedAsync("MOVE_COMMITTED");
@@ -169,33 +173,40 @@ internal sealed class VirtualClient : IAsyncDisposable
         while (elapsed.Elapsed < TimeSpan.FromSeconds(durationSeconds))
         {
             var sw = Stopwatch.StartNew();
-            await SendAsync("PING", new { nonce = $"{Index}-{++nonce}", timestamp = DateTimeOffset.UtcNow }, cancellationToken: cancellationToken);
-            await ReadExpectedAsync("PONG", cancellationToken);
+            var reqId = await SendAsync("PING", new { nonce = $"{Index}-{++nonce}", timestamp = DateTimeOffset.UtcNow }, cancellationToken: cancellationToken);
+            await ReadExpectedAsync("PONG", cancellationToken, expectedCorrelationId: reqId);
             sw.Stop();
             latencies.Add(sw.Elapsed.TotalMilliseconds);
             await Task.Delay(intervalMs, cancellationToken);
         }
     }
 
-    public async Task SendAsync(
+    public async Task<string> SendAsync(
         string type,
         object payload,
         string? roomId = null,
         bool authenticated = true,
         CancellationToken cancellationToken = default)
     {
+        var reqId = Guid.NewGuid().ToString("N");
         var bytes = JsonSerializer.SerializeToUtf8Bytes(new
         {
-            protocolVersion = "1.0", type, requestId = Guid.NewGuid().ToString("N"),
-            sessionToken = authenticated ? Token : null, roomId,
-            clientSequence = Interlocked.Increment(ref _sequence), sentAtUtc = DateTimeOffset.UtcNow, payload
+            protocolVersion = "1.0",
+            type,
+            requestId = reqId,
+            sessionToken = authenticated ? Token : null,
+            roomId,
+            clientSequence = Interlocked.Increment(ref _sequence),
+            sentAtUtc = DateTimeOffset.UtcNow,
+            payload
         });
         await _sendGate.WaitAsync(cancellationToken);
         try { await TcpFrameCodec.WriteFrameAsync(_stream, bytes, cancellationToken); }
         finally { _sendGate.Release(); }
+        return reqId;
     }
 
-    public async Task<JsonElement> ReadExpectedAsync(string expectedType, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> ReadExpectedAsync(string expectedType, CancellationToken cancellationToken = default, string? expectedCorrelationId = null)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
@@ -204,7 +215,16 @@ internal sealed class VirtualClient : IAsyncDisposable
             var root = await _messages.Reader.ReadAsync(timeout.Token);
             var type = root.GetProperty("type").GetString();
             if (type == "ERROR_RESPONSE") throw new InvalidOperationException(root.GetProperty("payload").ToString());
-            if (type == expectedType) return root;
+            if (type == expectedType)
+            {
+                if (expectedCorrelationId is not null)
+                {
+                    if (root.TryGetProperty("causationRequestId", out var crid) && crid.GetString() == expectedCorrelationId)
+                        return root;
+                    continue;
+                }
+                return root;
+            }
         }
     }
 

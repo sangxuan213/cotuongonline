@@ -1,6 +1,6 @@
-using XiangqiOnline.Shared.Enums;
-using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.RuleEngine.Adjudication;
+using XiangqiOnline.RuleEngine.Models;
+using XiangqiOnline.Shared.Enums;
 
 namespace XiangqiOnline.Server.Lobby;
 
@@ -71,9 +71,18 @@ public sealed class GameRoom
     public string? RepetitionCycleSignature { get; private set; }
     public string? PendingDrawOfferPlayerId { get; private set; }
     public DateTimeOffset? PendingDrawOfferExpiresAtUtc { get; private set; }
+    public DateTimeOffset LastClockSyncUtc { get; set; } = DateTimeOffset.UtcNow;
     public IReadOnlyList<RoomMoveRecord> Moves { get { lock (_stateGate) return _moves.ToArray(); } }
     public IReadOnlyList<PositionFact> PositionHistory { get { lock (_stateGate) return _positionHistory.ToArray(); } }
     public IReadOnlyList<string> SpectatorConnectionIds { get { lock (_stateGate) return _spectatorConnectionIds.ToArray(); } }
+
+    public (BoardState Board, long Revision, SideColor CurrentTurn, GameRoomStatus Status, ServerClock Clock) GetSnapshotState()
+    {
+        lock (_stateGate)
+        {
+            return (Board, Revision, Board.Turn, Status, Clock);
+        }
+    }
 
     public bool HasPlayer(string playerId) =>
         RedPlayerId == playerId || BlackPlayerId == playerId;
@@ -111,9 +120,12 @@ public sealed class GameRoom
         if (nextBoard is null)
             throw new ArgumentNullException(nameof(nextBoard));
 
-        Board = nextBoard;
-        Revision++;
-        return Revision;
+        lock (_stateGate)
+        {
+            Board = nextBoard;
+            Revision++;
+            return Revision;
+        }
     }
 
     public long CommitMove(

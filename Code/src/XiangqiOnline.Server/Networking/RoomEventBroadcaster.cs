@@ -22,11 +22,25 @@ public static class RoomEventBroadcaster
         }
         foreach (var spectator in room.SpectatorConnectionIds) ids.Add(spectator);
 
+        var sendTasks = new List<Task>();
         foreach (var id in ids)
         {
             if (!connections.TryGetConnection(id, out var target)) continue;
-            try { await target.SendAsync(envelope, cancellationToken).ConfigureAwait(false); }
-            catch { room.RemoveSpectator(id); }
+            sendTasks.Add(Task.Run(async () =>
+            {
+                try
+                {
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    cts.CancelAfter(TimeSpan.FromSeconds(3));
+                    await target.SendAsync(envelope, cts.Token).ConfigureAwait(false);
+                }
+                catch (Exception exception)
+                {
+                    ServerConsoleLog.Warning("KHÁN GIẢ", $"Ngắt khán giả {id} khỏi phòng {room.RoomId}: {exception.Message}");
+                    room.RemoveSpectator(id);
+                }
+            }, cancellationToken));
         }
+        await Task.WhenAll(sendTasks).ConfigureAwait(false);
     }
 }

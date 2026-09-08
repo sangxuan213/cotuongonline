@@ -40,7 +40,15 @@ public sealed class GameLifecycleMonitor
                     await room.ExecuteSerializedAsync(async () =>
                     {
                         var expired = room.Clock.GetExpiredSide();
-                        if (expired is null) return false;
+                        if (expired is null)
+                        {
+                            if (nowUtc - room.LastClockSyncUtc >= TimeSpan.FromSeconds(1) && room.Status == GameRoomStatus.PLAYING)
+                            {
+                                room.LastClockSyncUtc = nowUtc;
+                                await RoomEventBroadcaster.BroadcastAsync(room, _players, _connections, RoomMessages.ClockSync(room), cancellationToken).ConfigureAwait(false);
+                            }
+                            return false;
+                        }
                         if (room.IsTerminal) return false;
                         var winner = expired == SideColor.Red ? SideColor.Black : SideColor.Red;
                         var result = new GameResult(winner == SideColor.Red ? "RED_WIN" : "BLACK_WIN", "TIMEOUT", winner,

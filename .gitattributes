@@ -1,0 +1,15 @@
+* text=auto
+
+# Keep source files identical on Windows and CI runners.
+*.cs text eol=lf
+*.xaml text eol=lf
+*.csproj text eol=lf
+*.slnx text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Native Windows launch scripts keep conventional line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf

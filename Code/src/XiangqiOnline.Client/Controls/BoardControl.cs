@@ -455,7 +455,11 @@ public sealed class BoardControl : FrameworkElement
             ClassicPieceImages[key] = image;
             return image;
         }
-        catch { return null; }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Không thể tải ảnh quân cờ {key}: {exception.Message}");
+            return null;
+        }
     }
 
     private static ImageSource? LoadOceanBoardImage()
@@ -470,7 +474,11 @@ public sealed class BoardControl : FrameworkElement
             image.Freeze();
             return image;
         }
-        catch { return null; }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"Không thể tải ảnh bàn cờ biển: {exception.Message}");
+            return null;
+        }
     }
 
     private void OnAnimationFrame(object? sender, EventArgs e)

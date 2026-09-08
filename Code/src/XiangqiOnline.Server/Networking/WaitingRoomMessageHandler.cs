@@ -96,7 +96,10 @@ public static class WaitingRoomMessageHandler
                 var role = playerId == room.RedPlayerId ? "PLAYER_RED" : "PLAYER_BLACK";
                 await target.SendAsync(RoomMessages.GameStateSnapshot(room, request.RequestId, role), ct).ConfigureAwait(false);
             }
-            catch { /* A disconnected peer cannot block the other participant. */ }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("PHÒNG", $"Không thể đưa {playerId} vào bàn: {exception.Message}");
+            }
         }
         await BroadcastListAsync(players, challenges, connections, request.RequestId, ct).ConfigureAwait(false);
     }
@@ -179,7 +182,10 @@ public static class WaitingRoomMessageHandler
             if (!players.TryGetByPlayerId(entry.PlayerId, out var player) ||
                 !connections.TryGetConnection(player.ConnectionId, out var target)) continue;
             try { await target.SendAsync(message, ct).ConfigureAwait(false); }
-            catch { /* Best-effort lobby broadcast. */ }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("SẢNH", $"Không thể gửi danh sách phòng tới {entry.PlayerId}: {exception.Message}");
+            }
         }
     }
 }

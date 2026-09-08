@@ -78,15 +78,21 @@ public static class PhaseRoutes
         var challenge = result.Challenge!;
         var cancelled = new ServerEventEnvelope<object>
         {
-            Type = "CHALLENGE_CANCELLED", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-            ServerTimeUtc = DateTimeOffset.UtcNow, Payload = new { challengeId = challenge.ChallengeId, status = "CANCELLED" }
+            Type = "CHALLENGE_CANCELLED",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = request.RequestId,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new { challengeId = challenge.ChallengeId, status = "CANCELLED" }
         };
         foreach (var playerId in new[] { challenge.ChallengerPlayerId, challenge.TargetPlayerId })
         {
             if (!players.TryGetByPlayerId(playerId, out var recipient) ||
                 !connections.TryGetConnection(recipient.ConnectionId, out var target)) continue;
             try { await target.SendAsync(cancelled, ct).ConfigureAwait(false); }
-            catch { /* A failed peer must not prevent delivery to the other participant. */ }
+            catch (Exception exception)
+            {
+                ServerConsoleLog.Warning("THÁCH ĐẤU", $"Không thể báo hủy tới {playerId}: {exception.Message}");
+            }
         }
     }
 }

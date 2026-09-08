@@ -24,18 +24,31 @@ public static class HistoryMessageHandler
         var matches = persistence.ListMatchesByPlayer(player.PlayerId)
             .Where(match => !match.Status.Equals("PLAYING", StringComparison.OrdinalIgnoreCase))
             .Select(match => new
-        {
-            match.MatchId, match.RoomId, match.RedPlayerId, match.BlackPlayerId, match.Status,
-            match.StartedAtUtc, match.EndedAtUtc, match.ResultType, match.EndReason, match.WinnerSide,
-            match.FinalRevision, match.TotalMoves, match.TimeProfile,
-            ViewerSide = match.RedPlayerId == player.PlayerId ? "RED" : "BLACK",
-            RedDisplayName = persistence.ResolvePlayerDisplayName(match.RedPlayerId),
-            BlackDisplayName = persistence.ResolvePlayerDisplayName(match.BlackPlayerId)
-        }).ToArray();
+            {
+                match.MatchId,
+                match.RoomId,
+                match.RedPlayerId,
+                match.BlackPlayerId,
+                match.Status,
+                match.StartedAtUtc,
+                match.EndedAtUtc,
+                match.ResultType,
+                match.EndReason,
+                match.WinnerSide,
+                match.FinalRevision,
+                match.TotalMoves,
+                match.TimeProfile,
+                ViewerSide = match.RedPlayerId == player.PlayerId ? "RED" : "BLACK",
+                RedDisplayName = persistence.ResolvePlayerDisplayName(match.RedPlayerId),
+                BlackDisplayName = persistence.ResolvePlayerDisplayName(match.BlackPlayerId)
+            }).ToArray();
         await connection.SendAsync(new ServerEventEnvelope<object>
         {
-            Type = "HISTORY_LIST_RESULT", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-            ServerTimeUtc = DateTimeOffset.UtcNow, Payload = new { matches }
+            Type = "HISTORY_LIST_RESULT",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = request.RequestId,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new { matches }
         }, ct).ConfigureAwait(false);
     }
 
@@ -60,11 +73,16 @@ public static class HistoryMessageHandler
             await connection.SendErrorAsync(ErrorCodes.ROOM_NOT_FOUND, "Match history was not found.", request.RequestId, ct).ConfigureAwait(false);
             return;
         }
+        var positions = detail.Moves.Count > 35 ? (IReadOnlyList<XiangqiOnline.Persistence.Models.PositionHistoryRecord>)Array.Empty<XiangqiOnline.Persistence.Models.PositionHistoryRecord>() : detail.Positions;
         await connection.SendAsync(new ServerEventEnvelope<object>
         {
-            Type = "HISTORY_DETAIL_RESULT", EventId = Guid.NewGuid().ToString("N"), CausationRequestId = request.RequestId,
-            RoomId = detail.Match.RoomId, Revision = detail.Match.FinalRevision, ServerTimeUtc = DateTimeOffset.UtcNow,
-            Payload = new { match = detail.Match, moves = detail.Moves, positions = detail.Positions }
+            Type = "HISTORY_DETAIL_RESULT",
+            EventId = Guid.NewGuid().ToString("N"),
+            CausationRequestId = request.RequestId,
+            RoomId = detail.Match.RoomId,
+            Revision = detail.Match.FinalRevision,
+            ServerTimeUtc = DateTimeOffset.UtcNow,
+            Payload = new { match = detail.Match, moves = detail.Moves, positions }
         }, ct).ConfigureAwait(false);
     }
 }

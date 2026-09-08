@@ -20,13 +20,13 @@ public sealed class LegalMoveGenerator
         foreach (var piece in sideBoard.GetActivePieces(side).OrderBy(piece => piece.Id, StringComparer.Ordinal))
         {
             for (var y = 0; y <= 9; y++)
-            for (var x = 0; x <= 8; x++)
-            {
-                var to = new Position(x, y);
-                var intent = new MoveIntent($"probe-{piece.Id}-{x}-{y}", piece.Position, to, 0);
-                if (_pipeline.Validate(sideBoard, intent).IsValid)
-                    result.Add(intent);
-            }
+                for (var x = 0; x <= 8; x++)
+                {
+                    var to = new Position(x, y);
+                    var intent = new MoveIntent($"probe-{piece.Id}-{x}-{y}", piece.Position, to, 0);
+                    if (_pipeline.Validate(sideBoard, intent).IsValid)
+                        result.Add(intent);
+                }
         }
         return result;
     }

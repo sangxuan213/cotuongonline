@@ -44,6 +44,22 @@ public sealed class PlayerSession
     public string? ResumeTokenHash { get; private set; }
     public DateTimeOffset? ReconnectDeadlineUtc { get; private set; }
 
+    private readonly HashSet<string> _seenRequestIds = new(StringComparer.Ordinal);
+    private readonly Queue<string> _seenRequestIdOrder = new();
+    private readonly object _sessionRequestGate = new();
+
+    public bool TryRecordRequestId(string requestId)
+    {
+        lock (_sessionRequestGate)
+        {
+            if (!_seenRequestIds.Add(requestId)) return false;
+            _seenRequestIdOrder.Enqueue(requestId);
+            while (_seenRequestIdOrder.Count > 2048)
+                _seenRequestIds.Remove(_seenRequestIdOrder.Dequeue());
+            return true;
+        }
+    }
+
     public void SetResumeTokenHash(string tokenHash) =>
         ResumeTokenHash = RequireId(tokenHash, nameof(tokenHash));
 

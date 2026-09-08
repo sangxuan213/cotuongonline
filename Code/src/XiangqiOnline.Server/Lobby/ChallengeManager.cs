@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using XiangqiOnline.RuleEngine.Models;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace XiangqiOnline.Server.Lobby;
 
