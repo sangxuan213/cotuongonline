@@ -1,0 +1,18 @@
+{
+  "MeasuredAtUtc": "2026-09-09T22:15:12.8308996+00:00",
+  "Host": "127.0.0.1",
+  "Port": 5000,
+  "ClientsRequested": 10,
+  "ClientsConnected": 10,
+  "GamesCreated": 5,
+  "MoveCommits": 10,
+  "SpectatorJoins": 5,
+  "DurationSeconds": 10,
+  "Samples": 390,
+  "Errors": 0,
+  "P50Ms": 0.43565,
+  "P95Ms": 1.4331649999999938,
+  "P99Ms": 3.2084050000000004,
+  "ElapsedSeconds": 10.6911504,
+  "ErrorDetails": []
+}
