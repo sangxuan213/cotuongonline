@@ -1,0 +1,2 @@
+clients,connected,games,move_commits,spectator_joins,samples,errors,p50_ms,p95_ms,p99_ms,elapsed_seconds
+10,10,5,10,5,390,0,0.436,1.433,3.208,10.691

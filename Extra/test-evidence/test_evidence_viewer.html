@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bằng Chứng Nghiệm Thu 150 Test Cases — UDM18 Cờ Tướng Trực Tuyến</title>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --card-bg: #151d30;
+            --border: #223150;
+            --cyan: #38bdf8;
+            --green: #22c55e;
+            --gold: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 24px;
+        }
+        header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 { font-size: 24px; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .badge { background: #166534; color: #bbf7d0; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .stat-val { font-size: 20px; font-weight: 700; color: var(--cyan); }
+        .stat-lbl { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+        
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input.search {
+            flex: 1;
+            min-width: 280px;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .tc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 20px;
+        }
+        .tc-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .tc-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--cyan);
+        }
+        .tc-header {
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .tc-id { font-size: 15px; font-weight: 700; color: var(--cyan); }
+        .tc-body {
+            padding: 14px 16px;
+        }
+        .tc-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .tc-cat { font-size: 12px; color: var(--gold); margin-bottom: 12px; }
+        .tc-img-wrap {
+            width: 100%;
+            background: #0f141c;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+        .tc-img-wrap img {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BÁO CÁO THẨM ĐỊNH THỰC TẾ 150 TEST CASES — UDM18 <span class="badge">150/150 PASSED</span></h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Đồ án Cờ Tướng Trực Tuyến (Xiangqi Online) • Chuẩn nghiệm thu Giảng viên Lập trình Mạng</p>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-val">150 / 150</div>
+                <div class="stat-lbl">Test Cases Thẩm Định</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val">508 / 508</div>
+                <div class="stat-lbl">Automated & Smoke Tests</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val">0 Lỗi (P50: 0.43ms)</div>
+                <div class="stat-lbl">Đo tải 10 & 40 Clients Thật</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val">150 Ảnh Thẻ</div>
+                <div class="stat-lbl">Minh Chứng Từng Ca Kiểm Thử</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="filter-bar">
+        <input type="text" id="search" class="search" placeholder="Tìm kiếm theo TC ID, tên ca kiểm thử, module, lệnh...">
+    </div>
+
+    <div class="tc-grid" id="grid">
+
+        <div class="tc-card" data-search="tc_01 p1-tv1-d1 - khởi tạo lớp tcpframecodec 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_01</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV1-D1 - Khởi tạo lớp TcpFrameCodec</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_01.png" alt="TC_01" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_02 p1-tv1-d2 - xây dựng tcpserverhost và tcpclientservice 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_02</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV1-D2 - Xây dựng TcpServerHost và TcpClientService</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_02.png" alt="TC_02" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_03 p1-tv1-d3 - hoàn thiện receive loop: đọc đủ header, đọc đủ payload 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_03</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV1-D3 - Hoàn thiện receive loop: đọc đủ header, đọc đủ payload</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_03.png" alt="TC_03" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_04 p1-tv1-d4 - hoàn thiện iconnectionservice/connectionstate cho tv5 tích hợp 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_04</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV1-D4 - Hoàn thiện IConnectionService/ConnectionState cho TV5 tích hợp</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_04.png" alt="TC_04" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_05 p1-tv1-d5 - bổ sung test: header 1+3, payload nhiều đoạn, hai frame gộp, length 0, payload quá lớn, js 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_05</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV1-D5 - Bổ sung test: header 1+3, payload nhiều đoạn, hai frame gộp, length 0, payload quá lớn, JS</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_05.png" alt="TC_05" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_06 p1-tv2-d1 - tạo playersession, playerstatus, challenge, gameroom 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_06</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV2-D1 - Tạo PlayerSession, PlayerStatus, Challenge, GameRoom</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_06.png" alt="TC_06" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_07 p1-tv2-d2 - xây dựng đăng nhập bằng display name 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_07</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV2-D2 - Xây dựng đăng nhập bằng display name</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_07.png" alt="TC_07" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_08 p1-tv2-d3 - xây dựng online playerdirectory 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_08</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV2-D3 - Xây dựng online PlayerDirectory</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_08.png" alt="TC_08" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_09 p1-tv2-d4 - cài đặt challenge_send/accept/reject 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_09</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV2-D4 - Cài đặt CHALLENGE_SEND/ACCEPT/REJECT</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_09.png" alt="TC_09" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_10 p1-tv2-d5 - viết server tests: self-challenge, busy player, duplicate name, mutual challenge, invalid  2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_10</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV2-D5 - Viết server tests: self-challenge, busy player, duplicate name, mutual challenge, invalid </div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_10.png" alt="TC_10" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_11 p1-tv3-d1 - tạo immutable boardstate, piecestate, moveintent, movevalidationresult 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_11</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV3-D1 - Tạo immutable BoardState, PieceState, MoveIntent, MoveValidationResult</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_11.png" alt="TC_11" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_12 p1-tv3-d2 - cài đặt luật tướng, sĩ, tượng, mã: cung, qua sông, cản mắt tượng, cản chân mã 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_12</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV3-D2 - Cài đặt luật Tướng, Sĩ, Tượng, Mã: cung, qua sông, cản mắt Tượng, cản chân Mã</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_12.png" alt="TC_12" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_13 p1-tv3-d3 - cài đặt luật xe, pháo, tốt: path blocking 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_13</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV3-D3 - Cài đặt luật Xe, Pháo, Tốt: path blocking</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_13.png" alt="TC_13" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_14 p1-tv3-d4 - tạo validation pipeline: game/coordinate/source/ownership/destination/geometric/path 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_14</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV3-D4 - Tạo validation pipeline: game/coordinate/source/ownership/destination/geometric/path</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_14.png" alt="TC_14" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_15 p1-tv3-d5 - viết bộ unit test tối thiểu 70 test: tướng 8, sĩ 6, tượng 10, mã 12, xe 10, pháo 14, tốt 1 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_15</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV3-D5 - Viết bộ unit test tối thiểu 70 test: Tướng 8, Sĩ 6, Tượng 10, Mã 12, Xe 10, Pháo 14, Tốt 1</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_15.png" alt="TC_15" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_16 p1-tv4-d1 - thiết kế attackdetector 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_16</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV4-D1 - Thiết kế AttackDetector</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_16.png" alt="TC_16" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_17 p1-tv4-d2 - cài attack map cho xe, pháo, mã, tốt 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_17</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV4-D2 - Cài attack map cho Xe, Pháo, Mã, Tốt</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_17.png" alt="TC_17" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_18 p1-tv4-d3 - cài attack map cho tướng, sĩ, tượng 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_18</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV4-D3 - Cài attack map cho Tướng, Sĩ, Tượng</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_18.png" alt="TC_18" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_19 p1-tv4-d4 - thực hiện apply move tạm trên bản sao 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_19</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV4-D4 - Thực hiện apply move tạm trên bản sao</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_19.png" alt="TC_19" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_20 p1-tv4-d5 - viết >=40 tests cho self-check, facing generals, pháo/mã chiếu, chặn chiếu, ăn quân chiếu 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_20</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV4-D5 - Viết >=40 tests cho self-check, facing generals, pháo/mã chiếu, chặn chiếu, ăn quân chiếu</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_20.png" alt="TC_20" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_21 p1-tv5-d1 - tạo wpf mvvm shell 2. client - server xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_21</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV5-D1 - Tạo WPF MVVM shell</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_21.png" alt="TC_21" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_22 p1-tv5-d2 - tích hợp connection từ tv1 và online list/challenge từ tv2 1. tcp socket xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_22</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV5-D2 - Tích hợp Connection từ TV1 và online list/challenge từ TV2</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_22.png" alt="TC_22" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_23 p1-tv5-d3 - xây dựng boardcontrol 9x10 2. client - server xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_23</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV5-D3 - Xây dựng BoardControl 9x10</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_23.png" alt="TC_23" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_24 p1-tv5-d4 - luồng chọn nguồn -> chọn đích -> gửi move_request 2. client - server xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_24</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV5-D4 - Luồng chọn nguồn -> chọn đích -> gửi MOVE_REQUEST</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_24.png" alt="TC_24" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_25 p1-tv5-d5 - highlight quân chọn/nước cuối 2. client - server xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_25</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV5-D5 - Highlight quân chọn/nước cuối</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_25.png" alt="TC_25" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_26 p1-tv6-d1 - tạo sqlite migration và bảng players/matches/moves 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_26</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV6-D1 - Tạo SQLite migration và bảng players/matches/moves</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_26.png" alt="TC_26" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_27 p1-tv6-d2 - tạo matchrepository và moverepository 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_27</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV6-D2 - Tạo MatchRepository và MoveRepository</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_27.png" alt="TC_27" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_28 p1-tv6-d3 - lưu nước đi atomically 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_28</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV6-D3 - Lưu nước đi atomically</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_28.png" alt="TC_28" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_29 p1-tv6-d4 - structured logging cho connect/login/challenge/room/move/error 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_29</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV6-D4 - Structured logging cho connect/login/challenge/room/move/error</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_29.png" alt="TC_29" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_30 p1-tv6-d5 - viết >=5 integration tests cho vertical slice 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_30</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P1-TV6-D5 - Viết >=5 integration tests cho vertical slice</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_30.png" alt="TC_30" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_31 p2-tv1-d1 - bổ sung heartbeat hai chiều 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_31</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV1-D1 - Bổ sung heartbeat hai chiều</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_31.png" alt="TC_31" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_32 p2-tv1-d2 - thêm requestid/clientmoveid 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_32</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV1-D2 - Thêm requestId/clientMoveId</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_32.png" alt="TC_32" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_33 p2-tv1-d3 - rate limit theo connection/session 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_33</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV1-D3 - Rate limit theo connection/session</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_33.png" alt="TC_33" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_34 p2-tv1-d4 - xử lý server ngắt khi client ở lobby/game 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_34</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV1-D4 - Xử lý Server ngắt khi Client ở lobby/game</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_34.png" alt="TC_34" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_35 p2-tv1-d5 - viết protocol/fault tests: duplicate, version sai, spam, disconnect giữa frame, server shu 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_35</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV1-D5 - Viết protocol/fault tests: duplicate, version sai, spam, disconnect giữa frame, Server shu</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_35.png" alt="TC_35" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_36 p2-tv2-d1 - hoàn thiện challenge lifecycle: cancel, expire, cleanup 3. game system xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_36</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV2-D1 - Hoàn thiện challenge lifecycle: cancel, expire, cleanup</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_36.png" alt="TC_36" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_37 p2-tv2-d2 - tạo roomactor hoặc mutation queue/lock riêng từng phòng 3. game system xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_37</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV2-D2 - Tạo RoomActor hoặc mutation queue/lock riêng từng phòng</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_37.png" alt="TC_37" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_38 p2-tv2-d3 - xây dựng serverclock dùng monotonic time 4. udm18 nâng cao (timer) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_38</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV2-D3 - Xây dựng ServerClock dùng monotonic time</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Timer)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_38.png" alt="TC_38" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_39 p2-tv2-d4 - cài timeout, resign, draw offer/response 3. game system xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_39</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV2-D4 - Cài timeout, resign, draw offer/response</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_39.png" alt="TC_39" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_40 p2-tv2-d5 - viết >=20 test mới cho lifecycle, concurrency và clock 3. game system xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_40</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV2-D5 - Viết >=20 test mới cho lifecycle, concurrency và clock</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_40.png" alt="TC_40" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_41 p2-tv3-d1 - refactor validator thành pipeline ổn định 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_41</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV3-D1 - Refactor validator thành pipeline ổn định</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_41.png" alt="TC_41" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_42 p2-tv3-d2 - hoàn thiện mọi tình huống ăn quân, path và edge: pháo 0/1/2/3 ngòi 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_42</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV3-D2 - Hoàn thiện mọi tình huống ăn quân, path và edge: Pháo 0/1/2/3 ngòi</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_42.png" alt="TC_42" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_43 p2-tv3-d3 - tạo moveapplicationresult gồm captured piece, check facts, board hash, before/after state 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_43</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV3-D3 - Tạo MoveApplicationResult gồm captured piece, check facts, board hash, before/after state</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_43.png" alt="TC_43" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_44 p2-tv3-d4 - bổ sung xử lý đang bị chiếu: ăn quân chiếu, chặn, chạy tướng 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_44</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV3-D4 - Bổ sung xử lý đang bị chiếu: ăn quân chiếu, chặn, chạy Tướng</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_44.png" alt="TC_44" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_45 p2-tv3-d5 - nâng tổng tests tv3 >=110 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_45</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV3-D5 - Nâng tổng tests TV3 >=110</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_45.png" alt="TC_45" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_46 p2-tv4-d1 - thiết kế legalmovegenerator: sinh candidate theo loại quân, lọc bằng ruleengine 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_46</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV4-D1 - Thiết kế LegalMoveGenerator: sinh candidate theo loại quân, lọc bằng RuleEngine</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_46.png" alt="TC_46" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_47 p2-tv4-d2 - cài checkmatedetector và nolegalmovedetector 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_47</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV4-D2 - Cài CheckmateDetector và NoLegalMoveDetector</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_47.png" alt="TC_47" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_48 p2-tv4-d3 - tạo gameresultresolver và thứ tự ưu tiên terminal events 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_48</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV4-D3 - Tạo GameResultResolver và thứ tự ưu tiên terminal events</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_48.png" alt="TC_48" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_49 p2-tv4-d4 - tích hợp với roomactor và persistence 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_49</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV4-D4 - Tích hợp với RoomActor và persistence</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_49.png" alt="TC_49" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_50 p2-tv4-d5 - viết tests cho checkmate, no legal move, race terminal, late command 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_50</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV4-D5 - Viết tests cho checkmate, no legal move, race terminal, late command</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_50.png" alt="TC_50" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_51 p2-tv5-d1 - hoàn thiện gameroom viewmodel: tên hai người, side, turn, trạng thái trận, move list, chec 3. game system xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_51</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV5-D1 - Hoàn thiện GameRoom ViewModel: tên hai người, side, turn, trạng thái trận, move list, chec</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_51.png" alt="TC_51" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_52 p2-tv5-d2 - cài hai đồng hồ ui dựa trên server anchor 4. udm18 nâng cao (timer) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_52</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV5-D2 - Cài hai đồng hồ UI dựa trên server anchor</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Timer)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_52.png" alt="TC_52" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_53 p2-tv5-d3 - xoay bàn cho black và mapping màn hình <-> canonical coordinate 3. game system xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_53</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV5-D3 - Xoay bàn cho BLACK và mapping màn hình <-> canonical coordinate</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_53.png" alt="TC_53" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_54 p2-tv5-d4 - dialog resign/draw offer/draw response/result 3. game system xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_54</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV5-D4 - Dialog resign/draw offer/draw response/result</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_54.png" alt="TC_54" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_55 p2-tv5-d5 - ui tests/manual matrix 3. game system xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_55</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV5-D5 - UI tests/manual matrix</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_55.png" alt="TC_55" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_56 p2-tv6-d1 - mở rộng schema match result: start/end, winner, end reason, clocks, final revision, total  4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_56</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV6-D1 - Mở rộng schema match result: start/end, winner, end reason, clocks, final revision, total </div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_56.png" alt="TC_56" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_57 p2-tv6-d2 - hoàn thiện transactional match/move persistence 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_57</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV6-D2 - Hoàn thiện transactional match/move persistence</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_57.png" alt="TC_57" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_58 p2-tv6-d3 - xây server history api/dto và repository đọc danh sách/chi tiết match 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_58</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV6-D3 - Xây Server history API/DTO và repository đọc danh sách/chi tiết match</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_58.png" alt="TC_58" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_59 p2-tv6-d4 - viết integration tests: hai phòng, timeout, resign, draw, checkmate, restart đọc dữ liệu c 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_59</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV6-D4 - Viết integration tests: hai phòng, timeout, resign, draw, checkmate, restart đọc dữ liệu c</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_59.png" alt="TC_59" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_60 p2-tv6-d5 - tạo test report phase 2, database evidence và review tv1 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_60</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P2-TV6-D5 - Tạo test report Phase 2, database evidence và review TV1</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_60.png" alt="TC_60" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_61 p3-tv1-d1 - khóa reconnect policy: cửa sổ 60 giây 4. udm18 nâng cao (reconnect) xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_61</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV1-D1 - Khóa reconnect policy: cửa sổ 60 giây</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_61.png" alt="TC_61" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_62 p3-tv1-d2 - cài reconnect bằng login_request(resumetoken) + login_result(created/resumed/rejected) 4. udm18 nâng cao (reconnect) xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_62</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV1-D2 - Cài reconnect bằng LOGIN_REQUEST(resumeToken) + LOGIN_RESULT(CREATED/RESUMED/REJECTED)</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_62.png" alt="TC_62" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_63 p3-tv1-d3 - snapshot/resync protocol: board, turn, clocks, revision, move history summary, game state 4. udm18 nâng cao (reconnect) xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_63</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV1-D3 - Snapshot/resync protocol: board, turn, clocks, revision, move history summary, game state</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_63.png" alt="TC_63" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_64 p3-tv1-d4 - client retry có backoff giới hạn 4. udm18 nâng cao (reconnect) xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_64</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV1-D4 - Client retry có backoff giới hạn</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_64.png" alt="TC_64" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_65 p3-tv1-d5 - viết tests: đúng/sai/hết hạn token, tranh token, trước/sau deadline, mất mạng giữa frame/m 4. udm18 nâng cao (reconnect) xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_65</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV1-D5 - Viết tests: đúng/sai/hết hạn token, tranh token, trước/sau deadline, mất mạng giữa frame/m</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_65.png" alt="TC_65" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_66 p3-tv2-d1 - xây activematchdirectory: room, players, turn, time profile, spectator count 4. udm18 nâng cao (spectator) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_66</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV2-D1 - Xây ActiveMatchDirectory: room, players, turn, time profile, spectator count</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_66.png" alt="TC_66" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_67 p3-tv2-d2 - xây spectatormanager: join/leave, role assignment, membership per room, socket cleanup 4. udm18 nâng cao (spectator) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_67</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV2-D2 - Xây SpectatorManager: join/leave, role assignment, membership per room, socket cleanup</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_67.png" alt="TC_67" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_68 p3-tv2-d3 - broadcast fan-out cho move, clock, check, disconnect, reconnect, game ended 4. udm18 nâng cao (spectator) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_68</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV2-D3 - Broadcast fan-out cho move, clock, check, disconnect, reconnect, game ended</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_68.png" alt="TC_68" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_69 p3-tv2-d4 - authorization middleware trên move/resign/draw và command khác 4. udm18 nâng cao (spectator) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_69</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV2-D4 - Authorization middleware trên MOVE/RESIGN/DRAW và command khác</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_69.png" alt="TC_69" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_70 p3-tv2-d5 - viết tests join/leave/multi-spectator/late join/room end/unauthorized/broadcast failure 4. udm18 nâng cao (spectator) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_70</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV2-D5 - Viết tests join/leave/multi-spectator/late join/room end/unauthorized/broadcast failure</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_70.png" alt="TC_70" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_71 p3-tv3-d1 - thiết kế moveclassifier facts: check/chase/kill/exchange/block/offer/idle 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_71</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV3-D1 - Thiết kế MoveClassifier facts: CHECK/CHASE/KILL/EXCHANGE/BLOCK/OFFER/IDLE</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_71.png" alt="TC_71" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_72 p3-tv3-d2 - cài protectedpieceevaluator: bảo vệ thật/bảo vệ giả 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_72</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV3-D2 - Cài ProtectedPieceEvaluator: bảo vệ thật/bảo vệ giả</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_72.png" alt="TC_72" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_73 p3-tv3-d3 - cài chasevictimdetector: cùng nạn nhân, đổi nạn nhân, hai quân đuổi một quân 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_73</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV3-D3 - Cài ChaseVictimDetector: cùng nạn nhân, đổi nạn nhân, hai quân đuổi một quân</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_73.png" alt="TC_73" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_74 p3-tv3-d4 - bổ sung ngoại lệ facts: tướng/tốt đuổi quân, tốt chưa qua sông, mã/pháo đuổi xe, protected 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_74</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV3-D4 - Bổ sung ngoại lệ facts: Tướng/Tốt đuổi quân, Tốt chưa qua sông, Mã/Pháo đuổi Xe, protected</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_74.png" alt="TC_74" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_75 p3-tv3-d5 - chạy và sửa classifier corpus 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_75</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV3-D5 - Chạy và sửa classifier corpus</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_75.png" alt="TC_75" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_76 p3-tv4-d1 - tạo positionhistory và cycledetector: board equality + side-to-move + revision 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_76</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV4-D1 - Tạo PositionHistory và CycleDetector: board equality + side-to-move + revision</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_76.png" alt="TC_76" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_77 p3-tv4-d2 - tạo violationlevelevaluator: idle/chase/check 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_77</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV4-D2 - Tạo ViolationLevelEvaluator: IDLE/CHASE/CHECK</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_77.png" alt="TC_77" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_78 p3-tv4-d3 - tạo repetitionresultresolver và must-vary warning 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_78</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV4-D3 - Tạo RepetitionResultResolver và must-vary warning</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_78.png" alt="TC_78" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_79 p3-tv4-d4 - cài ngoại lệ và natural movecount theo wxf: 100 ply liên tục không capture (50 nước mỗi bê 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_79</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV4-D4 - Cài ngoại lệ và natural movecount theo WXF: 100 ply liên tục không capture (50 nước mỗi bê</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_79.png" alt="TC_79" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_80 p3-tv4-d5 - chạy corpus: trường chiếu một/hai bên, trường bắt, idle, check-vs-chase, warning/change/no 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_80</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV4-D5 - Chạy corpus: trường chiếu một/hai bên, trường bắt, idle, check-vs-chase, warning/change/no</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_80.png" alt="TC_80" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_81 p3-tv5-d1 - xây active matches screen 4. udm18 nâng cao (spectator) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_81</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV5-D1 - Xây Active Matches screen</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_81.png" alt="TC_81" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_82 p3-tv5-d2 - xây spectatorroom read-only: board, clocks, move list, player states, spectator count 4. udm18 nâng cao (spectator) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_82</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV5-D2 - Xây SpectatorRoom read-only: board, clocks, move list, player states, spectator count</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Spectator)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_82.png" alt="TC_82" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_83 p3-tv5-d3 - xây reconnect overlay và opponent-disconnected state 4. udm18 nâng cao (reconnect) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_83</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV5-D3 - Xây reconnect overlay và opponent-disconnected state</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_83.png" alt="TC_83" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_84 p3-tv5-d4 - cài revision gap detection và atomic resync 4. udm18 nâng cao (reconnect) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_84</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV5-D4 - Cài revision gap detection và atomic resync</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_84.png" alt="TC_84" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_85 p3-tv5-d5 - manual/ui tests cho spectator/reconnect/resync 4. udm18 nâng cao (reconnect) xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_85</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV5-D5 - Manual/UI tests cho spectator/reconnect/resync</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Reconnect)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_85.png" alt="TC_85" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_86 p3-tv6-d1 - mở rộng database position_history/adjudication facts: revision, hash, side, classification 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_86</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV6-D1 - Mở rộng database position_history/adjudication facts: revision, hash, side, classification</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_86.png" alt="TC_86" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_87 p3-tv6-d2 - xây replay data service/dto tiến-lùi dựa trên dữ liệu đã lưu 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_87</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV6-D2 - Xây replay data service/DTO tiến-lùi dựa trên dữ liệu đã lưu</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_87.png" alt="TC_87" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_88 p3-tv6-d3 - viết integration tests reconnect, spectator, snapshot, revision gap, authorization, repeti 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_88</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV6-D3 - Viết integration tests reconnect, spectator, snapshot, revision gap, authorization, repeti</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_88.png" alt="TC_88" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_89 p3-tv6-d4 - xây load-test tool: client giả lập, tạo room, gửi move hợp lệ chuẩn bị trước, join spectat 4. udm18 nâng cao (load & concurrency) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_89</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV6-D4 - Xây load-test tool: client giả lập, tạo room, gửi move hợp lệ chuẩn bị trước, join spectat</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Concurrency)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_89.png" alt="TC_89" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_90 p3-tv6-d5 - tạo qa/conformance report phase 3 4. udm18 nâng cao (history & persistence) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_90</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P3-TV6-D5 - Tạo QA/conformance report Phase 3</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (History & Persistence)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_90.png" alt="TC_90" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_91 p4-tv1-d1 - fault injection transport: frame thiếu/quá lớn, slow client, disconnect giữa payload, malf 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_91</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV1-D1 - Fault injection transport: frame thiếu/quá lớn, slow client, disconnect giữa payload, malf</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_91.png" alt="TC_91" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_92 p4-tv1-d2 - audit rate limit, timeout, token security, log redaction, configuration validation 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_92</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV1-D2 - Audit rate limit, timeout, token security, log redaction, configuration validation</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_92.png" alt="TC_92" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_93 p4-tv1-d3 - graceful server shutdown 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_93</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV1-D3 - Graceful Server shutdown</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_93.png" alt="TC_93" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_94 p4-tv1-d4 - benchmark và tuning transport trong load a/b 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_94</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV1-D4 - Benchmark và tuning transport trong Load A/B</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_94.png" alt="TC_94" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_95 p4-tv1-d5 - regression toàn network/reconnect 1. tcp socket xiangqionline.shared.tests / xiangqionline.protocol.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_95</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV1-D5 - Regression toàn network/reconnect</div>
+                <div class="tc-cat">Module: 1. TCP Socket</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_95.png" alt="TC_95" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_96 p4-tv2-d1 - race-condition audit: move/timeout, resign/move, reconnect/game_end, draw/move 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_96</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV2-D1 - Race-condition audit: MOVE/TIMEOUT, RESIGN/MOVE, RECONNECT/GAME_END, DRAW/MOVE</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_96.png" alt="TC_96" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_97 p4-tv2-d2 - audit room/timer/spectator cleanup 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_97</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV2-D2 - Audit room/timer/spectator cleanup</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_97.png" alt="TC_97" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_98 p4-tv2-d3 - clock drift/monotonic audit 4. udm18 nâng cao (timer) xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_98</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV2-D3 - Clock drift/monotonic audit</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Timer)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_98.png" alt="TC_98" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_99 p4-tv2-d4 - stress nhiều phòng với tv6 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_99</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV2-D4 - Stress nhiều phòng với TV6</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_99.png" alt="TC_99" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_100 p4-tv2-d5 - regression server lobby/room/clock/spectator 2. client - server xiangqionline.server.tests / xiangqionline.integrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_100</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV2-D5 - Regression server lobby/room/clock/spectator</div>
+                <div class="tc-cat">Module: 2. Client - Server</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_100.png" alt="TC_100" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_101 p4-tv3-d1 - audit toàn bộ validators 7 loại quân và board boundaries 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_101</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV3-D1 - Audit toàn bộ validators 7 loại quân và board boundaries</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_101.png" alt="TC_101" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_102 p4-tv3-d2 - property/randomized tests trên legal board states có kiểm soát 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_102</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV3-D2 - Property/randomized tests trên legal board states có kiểm soát</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_102.png" alt="TC_102" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_103 p4-tv3-d3 - audit board hash/equality/move application và attack facts 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_103</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV3-D3 - Audit board hash/equality/move application và attack facts</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_103.png" alt="TC_103" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_104 p4-tv3-d4 - tối ưu ruleengine nếu cần dựa trên profiling, không thay đổi contract 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_104</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV3-D4 - Tối ưu RuleEngine nếu cần dựa trên profiling, không thay đổi contract</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_104.png" alt="TC_104" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_105 p4-tv3-d5 - đóng corpus core 3. game system xiangqionline.ruleengine.tests (236 tests)">
+            <div class="tc-header">
+                <span class="tc-id">TC_105</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV3-D5 - Đóng corpus core</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_105.png" alt="TC_105" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_106 p4-tv4-d1 - chạy lại toàn bộ wxf/axf corpus 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_106</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV4-D1 - Chạy lại toàn bộ WXF/AXF corpus</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_106.png" alt="TC_106" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_107 p4-tv4-d2 - audit must-vary, mixed cycles, exceptions, natural movecount 100 ply và priority resolver 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_107</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV4-D2 - Audit must-vary, mixed cycles, exceptions, natural movecount 100 ply và priority resolver</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_107.png" alt="TC_107" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_108 p4-tv4-d3 - bổ sung explainability: adjudication facts/log/report để trình bày vì sao thắng/thua/hòa. 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_108</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV4-D3 - Bổ sung explainability: adjudication facts/log/report để trình bày vì sao thắng/thua/hòa.</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_108.png" alt="TC_108" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_109 p4-tv4-d4 - soak/regression cùng roomactor, persistence và replay 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_109</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV4-D4 - Soak/regression cùng RoomActor, persistence và replay</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_109.png" alt="TC_109" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_110 p4-tv4-d5 - đóng wxf profile v1.2.0 3. game system xiangqionline.ruleengine.tests / xiangqionline.server.tests">
+            <div class="tc-header">
+                <span class="tc-id">TC_110</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV4-D5 - Đóng WXF profile v1.2.0</div>
+                <div class="tc-cat">Module: 3. Game System</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_110.png" alt="TC_110" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_111 p4-tv5-d1 - audit ui states: loading/error/empty/connected/reconnecting/spectator/game-ended 2. client - server & ui xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_111</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV5-D1 - Audit UI states: loading/error/empty/connected/reconnecting/spectator/game-ended</div>
+                <div class="tc-cat">Module: 2. Client - Server & UI</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_111.png" alt="TC_111" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_112 p4-tv5-d2 - audit double-click/pending command/stale event 2. client - server & ui xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_112</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV5-D2 - Audit double-click/pending command/stale event</div>
+                <div class="tc-cat">Module: 2. Client - Server & UI</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_112.png" alt="TC_112" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_113 p4-tv5-d3 - hoàn thiện visual hierarchy, animation an toàn, thông báo check/reconnect/warning/end reas 2. client - server & ui xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_113</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV5-D3 - Hoàn thiện visual hierarchy, animation an toàn, thông báo check/reconnect/warning/end reas</div>
+                <div class="tc-cat">Module: 2. Client - Server & UI</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_113.png" alt="TC_113" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_114 p4-tv5-d4 - soak client nhận event dài 2. client - server & ui xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_114</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV5-D4 - Soak Client nhận event dài</div>
+                <div class="tc-cat">Module: 2. Client - Server & UI</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_114.png" alt="TC_114" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_115 p4-tv5-d5 - đóng user guide screenshots 2. client - server & ui xiangqionline.client.smoketests (42 tests) / wpf ui">
+            <div class="tc-header">
+                <span class="tc-id">TC_115</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV5-D5 - Đóng user guide screenshots</div>
+                <div class="tc-cat">Module: 2. Client - Server & UI</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_115.png" alt="TC_115" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_116 p4-tv6-d1 - định nghĩa và chạy load a: 15 client = 5 trận (10 player) + 5 spectator 4. udm18 nâng cao (load & release) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_116</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV6-D1 - Định nghĩa và chạy Load A: 15 Client = 5 trận (10 player) + 5 spectator</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Release)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_116.png" alt="TC_116" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_117 p4-tv6-d2 - chạy load b: 40 client, 15 trận, 10 spectator 4. udm18 nâng cao (load & release) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_117</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV6-D2 - Chạy Load B: 40 Client, 15 trận, 10 spectator</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Release)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_117.png" alt="TC_117" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_118 p4-tv6-d3 - clean clone/release candidate test 4. udm18 nâng cao (load & release) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_118</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV6-D3 - Clean clone/release candidate test</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Release)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_118.png" alt="TC_118" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_119 p4-tv6-d4 - hoàn thiện readme, hướng dẫn chạy, test evidence, logs, screenshots, cấu trúc docx/pptx/ex 4. udm18 nâng cao (load & release) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_119</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV6-D4 - Hoàn thiện README, hướng dẫn chạy, test evidence, logs, screenshots, cấu trúc DOCX/PPTX/Ex</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Release)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_119.png" alt="TC_119" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_120 p4-tv6-d5 - tổ chức full rehearsal, kiểm tra video/kịch bản từng tv, tạo release tag sau gate 4. udm18 nâng cao (load & release) xiangqionline.integrationtests (60 tests) / loadtest">
+            <div class="tc-header">
+                <span class="tc-id">TC_120</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">P4-TV6-D5 - Tổ chức full rehearsal, kiểm tra video/kịch bản từng TV, tạo release tag sau gate</div>
+                <div class="tc-cat">Module: 4. UDM18 Nâng cao (Load & Release)</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_120.png" alt="TC_120" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_121 [sec] tc_121: phòng thủ tấn công tràn bộ đệm gói tin (oom / large frame defense) 1. tcp socket & an ninh mạng dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~tcpframecodectests">
+            <div class="tc-header">
+                <span class="tc-id">TC_121</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_121: Phòng thủ Tấn công Tràn Bộ Đệm Gói Tin (OOM / Large Frame Defense)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & An Ninh Mạng</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_121.png" alt="TC_121" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_122 [sec] tc_122: phòng thủ tấn công từ chối dịch vụ flooding (dos / rate limiter defense) 1. tcp socket & rate limiting dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~heartbeatedconnectionratelimittests">
+            <div class="tc-header">
+                <span class="tc-id">TC_122</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_122: Phòng thủ Tấn công Từ chối Dịch vụ Flooding (DoS / Rate Limiter Defense)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Rate Limiting</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_122.png" alt="TC_122" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_123 [sec] tc_123: phòng thủ vượt quyền & giả mạo session token (authorization & token tampering) 2. client - server & session dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~playersessiontests">
+            <div class="tc-header">
+                <span class="tc-id">TC_123</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_123: Phòng thủ Vượt Quyền & Giả Mạo Session Token (Authorization & Token Tampering)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Session</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_123.png" alt="TC_123" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_124 [sec] tc_124: phòng thủ tiêm mã độc sql injection (sqli defense in user inputs) 4. persistence & an ninh dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~accountauthenticationtcptests">
+            <div class="tc-header">
+                <span class="tc-id">TC_124</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_124: Phòng thủ Tiêm Mã Độc SQL Injection (SQLi Defense in User Inputs)</div>
+                <div class="tc-cat">Module: 4. Persistence & An Ninh</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_124.png" alt="TC_124" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_125 [sec] tc_125: phòng thủ tấn công vét cạn mật khẩu & mã otp (brute-force protection) 2. client - server & xác thực dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~loginattemptlimitertests">
+            <div class="tc-header">
+                <span class="tc-id">TC_125</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_125: Phòng thủ Tấn Công Vét Cạn Mật Khẩu & Mã OTP (Brute-Force Protection)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Xác Thực</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_125.png" alt="TC_125" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_126 [sec] tc_126: phòng thủ tấn công gửi lại gói tin nước đi (replay attack & sequence desync) 3. game system & giao thức dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~productionmovecommittests">
+            <div class="tc-header">
+                <span class="tc-id">TC_126</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[SEC] TC_126: Phòng thủ Tấn Công Gửi Lại Gói Tin Nước Đi (Replay Attack & Sequence Desync)</div>
+                <div class="tc-cat">Module: 3. Game System & Giao Thức</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_126.png" alt="TC_126" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_127 [fault] tc_127: phát hiện kết nối treo một chiều (half-open socket & heartbeat timeout) 1. tcp socket & độ bền mạng dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~heartbeatedconnectionresiliencetests">
+            <div class="tc-header">
+                <span class="tc-id">TC_127</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FAULT] TC_127: Phát hiện Kết Nối Treo Một Chiều (Half-Open Socket & Heartbeat Timeout)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Độ Bền Mạng</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_127.png" alt="TC_127" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_128 [fault] tc_128: ngắt kết nối đột ngột giữa chừng khi đang nhận khung (mid-frame drop recovery) 1. tcp socket & quản lý tài nguyên dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~connectionreceiveloopmidframedisconnecttests">
+            <div class="tc-header">
+                <span class="tc-id">TC_128</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FAULT] TC_128: Ngắt Kết Nối Đột Ngột Giữa Chừng Khi Đang Nhận Khung (Mid-Frame Drop Recovery)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Quản Lý Tài Nguyên</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_128.png" alt="TC_128" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_129 [fault] tc_129: xử lý khách chậm truyền từng byte (slowloris / super slow client protection) 1. tcp socket & hiệu năng dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~connectionreceivelooptransporttimeouttests">
+            <div class="tc-header">
+                <span class="tc-id">TC_129</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FAULT] TC_129: Xử Lý Khách Chậm Truyền Từng Byte (Slowloris / Super Slow Client Protection)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Hiệu Năng</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_129.png" alt="TC_129" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_130 [fault] tc_130: tranh chấp nước đi đồng thời cực hạn (concurrent move race condition & mutex gate) 2. client - server & concurrency dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~gameroomtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_130</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FAULT] TC_130: Tranh Chấp Nước Đi Đồng Thời Cực Hạn (Concurrent Move Race Condition & Mutex Gate)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Concurrency</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_130.png" alt="TC_130" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_131 [fault] tc_131: khôi phục khi cơ sở dữ liệu bị khóa đột ngột (database disk lock / rollback integrity) 4. persistence & khôi phục dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~tv6persistenceintegrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_131</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FAULT] TC_131: Khôi Phục Khi Cơ Sở Dữ Liệu Bị Khóa Đột Ngột (Database Disk Lock / Rollback Integrity)</div>
+                <div class="tc-cat">Module: 4. Persistence & Khôi Phục</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_131.png" alt="TC_131" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_132 [feat] tc_132: đăng ký tài khoản mới & kiểm tra định dạng email (account registration & validation) 2. client - server & dịch vụ tài khoản dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~accountauthenticationtcptests">
+            <div class="tc-header">
+                <span class="tc-id">TC_132</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_132: Đăng Ký Tài Khoản Mới & Kiểm Tra Định Dạng Email (Account Registration & Validation)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Dịch Vụ Tài Khoản</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_132.png" alt="TC_132" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_133 [feat] tc_133: đặt lại mật khẩu bằng mã otp 6 số qua email smtp (password reset via smtp otp) 2. client - server & tích hợp smtp dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~accountservicetests">
+            <div class="tc-header">
+                <span class="tc-id">TC_133</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_133: Đặt Lại Mật Khẩu Bằng Mã OTP 6 Số Qua Email SMTP (Password Reset via SMTP OTP)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Tích Hợp SMTP</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_133.png" alt="TC_133" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_134 [feat] tc_134: giới hạn thời gian sống mã otp & giới hạn gửi lại (otp expiry & resend cooldown) 2. client - server & bảo mật otp dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~accountservicetests">
+            <div class="tc-header">
+                <span class="tc-id">TC_134</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_134: Giới Hạn Thời Gian Sống Mã OTP & Giới Hạn Gửi Lại (OTP Expiry & Resend Cooldown)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Bảo Mật OTP</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_134.png" alt="TC_134" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_135 [feat] tc_135: chế độ chơi cờ đấu với máy tự động (play with bot / ai game mode) 3. game system & bot engine dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~productionbotgametests">
+            <div class="tc-header">
+                <span class="tc-id">TC_135</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_135: Chế Độ Chơi Cờ Đấu Với Máy Tự Động (Play with Bot / AI Game Mode)</div>
+                <div class="tc-cat">Module: 3. Game System & Bot Engine</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_135.png" alt="TC_135" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_136 [feat] tc_136: tính năng chat nhanh trong phòng đấu (in-game quick chat & unicode support) 2. client - server & trải nghiệm người dùng dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~businesscriticalflowtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_136</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_136: Tính Năng Chat Nhanh Trong Phòng Đấu (In-Game Quick Chat & Unicode Support)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Trải Nghiệm Người Dùng</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_136.png" alt="TC_136" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_137 [feat] tc_137: chặn quyền can thiệp trận đấu của khán giả (spectator mutation blocking & fan-out) 2. client - server & phân quyền khán giả dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~publicmatch_spectatordrawandhistory">
+            <div class="tc-header">
+                <span class="tc-id">TC_137</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_137: Chặn Quyền Can Thiệp Trận Đấu Của Khán Giả (Spectator Mutation Blocking & Fan-out)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Phân Quyền Khán Giả</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_137.png" alt="TC_137" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_138 [feat] tc_138: giới hạn khung dữ liệu lịch sử ván cờ dài (history boundary & frame safety) 1. tcp socket & giới hạn khung dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~tv6persistenceintegrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_138</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_138: Giới Hạn Khung Dữ Liệu Lịch Sử Ván Cờ Dài (History Boundary & Frame Safety)</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Giới Hạn Khung</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_138.png" alt="TC_138" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_139 [feat] tc_139: luật cấm chiếu lặp & đuổi quân lặp (xiangqi perpetual check & chase law) 3. game system & luật cờ tướng dotnet test tests/xiangqionline.ruleengine.tests -c release --filter fullyqualifiedname~phase234adjudicationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_139</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_139: Luật Cấm Chiếu Lặp & Đuổi Quân Lặp (Xiangqi Perpetual Check & Chase Law)</div>
+                <div class="tc-cat">Module: 3. Game System & Luật Cờ Tướng</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_139.png" alt="TC_139" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_140 [feat] tc_140: bảng điều khiển giám sát quản trị hệ thống (serveradmin real-time dashboard) 2. client - server & quản trị hệ thống dotnet build code/src/xiangqionline.serveradmin/xiangqionline.serveradmin.csproj -c release">
+            <div class="tc-header">
+                <span class="tc-id">TC_140</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[FEAT] TC_140: Bảng Điều Khiển Giám Sát Quản Trị Hệ Thống (ServerAdmin Real-Time Dashboard)</div>
+                <div class="tc-cat">Module: 2. Client - Server & Quản Trị Hệ Thống</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_140.png" alt="TC_140" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_141 [bug-verif] tc_141: kiểm chứng lỗi race condition giữa snapshot bàn cờ và mutation lock 2. client - server & đồng bộ trạng thái dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~gameroomtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_141</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_141: Kiểm Chứng Lỗi Race Condition giữa Snapshot Bàn Cờ và Mutation Lock</div>
+                <div class="tc-cat">Module: 2. Client - Server & Đồng Bộ Trạng Thái</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_141.png" alt="TC_141" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_142 [bug-verif] tc_142: kiểm chứng hiện tượng head-of-line blocking do khách mạng chậm 1. tcp socket & kiến trúc broadcast dotnet test tests/xiangqionline.server.tests -c release --filter fullyqualifiedname~playerdirectorybroadcasttests">
+            <div class="tc-header">
+                <span class="tc-id">TC_142</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_142: Kiểm Chứng Hiện Tượng Head-of-Line Blocking do Khách Mạng Chậm</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Kiến Trúc Broadcast</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_142.png" alt="TC_142" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_143 [bug-verif] tc_143: kiểm chứng nguy cơ mất gói tin do hàng đợi boundedchannel dropwrite 1. tcp socket & quản lý hàng đợi dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~acceptloopsurvivesspamtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_143</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_143: Kiểm Chứng Nguy Cơ Mất Gói Tin Do Hàng Đợi BoundedChannel DropWrite</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Quản Lý Hàng Đợi</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_143.png" alt="TC_143" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_144 [bug-verif] tc_144: kiểm chứng rủi ro mất kết quả trận đấu khi gặp sự cố cơ sở dữ liệu 4. persistence & khôi phục kết quả dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~tv6persistenceintegrationtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_144</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_144: Kiểm Chứng Rủi Ro Mất Kết Quả Trận Đấu Khi Gặp Sự Cố Cơ Sở Dữ Liệu</div>
+                <div class="tc-cat">Module: 4. Persistence & Khôi Phục Kết Quả</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_144.png" alt="TC_144" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_145 [bug-verif] tc_145: kiểm chứng giới hạn chiều dài lịch sử trận đấu 64 kib 1. tcp socket & giới hạn khung 64 kib dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~tcpframecodectests">
+            <div class="tc-header">
+                <span class="tc-id">TC_145</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_145: Kiểm Chứng Giới Hạn Chiều Dài Lịch Sử Trận Đấu 64 KiB</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Giới Hạn Khung 64 KiB</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_145.png" alt="TC_145" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_146 [bug-verif] tc_146: kiểm chứng thiếu xử lý pong trên client heartbeat 1. tcp socket & client heartbeat dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~heartbeatmonitortests">
+            <div class="tc-header">
+                <span class="tc-id">TC_146</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_146: Kiểm Chứng Thiếu Xử Lý PONG Trên Client Heartbeat</div>
+                <div class="tc-cat">Module: 1. TCP Socket & Client Heartbeat</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_146.png" alt="TC_146" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_147 [bug-verif] tc_147: kiểm chứng bộ đệm trùng lặp yêu cầu bị xóa khi reconnect socket mới 2. client - server & reconnect idempotency dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~boundedidempotencycachetests">
+            <div class="tc-header">
+                <span class="tc-id">TC_147</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_147: Kiểm Chứng Bộ Đệm Trùng Lặp Yêu Cầu Bị Xóa Khi Reconnect Socket Mới</div>
+                <div class="tc-cat">Module: 2. Client - Server & Reconnect Idempotency</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_147.png" alt="TC_147" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_148 [bug-verif] tc_148: kiểm chứng dừng máy chủ chưa chờ thoát các luồng đang xử lý giao dịch 2. client - server & graceful shutdown dotnet test tests/xiangqionline.shared.tests -c release --filter fullyqualifiedname~servershutdownandconcurrentsendtests">
+            <div class="tc-header">
+                <span class="tc-id">TC_148</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_148: Kiểm Chứng Dừng Máy Chủ Chưa Chờ Thoát Các Luồng Đang Xử Lý Giao Dịch</div>
+                <div class="tc-cat">Module: 2. Client - Server & Graceful Shutdown</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_148.png" alt="TC_148" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_149 [bug-verif] tc_149: kiểm chứng lệch phân loại nước đi giữa cơ sở dữ liệu và bộ nhớ mạng 4. persistence & rule engine dotnet test tests/xiangqionline.integrationtests -c release --filter fullyqualifiedname~productionmovecommittests">
+            <div class="tc-header">
+                <span class="tc-id">TC_149</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_149: Kiểm Chứng Lệch Phân Loại Nước Đi Giữa Cơ Sở Dữ Liệu Và Bộ Nhớ Mạng</div>
+                <div class="tc-cat">Module: 4. Persistence & Rule Engine</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_149.png" alt="TC_149" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tc-card" data-search="tc_150 [bug-verif] tc_150: kiểm chứng độ trễ pong trong công cụ tải bị nhiễu do thiếu đối chiếu id 4. kiểm thử tải & đo lường độ trễ dotnet run --project code/tools/xiangqionline.loadtest/xiangqionline.loadtest.csproj -c release -- --clients 10 --duration 10">
+            <div class="tc-header">
+                <span class="tc-id">TC_150</span>
+                <span class="badge">PASSED</span>
+            </div>
+            <div class="tc-body">
+                <div class="tc-name">[BUG-VERIF] TC_150: Kiểm Chứng Độ Trễ PONG Trong Công Cụ Tải Bị Nhiễu Do Thiếu Đối Chiếu ID</div>
+                <div class="tc-cat">Module: 4. Kiểm Thử Tải & Đo Lường Độ Trễ</div>
+                <div class="tc-img-wrap">
+                    <img src="all_tc_cards/TC_150.png" alt="TC_150" loading="lazy" onclick="window.open(this.src)">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const search = document.getElementById('search');
+        const cards = document.querySelectorAll('.tc-card');
+        search.addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            cards.forEach(card => {
+                const text = card.getAttribute('data-search') || '';
+                card.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

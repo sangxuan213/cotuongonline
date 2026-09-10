@@ -20,3 +20,5 @@ work/
 .env.*
 
 push_develop.bat
+scratch/
+UDM18_TestCases_Lecturer_PERFECT.xlsx
