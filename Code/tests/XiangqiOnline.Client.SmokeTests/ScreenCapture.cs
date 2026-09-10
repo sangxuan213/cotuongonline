@@ -98,14 +98,14 @@ public static class ScreenCapture
         border.Measure(new Size(width, height));
         border.Arrange(new Rect(0, 0, width, height));
         border.UpdateLayout();
-        
+
         // Pump dispatcher
         var frame = new System.Windows.Threading.DispatcherFrame();
         System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Background,
             new Action(() => frame.Continue = false));
         System.Windows.Threading.Dispatcher.PushFrame(frame);
-        
+
         border.Measure(new Size(width, height));
         border.Arrange(new Rect(0, 0, width, height));
         border.UpdateLayout();

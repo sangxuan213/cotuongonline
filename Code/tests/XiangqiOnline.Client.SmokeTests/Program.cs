@@ -12,10 +12,10 @@ using UDM18.Client.Behaviors;
 using UDM18.Client.Models;
 using UDM18.Client.Protocol;
 using UDM18.Client.ViewModels;
+using XiangqiOnline.Client.SmokeTests;
 using XiangqiOnline.Shared.Enums;
 using XiangqiOnline.Shared.Models;
 using XiangqiOnline.Shared.Protocol;
-using XiangqiOnline.Client.SmokeTests;
 
 if (args.Any(a => a.Equals("--capture", StringComparison.OrdinalIgnoreCase)))
 {
